@@ -398,6 +398,8 @@ if (BUILD_CLR_LIBS)
 
 endif()
 
+add_subdirectory(poet)
+
 include (CTest)
 
 if (STANDALONE_BUILD)
