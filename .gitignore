@@ -229,3 +229,7 @@ m4/lt~obsolete.m4
 # builds (folders beginning with _ (underscore)
 **/_*/**
 **/.vshistory/**
+
+.vscode
+.cache
+.build
