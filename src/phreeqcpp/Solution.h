@@ -107,7 +107,14 @@ class cxxSolution:public cxxNumKeyword
 	void dump_xml(std::ostream & os, unsigned int indent = 0) const;
 	void dump_raw(std::ostream & s_oss, unsigned int indent, int *n_out=NULL) const;
 
-	LDBLE Get_master_activity(char *string) const;
+        void dump_essential_names(std::vector<std::string> &e_names) const;
+
+        void get_essential_values(std::vector<LDBLE> &e_values,
+                                  const std::vector<std::string> &order) const;
+        void set_essential_values(std::vector<LDBLE>::iterator &it,
+                                  const std::vector<std::string> &order);
+
+        LDBLE Get_master_activity(char *string) const;
 	void Set_master_activity(char *string, LDBLE value);	
 	LDBLE Get_total(const char *string) const;
 	LDBLE Get_total_element(const char *string) const;

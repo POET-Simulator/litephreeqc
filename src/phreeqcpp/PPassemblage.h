@@ -1,11 +1,12 @@
 #if !defined(PPASSEMBLAGE_H_INCLUDED)
 #define PPASSEMBLAGE_H_INCLUDED
 
-#include <cassert>				// assert
-#include <map>					// std::map
-#include <string>				// std::string
-#include <list>					// std::list
-#include <vector>				// std::vector
+#include <cassert> // assert
+#include <list>    // std::list
+#include <map>     // std::map
+#include <set>     // std::set
+#include <string>  // std::string
+#include <vector>  // std::vector
 
 #include "NumKeyword.h"
 #include "PPassemblageComp.h"
@@ -22,9 +23,13 @@ class cxxPPassemblage:public cxxNumKeyword
 
 	void dump_raw(std::ostream & s_oss, unsigned int indent, int *n_out=NULL) const;
 
-	void read_raw(CParser & parser, bool check = true);
+        void dump_essential_names(std::vector<std::string> &e_names) const;
+        void get_essential_values(std::vector<LDBLE> &e_values) const;
+        void set_essential_values(std::vector<LDBLE>::iterator &it);
 
-	const cxxNameDouble & Get_assemblage_totals() const
+        void read_raw(CParser &parser, bool check = true);
+
+        const cxxNameDouble & Get_assemblage_totals() const
 	{
 		return this->assemblage_totals;
 	};
