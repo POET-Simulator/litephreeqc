@@ -178,6 +178,105 @@ cxxSurface::dump_raw(std::ostream & s_oss, unsigned int indent, int *n_out) cons
 	return;
 }
 
+void cxxSurface::dump_essential_names(std::vector<std::string> &e_names) {
+  // this is just some reserve size, might be changed in the future
+  const int reserve_size =
+      surface_comps.size() * 4 + surface_charges.size() * 100;
+  e_names.clear();
+  e_names.reserve(reserve_size);
+
+  for (auto &comp : this->surface_comps) {
+    const std::string phase_name = comp.Get_formula();
+    e_names.push_back(phase_name + "_moles");
+    e_names.push_back(phase_name + "_la");
+    e_names.push_back(phase_name + "_cb");
+
+    for (const auto &tot : comp.Get_totals()) {
+      e_names.push_back(phase_name + "_" + tot.first);
+    }
+  }
+
+  for (auto &charge : this->surface_charges) {
+    const std::string component = charge.Get_name() + "_charge";
+    e_names.push_back(component + "_area");
+    e_names.push_back(component + "_grams");
+    e_names.push_back(component + "_cb");
+    e_names.push_back(component + "_mw");
+    e_names.push_back(component + "_la");
+
+    for (const auto &tot : charge.Get_diffuse_layer_totals()) {
+      e_names.push_back(component + "_tot_" + tot.first);
+    }
+    // for (const auto &dl_layer : charge.Get_dl_species_map()) {
+    // 	e_names.push_back(component + "_dls_" +
+    // std::to_string(dl_layer.first));
+    // }
+  }
+}
+
+void cxxSurface::get_essential_values(std::vector<LDBLE> &e_values) {
+  // this is just some reserve size, might be changed in the future
+  const int reserve_size =
+      surface_comps.size() * 4 + surface_charges.size() * 100;
+  e_values.clear();
+  e_values.reserve(reserve_size);
+
+  for (auto &comp : this->surface_comps) {
+    e_values.push_back(comp.Get_moles());
+    e_values.push_back(comp.Get_la());
+    e_values.push_back(comp.Get_charge_balance());
+
+    for (const auto &tot : comp.Get_totals()) {
+      e_values.push_back(tot.second);
+    }
+  }
+
+  for (auto &charge : this->surface_charges) {
+    e_values.push_back(charge.Get_specific_area());
+    e_values.push_back(charge.Get_grams());
+    e_values.push_back(charge.Get_charge_balance());
+    e_values.push_back(charge.Get_mass_water());
+    e_values.push_back(charge.Get_la_psi());
+
+    for (const auto &tot : charge.Get_diffuse_layer_totals()) {
+      e_values.push_back(tot.second);
+    }
+    // for (const auto &dl_layer : charge.Get_dl_species_map()) {
+    // 	e_values.push_back(dl_layer.second);
+    // }
+  }
+}
+
+void cxxSurface::set_essential_values(std::vector<LDBLE>::iterator &it) {
+  for (auto &comp : this->surface_comps) {
+    comp.Set_moles(*(it++));
+    comp.Set_la(*(it++));
+    comp.Set_charge_balance(*(it++));
+
+    for (auto &tot : comp.Get_totals()) {
+      tot.second = *(it++);
+    }
+  }
+
+  for (auto &charge : this->surface_charges) {
+    charge.Set_specific_area(*(it++));
+    charge.Set_grams(*(it++));
+    charge.Set_charge_balance(*(it++));
+    charge.Set_mass_water(*(it++));
+    charge.Set_la_psi(*(it++));
+
+    for (auto &tot : charge.Get_diffuse_layer_totals()) {
+      tot.second = *(it++);
+    }
+
+    charge.Get_dl_species_map().clear();
+
+    // for (auto &dl_layer : charge.Get_dl_species_map()) {
+    // 	dl_layer.second = *(it++);
+    // }
+  }
+}
+
 void
 cxxSurface::read_raw(CParser & parser, bool check)
 {

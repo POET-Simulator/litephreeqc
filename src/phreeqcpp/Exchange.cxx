@@ -169,6 +169,60 @@ cxxExchange::dump_raw(std::ostream & s_oss, unsigned int indent, int *n_out) con
 
 	return;
 }
+
+void cxxExchange::dump_essential_names(
+    std::vector<std::string> &e_names) const {
+  e_names.clear();
+  e_names.reserve(this->exchange_comps.size() *
+                  this->exchange_comps.at(0).Get_totals().size());
+
+  for (const auto &comp : this->exchange_comps) {
+    const std::string formular = comp.Get_formula();
+    e_names.push_back(formular);
+    for (const auto &total : comp.Get_totals()) {
+      if (total.first == formular) {
+        continue;
+      }
+      e_names.push_back(total.first + formular);
+    }
+  }
+}
+
+void cxxExchange::get_essential_values(std::vector<LDBLE> &e_values) const {
+  e_values.clear();
+  e_values.reserve(this->exchange_comps.size() *
+                   this->exchange_comps.at(0).Get_totals().size());
+
+  for (const auto &comp : this->exchange_comps) {
+    const std::string formular = comp.Get_formula();
+    e_values.push_back(comp.Get_totals().find(formular)->second);
+    for (const auto &total : comp.Get_totals()) {
+      if (total.first == formular) {
+        continue;
+      }
+      e_values.push_back(total.second);
+    }
+  }
+
+  return;
+}
+
+void cxxExchange::set_essential_values(std::vector<LDBLE>::iterator &it) {
+  for (auto &comp : this->exchange_comps) {
+    const std::string formular = comp.Get_formula();
+    auto formular_total = comp.Get_totals();
+    formular_total[formular] = *(it++);
+    for (auto &total : comp.Get_totals()) {
+      if (total.first == formular) {
+        continue;
+      }
+      total.second = *(it++);
+    }
+  }
+
+  return;
+}
+
 void
 cxxExchange::read_raw(CParser & parser, bool check)
 {

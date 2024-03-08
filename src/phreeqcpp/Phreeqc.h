@@ -1233,10 +1233,17 @@ protected:
 	*---------------------------------------------------------------------- */
 	std::vector<class species_list> species_list;
 
-	/*----------------------------------------------------------------------
-	*   Jacobian and Mass balance lists
-	*---------------------------------------------------------------------- */
-	std::vector<class list0> sum_jacob0;	/* array of pointers to targets and coefficients for array */
+      public:
+        std::vector<class species_list> &Get_species_list() {
+          return this->species_list;
+        }
+
+      protected:
+        /*----------------------------------------------------------------------
+         *   Jacobian and Mass balance lists
+         *----------------------------------------------------------------------
+        */
+        std::vector<class list0> sum_jacob0;	/* array of pointers to targets and coefficients for array */
 
 	std::vector<class list1> sum_mb1; /* array of pointers to sources and targets for mass
 										balance summations with coef = 1.0 */
