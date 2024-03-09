@@ -913,6 +913,12 @@ protected:
 
 	bool get_sel_out_string_on(int n)const;
 
+        struct SolutionMapping {
+          int module_n;
+          std::string module_name;
+          int sol_n;
+        };
+
 protected:
 #if defined(_MSC_VER)
 /* disable warning C4251: 'identifier' : class 'type' needs to have dll-interface to be used by clients of class 'type2' */
@@ -990,6 +996,10 @@ protected:
 	std::map< int, std::string >                  SelectedOutputStringMap;
 	std::map< int, std::vector< std::string > >   SelectedOutputLinesMap;
 
+        std::vector<SolutionMapping> getSolutionMapping() const {
+          return this->use_solutions;
+        };
+
 protected:
 	Phreeqc* PhreeqcPtr;
 	FILE *input_file;
@@ -1021,7 +1031,9 @@ private:
 	/**
 	 *  operator= not supported
 	 */
-	IPhreeqc& operator=(const IPhreeqc&);
+        IPhreeqc &operator=(const IPhreeqc &);
+
+        std::vector<SolutionMapping> use_solutions;
 };
 
 #endif // INC_IPHREEQC_HPP

@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-class IPhreeqcModule : public IPhreeqc {
+class IPhreeqcPOET : public IPhreeqc {
 public:
   std::vector<double>
   get_essential_values(std::size_t cell_number,
@@ -23,13 +23,12 @@ public:
                             const std::vector<std::string> &order,
                             std::vector<double> &values);
 
-  IPhreeqcModule(const std::string &database, const std::string &input_script,
-                 const std::vector<int> &ids)
+  IPhreeqcPOET(const std::string &database, const std::string &input_script)
       : IPhreeqc() {
     this->LoadDatabase(database.c_str());
     this->RunFile(input_script.c_str());
 
-    this->parseInitValues(ids);
+    this->parseInitValues();
   }
 
   std::vector<std::string> getInitNames() const {
@@ -55,7 +54,7 @@ private:
   std::vector<std::vector<double>> initial_concentrations;
   std::vector<int> solution_ids;
 
-  void parseInitValues(const std::vector<int> &ids);
+  void parseInitValues();
 
   essential_names dump_essential_names(std::size_t cell_number);
 
@@ -79,6 +78,11 @@ private:
   cxxSurface *Get_surface(std::size_t n) {
     return Utilities::Rxn_find(this->PhreeqcPtr->Get_Rxn_surface_map(), n);
   }
+
+  void resolveSolutionUseKW(
+      const std::vector<IPhreeqc::SolutionMapping> &unresolved,
+      std::map<int, std::pair<essential_names, std::vector<double>>>
+          &mapped_values);
 
   void valuesFromModule(const std::string &module_name, int cell_number,
                         essential_names &names, std::vector<double> &values);

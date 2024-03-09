@@ -38,9 +38,9 @@ createConcVector(const std::vector<std::string> &conc_names,
   return conc_vec;
 }
 
-void IPhreeqcModule::valuesFromModule(const std::string &module_name,
-                                      int cell_number, essential_names &names,
-                                      std::vector<double> &values) {
+void IPhreeqcPOET::valuesFromModule(const std::string &module_name,
+                                    int cell_number, essential_names &names,
+                                    std::vector<double> &values) {
   std::size_t dest_module_i = 0;
   std::vector<double> to_insert;
   if (module_name == "exchange") { // 1
@@ -65,33 +65,32 @@ void IPhreeqcModule::valuesFromModule(const std::string &module_name,
   values.insert(values.begin() + offset, to_insert.begin(), to_insert.end());
 }
 
-// void IPhreeqcModule::resolveSolutionUseKW(
-//     const std::vector<IPhreeqc::SolutionMapping> &unresolved,
-//     std::map<int, std::pair<essential_names, std::vector<double>>>
-//         &mapped_values) {
+void IPhreeqcPOET::resolveSolutionUseKW(
+    const std::vector<IPhreeqc::SolutionMapping> &unresolved,
+    std::map<int, std::pair<essential_names, std::vector<double>>>
+        &mapped_values) {
 
-//   for (const auto &input : unresolved) {
-//     if (mapped_values.find(input.module_n) != mapped_values.end()) {
-//       continue;
-//     }
+  for (const auto &input : unresolved) {
+    if (mapped_values.find(input.module_n) != mapped_values.end()) {
+      continue;
+    }
 
-//     essential_names new_conc_names;
-//     new_conc_names[0] = mapped_values[input.sol_n].first[0];
+    essential_names new_conc_names;
+    new_conc_names[0] = mapped_values[input.sol_n].first[0];
 
-//     const auto &curr_sol_vec = mapped_values[input.sol_n].second;
-//     std::vector<double> new_conc_values(
-//         curr_sol_vec.begin(), curr_sol_vec.begin() +
-//         new_conc_names[0].size());
+    const auto &curr_sol_vec = mapped_values[input.sol_n].second;
+    std::vector<double> new_conc_values(
+        curr_sol_vec.begin(), curr_sol_vec.begin() + new_conc_names[0].size());
 
-//     valuesFromModule(input.module_name, input.module_n, new_conc_names,
-//                      new_conc_values);
+    valuesFromModule(input.module_name, input.module_n, new_conc_names,
+                     new_conc_values);
 
-//     mapped_values[input.module_n] =
-//         std::make_pair(new_conc_names, new_conc_values);
-//   }
-// }
+    mapped_values[input.module_n] =
+        std::make_pair(new_conc_names, new_conc_values);
+  }
+}
 
-void IPhreeqcModule::parseInitValues(const std::vector<int> &ids) {
+void IPhreeqcPOET::parseInitValues() {
 
   std::map<int, std::pair<essential_names, std::vector<double>>> init_values;
 
@@ -107,20 +106,20 @@ void IPhreeqcModule::parseInitValues(const std::vector<int> &ids) {
         curr_conc_names, this->get_essential_values(id, curr_conc_names[0]));
   }
 
-  // const auto unresolved_modules = this->getSolutionMapping();
-  // resolveSolutionUseKW(unresolved_modules, init_values);
+  const auto unresolved_modules = this->getSolutionMapping();
+  resolveSolutionUseKW(unresolved_modules, init_values);
 
   std::vector<int> ids_to_erase;
 
   // loop over found initial values and erase those that are not in the ids
   for (const auto &[id, values] : init_values) {
     // find key in vector of ids
-    auto it = std::find(ids.begin(), ids.end(), id);
+    // auto it = std::find(ids.begin(), ids.end(), id);
 
-    if (it == ids.end()) {
-      ids_to_erase.push_back(id);
-      continue;
-    }
+    // if (it == ids.end()) {
+    //   ids_to_erase.push_back(id);
+    //   continue;
+    // }
 
     // create a union of all known concentration names
     for (std::size_t i = 0; i < 5; i++) {
@@ -185,8 +184,8 @@ void IPhreeqcModule::parseInitValues(const std::vector<int> &ids) {
   // }
 }
 
-IPhreeqcModule::essential_names
-IPhreeqcModule::dump_essential_names(std::size_t cell_number) {
+IPhreeqcPOET::essential_names
+IPhreeqcPOET::dump_essential_names(std::size_t cell_number) {
 
   essential_names eNames;
 
@@ -224,8 +223,8 @@ IPhreeqcModule::dump_essential_names(std::size_t cell_number) {
 }
 
 std::vector<double>
-IPhreeqcModule::get_essential_values(std::size_t cell_number,
-                                     const std::vector<std::string> &order) {
+IPhreeqcPOET::get_essential_values(std::size_t cell_number,
+                                   const std::vector<std::string> &order) {
   std::vector<double> essentials;
 
   // Solutions
@@ -271,9 +270,9 @@ IPhreeqcModule::get_essential_values(std::size_t cell_number,
   return essentials;
 }
 
-void IPhreeqcModule::set_essential_values(std::size_t cell_number,
-                                          const std::vector<std::string> &order,
-                                          std::vector<double> &values) {
+void IPhreeqcPOET::set_essential_values(std::size_t cell_number,
+                                        const std::vector<std::string> &order,
+                                        std::vector<double> &values) {
 
   auto dump_it = values.begin();
 
