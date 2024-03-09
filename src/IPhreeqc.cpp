@@ -1,201 +1,162 @@
-#include <memory>                       // auto_ptr
-#include <map>
-#include <string.h>
-#include "IPhreeqc.hpp"                 // IPhreeqc
-#include "Phreeqc.h"                    // Phreeqc
-#include "thread.h"
+#include "IPhreeqc.hpp" // IPhreeqc
+#include "Phreeqc.h"    // Phreeqc
 #include "Version.h"
+#include "thread.h"
+#include <map>
+#include <memory> // auto_ptr
+#include <string.h>
 
-#include "Debug.h"                      // ASSERT
-#include "ErrorReporter.hxx"            // CErrorReporter
-#include "CSelectedOutput.hxx"          // CSelectedOutput
-#include "SelectedOutput.h"             // SelectedOutput
-#include "dumper.h"                     // dumper
+#include "CSelectedOutput.hxx" // CSelectedOutput
+#include "Debug.h"             // ASSERT
+#include "ErrorReporter.hxx"   // CErrorReporter
+#include "SelectedOutput.h"    // SelectedOutput
+#include "dumper.h"            // dumper
 
 // statics
-std::map<size_t, IPhreeqc*> IPhreeqc::Instances;
+std::map<size_t, IPhreeqc *> IPhreeqc::Instances;
 size_t IPhreeqc::InstancesIndex = 0;
 
 std::string IPhreeqc::Version(VERSION_STRING);
 
 static const char empty[] = "";
 
-
 IPhreeqc::IPhreeqc(void)
-: DatabaseLoaded(false)
-, ClearAccumulated(false)
-, UpdateComponents(true)
-, OutputFileOn(false)
-, LogFileOn(false)
-, ErrorFileOn(false)
-, DumpOn(false)
-, DumpStringOn(false)
-, OutputStringOn(false)
-, LogStringOn(false)
-, ErrorStringOn(true)
-, ErrorReporter(0)
-, WarningStringOn(true)
-, WarningReporter(0)
-, CurrentSelectedOutputUserNumber(1)
-, PhreeqcPtr(0)
-, input_file(0)
-, database_file(0)
-{
-	this->ErrorReporter   = new CErrorReporter<std::ostringstream>;
-	this->WarningReporter = new CErrorReporter<std::ostringstream>;
-	this->PhreeqcPtr      = new Phreeqc(this);
+    : DatabaseLoaded(false), ClearAccumulated(false), UpdateComponents(true),
+      OutputFileOn(false), LogFileOn(false), ErrorFileOn(false), DumpOn(false),
+      DumpStringOn(false), OutputStringOn(false), LogStringOn(false),
+      ErrorStringOn(true), ErrorReporter(0), WarningStringOn(true),
+      WarningReporter(0), CurrentSelectedOutputUserNumber(1), PhreeqcPtr(0),
+      input_file(0), database_file(0) {
+  this->ErrorReporter = new CErrorReporter<std::ostringstream>;
+  this->WarningReporter = new CErrorReporter<std::ostringstream>;
+  this->PhreeqcPtr = new Phreeqc(this);
 
-	ASSERT(this->PhreeqcPtr->phast == 0);
-	this->UnLoadDatabase();
+  ASSERT(this->PhreeqcPtr->phast == 0);
+  this->UnLoadDatabase();
 
-	mutex_lock(&map_lock);
-	this->Index = IPhreeqc::InstancesIndex++;
-	std::map<size_t, IPhreeqc*>::value_type instance(this->Index, this);
-	/*std::pair<std::map<size_t, IPhreeqc*>::iterator, bool> pr = */IPhreeqc::Instances.insert(instance);
-	mutex_unlock(&map_lock);
+  mutex_lock(&map_lock);
+  this->Index = IPhreeqc::InstancesIndex++;
+  std::map<size_t, IPhreeqc *>::value_type instance(this->Index, this);
+  /*std::pair<std::map<size_t, IPhreeqc*>::iterator, bool> pr = */ IPhreeqc::
+      Instances.insert(instance);
+  mutex_unlock(&map_lock);
 
-	this->SelectedOutputStringOn[1] = false;
+  this->SelectedOutputStringOn[1] = false;
 
-	this->SelectedOutputFileOnMap[1] = false;
-	this->SelectedOutputFileNameMap[1] = this->sel_file_name(1);
-	
-	this->OutputFileName = create_file_name("phreeqc", "out");
-	this->ErrorFileName  = create_file_name("phreeqc", "err");
-	this->LogFileName    = create_file_name("phreeqc", "log");
+  this->SelectedOutputFileOnMap[1] = false;
+  this->SelectedOutputFileNameMap[1] = this->sel_file_name(1);
 
-	this->DumpFileName   = create_file_name("dump", "out");
-	this->PhreeqcPtr->dump_info.Set_file_name(this->DumpFileName);
+  this->OutputFileName = create_file_name("phreeqc", "out");
+  this->ErrorFileName = create_file_name("phreeqc", "err");
+  this->LogFileName = create_file_name("phreeqc", "log");
+
+  this->DumpFileName = create_file_name("dump", "out");
+  this->PhreeqcPtr->dump_info.Set_file_name(this->DumpFileName);
 }
 
-IPhreeqc::~IPhreeqc(void)
-{
+IPhreeqc::~IPhreeqc(void) {
 #if !defined(NDEBUG)
-	this->OutputFileOn = false;
+  this->OutputFileOn = false;
 #endif
-	delete this->PhreeqcPtr;
-	delete this->WarningReporter;
-	delete this->ErrorReporter;
+  delete this->PhreeqcPtr;
+  delete this->WarningReporter;
+  delete this->ErrorReporter;
 
-	std::map< int, CSelectedOutput* >::iterator sit = this->SelectedOutputMap.begin();
-	for (; sit != this->SelectedOutputMap.end(); ++sit)
-	{
-		delete (*sit).second;
-	}
-	this->SelectedOutputMap.clear();
+  std::map<int, CSelectedOutput *>::iterator sit =
+      this->SelectedOutputMap.begin();
+  for (; sit != this->SelectedOutputMap.end(); ++sit) {
+    delete (*sit).second;
+  }
+  this->SelectedOutputMap.clear();
 
-	mutex_lock(&map_lock);
-	std::map<size_t, IPhreeqc*>::iterator it = IPhreeqc::Instances.find(this->Index);
-	if (it != IPhreeqc::Instances.end())
-	{
-		IPhreeqc::Instances.erase(it);
-	}
-	mutex_unlock(&map_lock);
+  mutex_lock(&map_lock);
+  std::map<size_t, IPhreeqc *>::iterator it =
+      IPhreeqc::Instances.find(this->Index);
+  if (it != IPhreeqc::Instances.end()) {
+    IPhreeqc::Instances.erase(it);
+  }
+  mutex_unlock(&map_lock);
 }
 
-VRESULT IPhreeqc::AccumulateLine(const char *line)
-{
-	try
-	{
-		if (this->ClearAccumulated)
-		{
-			this->ClearAccumulatedLines();
-			this->ClearAccumulated = false;
-		}
+VRESULT IPhreeqc::AccumulateLine(const char *line) {
+  try {
+    if (this->ClearAccumulated) {
+      this->ClearAccumulatedLines();
+      this->ClearAccumulated = false;
+    }
 
-		this->ErrorReporter->Clear();
-		this->WarningReporter->Clear();
-		this->StringInput.append(line);
-		this->StringInput.append("\n");
-		return VR_OK;
-	}
-	catch (...)
-	{
-		this->AddError("AccumulateLine: An unhandled exception occured.\n");
-		throw;
-	}
-	return VR_OUTOFMEMORY;
+    this->ErrorReporter->Clear();
+    this->WarningReporter->Clear();
+    this->StringInput.append(line);
+    this->StringInput.append("\n");
+    return VR_OK;
+  } catch (...) {
+    this->AddError("AccumulateLine: An unhandled exception occured.\n");
+    throw;
+  }
+  return VR_OUTOFMEMORY;
 }
 
-size_t IPhreeqc::AddError(const char* str)
-{
-	return this->ErrorReporter->AddError(str);
+size_t IPhreeqc::AddError(const char *str) {
+  return this->ErrorReporter->AddError(str);
 }
 
-size_t IPhreeqc::AddWarning(const char* str)
-{
-	return this->WarningReporter->AddError(str);
+size_t IPhreeqc::AddWarning(const char *str) {
+  return this->WarningReporter->AddError(str);
 }
 
-void IPhreeqc::ClearAccumulatedLines(void)
-{
-	this->StringInput.erase();
+void IPhreeqc::ClearAccumulatedLines(void) { this->StringInput.erase(); }
+
+const std::string &IPhreeqc::GetAccumulatedLines(void) {
+  return this->StringInput;
 }
 
-const std::string& IPhreeqc::GetAccumulatedLines(void)
-{
-	return this->StringInput;
+const char *IPhreeqc::GetComponent(int n) {
+  static const char empty[] = "";
+  this->ListComponents();
+  if (n < 0 || n >= (int)this->Components.size()) {
+    return empty;
+  }
+  std::list<std::string>::iterator it = this->Components.begin();
+  for (int i = 0; i < n; ++i) {
+    ++it;
+  }
+  return (*it).c_str();
 }
 
-const char* IPhreeqc::GetComponent(int n)
-{
-	static const char empty[] = "";
-	this->ListComponents();
-	if (n < 0 || n >= (int)this->Components.size())
-	{
-		return empty;
-	}
-	std::list< std::string >::iterator it = this->Components.begin();
-	for(int i = 0; i < n; ++i)
-	{
-		++it;
-	}
-	return (*it).c_str();
+size_t IPhreeqc::GetComponentCount(void) {
+  this->ListComponents();
+  return this->Components.size();
 }
 
-size_t IPhreeqc::GetComponentCount(void)
-{
-	this->ListComponents();
-	return this->Components.size();
+int IPhreeqc::GetCurrentSelectedOutputUserNumber(void) const {
+  return this->CurrentSelectedOutputUserNumber;
 }
 
-int IPhreeqc::GetCurrentSelectedOutputUserNumber(void)const
-{
-	return this->CurrentSelectedOutputUserNumber;
+const char *IPhreeqc::GetDumpFileName(void) const {
+  return this->DumpFileName.c_str();
 }
 
-const char* IPhreeqc::GetDumpFileName(void)const
-{
-	return this->DumpFileName.c_str();
+bool IPhreeqc::GetDumpFileOn(void) const { return this->DumpOn; }
+
+const char *IPhreeqc::GetDumpString(void) const {
+  static const char err_msg[] = "GetDumpString: DumpStringOn not set.\n";
+  if (!this->DumpStringOn) {
+    return err_msg;
+  }
+  return this->DumpString.c_str();
 }
 
-bool IPhreeqc::GetDumpFileOn(void)const
-{
-	return this->DumpOn;
+const char *IPhreeqc::GetDumpStringLine(int n) {
+  static const char empty[] = "";
+  if (n < 0 || n >= this->GetDumpStringLineCount()) {
+    return empty;
+  }
+  return this->DumpLines[n].c_str();
 }
 
-const char* IPhreeqc::GetDumpString(void)const
-{
-	static const char err_msg[] = "GetDumpString: DumpStringOn not set.\n";
-	if (!this->DumpStringOn)
-	{
-		return err_msg;
-	}
-	return this->DumpString.c_str();
-}
-
-const char* IPhreeqc::GetDumpStringLine(int n)
-{
-	static const char empty[] = "";
-	if (n < 0 || n >= this->GetDumpStringLineCount())
-	{
-		return empty;
-	}
-	return this->DumpLines[n].c_str();
-}
-
-int IPhreeqc::GetDumpStringLineCount(void)const
-{
-	return (int)this->DumpLines.size();
+int IPhreeqc::GetDumpStringLineCount(void) const {
+  return (int)this->DumpLines.size();
 }
 
 bool IPhreeqc::GetDumpStringOn(void)const
@@ -1393,13 +1354,47 @@ void IPhreeqc::do_run(const char* sz_routine, std::istream* pis, PFN_PRERUN_CALL
 /*
  *   Calculate distribution for exchangers
  */
-		if (this->PhreeqcPtr->new_exchange)
-			this->PhreeqcPtr->initial_exchangers(TRUE);
+                if (this->PhreeqcPtr->new_exchange) {
+                  if (this->PhreeqcPtr->use.Get_solution_in()) {
+                    for (const auto &n_user :
+                         this->PhreeqcPtr->Rxn_new_exchange) {
+                      this->use_solutions.push_back(
+                          {.module_n = n_user,
+                           .module_name = "exchange",
+                           .sol_n =
+                               this->PhreeqcPtr->use.Get_n_solution_user()});
+                    }
+                  }
+                  this->PhreeqcPtr->initial_exchangers(TRUE);
+                }
 /*
  *   Calculate distribution for surfaces
  */
-		if (this->PhreeqcPtr->new_surface)
-			this->PhreeqcPtr->initial_surfaces(TRUE);
+                if (this->PhreeqcPtr->new_surface) {
+                  if (this->PhreeqcPtr->use.Get_solution_in()) {
+                    for (const auto &n_user :
+                         this->PhreeqcPtr->Rxn_new_surface) {
+                      this->use_solutions.push_back(
+                          {.module_n = n_user,
+                           .module_name = "surface",
+                           .sol_n =
+                               this->PhreeqcPtr->use.Get_n_solution_user()});
+                    }
+                  }
+
+                  this->PhreeqcPtr->initial_surfaces(TRUE);
+                }
+
+                if (this->PhreeqcPtr->new_kinetics) {
+                  if (this->PhreeqcPtr->use.Get_solution_in()) {
+                    this->use_solutions.push_back(
+                        {.module_n =
+                             this->PhreeqcPtr->use.Get_n_kinetics_user(),
+                         .module_name = "kinetics",
+                         .sol_n = this->PhreeqcPtr->use.Get_n_solution_user()});
+                  }
+                }
+
 /*
  *   Calculate initial gas composition
  */
@@ -1880,5 +1875,6 @@ std::string IPhreeqc::create_file_name(const char *prefix, const char *suffix)
 {
 	std::ostringstream oss;
 	oss << prefix << "." << this->Index << "." << suffix;
-	return oss.str();
+
+        return oss.str();
 }
