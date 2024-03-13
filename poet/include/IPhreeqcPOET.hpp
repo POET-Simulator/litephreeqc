@@ -9,10 +9,14 @@
 #include <Surface.h>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <cxxKinetics.h>
 #include <map>
 #include <string>
+#include <sys/types.h>
 #include <vector>
+
+enum { POET_SOL = 0, POET_EXCH, POET_KIN, POET_EQUIL, POET_SURF };
 
 class IPhreeqcPOET : public IPhreeqc {
 public:
@@ -48,6 +52,7 @@ public:
 
   std::vector<int> getSolutionIds() const { return this->solution_ids; }
 
+
   std::map<int, std::string> raw_dumps() {
     std::map<int, std::string> dumps;
 
@@ -60,6 +65,17 @@ public:
     }
 
     return dumps;
+  }
+
+  using ModulesArray = std::array<std::uint32_t, 5>;
+  
+  ModulesArray getModuleSizes() const {
+    ModulesArray module_sizes;
+    for (std::uint8_t i = 0; i < 5; i++) {
+      module_sizes[i] = this->initial_names[i].size();
+    }
+
+    return module_sizes;
   }
 
 private:
