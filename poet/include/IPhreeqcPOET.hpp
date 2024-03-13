@@ -10,6 +10,7 @@
 #include <array>
 #include <cstddef>
 #include <cxxKinetics.h>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -46,6 +47,20 @@ public:
   }
 
   std::vector<int> getSolutionIds() const { return this->solution_ids; }
+
+  std::map<int, std::string> raw_dumps() {
+    std::map<int, std::string> dumps;
+
+    this->SetDumpStringOn(true);
+
+    for (const auto &sol_id : this->solution_ids) {
+      std::string call_string = "DUMP\n -cells " + std::to_string(sol_id);
+      this->RunString(call_string.c_str());
+      dumps[sol_id] = this->GetDumpString();
+    }
+
+    return dumps;
+  }
 
 private:
   using essential_names = std::array<std::vector<std::string>, 5>;
