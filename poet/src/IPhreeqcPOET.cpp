@@ -44,15 +44,15 @@ void IPhreeqcPOET::valuesFromModule(const std::string &module_name,
   std::size_t dest_module_i = 0;
   std::vector<double> to_insert;
   if (module_name == "exchange") { // 1
-    this->Get_exchange(cell_number)->dump_essential_names(names[1]);
+    this->Get_exchange(cell_number)->dump_essential_names(names[POET_EXCH]);
     this->Get_exchange(cell_number)->get_essential_values(to_insert);
     dest_module_i = 1;
   } else if (module_name == "kinetics") { // 2
-    this->Get_kinetic(cell_number)->dump_essential_names(names[2]);
+    this->Get_kinetic(cell_number)->dump_essential_names(names[POET_KIN]);
     this->Get_kinetic(cell_number)->get_essential_values(to_insert);
     dest_module_i = 2;
   } else if (module_name == "surface") { // 4
-    this->Get_surface(cell_number)->dump_essential_names(names[4]);
+    this->Get_surface(cell_number)->dump_essential_names(names[POET_SURF]);
     this->Get_surface(cell_number)->get_essential_values(to_insert);
     dest_module_i = 4;
   }
@@ -191,31 +191,31 @@ IPhreeqcPOET::dump_essential_names(std::size_t cell_number) {
 
   // Solutions
   if (this->Get_solution(cell_number) != NULL) {
-    std::vector<std::string> &eSolNames = eNames[0];
+    std::vector<std::string> &eSolNames = eNames[POET_SOL];
     this->Get_solution(cell_number)->dump_essential_names(eSolNames);
   }
 
   // Exchange
   if (this->Get_exchange(cell_number) != NULL) {
-    std::vector<std::string> &eExchNames = eNames[1];
+    std::vector<std::string> &eExchNames = eNames[POET_EXCH];
     this->Get_exchange(cell_number)->dump_essential_names(eExchNames);
   }
 
   // Kinetics
   if (this->Get_kinetic(cell_number) != NULL) {
-    std::vector<std::string> &eKinNames = eNames[2];
+    std::vector<std::string> &eKinNames = eNames[POET_KIN];
     this->Get_kinetic(cell_number)->dump_essential_names(eKinNames);
   }
 
   // PPassemblage
   if (this->Get_equilibrium(cell_number) != NULL) {
-    std::vector<std::string> &eEquNames = eNames[3];
+    std::vector<std::string> &eEquNames = eNames[POET_EQUIL];
     this->Get_equilibrium(cell_number)->dump_essential_names(eEquNames);
   }
 
   // Surface
   if (this->Get_surface(cell_number) != NULL) {
-    std::vector<std::string> &eSurfNames = eNames[4];
+    std::vector<std::string> &eSurfNames = eNames[POET_SURF];
     this->Get_surface(cell_number)->dump_essential_names(eSurfNames);
   }
 
