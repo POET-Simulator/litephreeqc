@@ -38,57 +38,58 @@ createConcVector(const std::vector<std::string> &conc_names,
   return conc_vec;
 }
 
-void IPhreeqcPOET::valuesFromModule(const std::string &module_name,
-                                    int cell_number, essential_names &names,
-                                    std::vector<double> &values) {
-  std::size_t dest_module_i = 0;
-  std::vector<double> to_insert;
-  if (module_name == "exchange") { // 1
-    this->Get_exchange(cell_number)->dump_essential_names(names[POET_EXCH]);
-    this->Get_exchange(cell_number)->get_essential_values(to_insert);
-    dest_module_i = 1;
-  } else if (module_name == "kinetics") { // 2
-    this->Get_kinetic(cell_number)->dump_essential_names(names[POET_KIN]);
-    this->Get_kinetic(cell_number)->get_essential_values(to_insert);
-    dest_module_i = 2;
-  } else if (module_name == "surface") { // 4
-    this->Get_surface(cell_number)->dump_essential_names(names[POET_SURF]);
-    this->Get_surface(cell_number)->get_essential_values(to_insert);
-    dest_module_i = 4;
-  }
+// void IPhreeqcPOET::valuesFromModule(const std::string &module_name,
+//                                     int cell_number, essential_names &names,
+//                                     std::vector<double> &values) {
+//   std::size_t dest_module_i = 0;
+//   std::vector<double> to_insert;
+//   if (module_name == "exchange") { // 1
+//     this->Get_exchange(cell_number)->dump_essential_names(names[POET_EXCH]);
+//     this->Get_exchange(cell_number)->get_essential_values(to_insert);
+//     dest_module_i = 1;
+//   } else if (module_name == "kinetics") { // 2
+//     this->Get_kinetic(cell_number)->dump_essential_names(names[POET_KIN]);
+//     this->Get_kinetic(cell_number)->get_essential_values(to_insert);
+//     dest_module_i = 2;
+//   } else if (module_name == "surface") { // 4
+//     this->Get_surface(cell_number)->dump_essential_names(names[POET_SURF]);
+//     this->Get_surface(cell_number)->get_essential_values(to_insert);
+//     dest_module_i = 4;
+//   }
 
-  std::size_t offset = 0;
-  for (std::size_t i = 0; i < dest_module_i; i++) {
-    offset += names[i].size();
-  }
+//   std::size_t offset = 0;
+//   for (std::size_t i = 0; i < dest_module_i; i++) {
+//     offset += names[i].size();
+//   }
 
-  values.insert(values.begin() + offset, to_insert.begin(), to_insert.end());
-}
+//   values.insert(values.begin() + offset, to_insert.begin(), to_insert.end());
+// }
 
-void IPhreeqcPOET::resolveSolutionUseKW(
-    const std::vector<IPhreeqc::SolutionMapping> &unresolved,
-    std::map<int, std::pair<essential_names, std::vector<double>>>
-        &mapped_values) {
+// void IPhreeqcPOET::resolveSolutionUseKW(
+//     const std::vector<IPhreeqc::SolutionMapping> &unresolved,
+//     std::map<int, std::pair<essential_names, std::vector<double>>>
+//         &mapped_values) {
 
-  for (const auto &input : unresolved) {
-    if (mapped_values.find(input.module_n) != mapped_values.end()) {
-      continue;
-    }
+//   for (const auto &input : unresolved) {
+//     if (mapped_values.find(input.module_n) != mapped_values.end()) {
+//       continue;
+//     }
 
-    essential_names new_conc_names;
-    new_conc_names[0] = mapped_values[input.sol_n].first[0];
+//     essential_names new_conc_names;
+//     new_conc_names[0] = mapped_values[input.sol_n].first[0];
 
-    const auto &curr_sol_vec = mapped_values[input.sol_n].second;
-    std::vector<double> new_conc_values(
-        curr_sol_vec.begin(), curr_sol_vec.begin() + new_conc_names[0].size());
+//     const auto &curr_sol_vec = mapped_values[input.sol_n].second;
+//     std::vector<double> new_conc_values(
+//         curr_sol_vec.begin(), curr_sol_vec.begin() +
+//         new_conc_names[0].size());
 
-    valuesFromModule(input.module_name, input.module_n, new_conc_names,
-                     new_conc_values);
+//     valuesFromModule(input.module_name, input.module_n, new_conc_names,
+//                      new_conc_values);
 
-    mapped_values[input.module_n] =
-        std::make_pair(new_conc_names, new_conc_values);
-  }
-}
+//     mapped_values[input.module_n] =
+//         std::make_pair(new_conc_names, new_conc_values);
+//   }
+// }
 
 void IPhreeqcPOET::parseInitValues() {
 
@@ -106,8 +107,8 @@ void IPhreeqcPOET::parseInitValues() {
         curr_conc_names, this->get_essential_values(id, curr_conc_names[0]));
   }
 
-  const auto unresolved_modules = this->getSolutionMapping();
-  resolveSolutionUseKW(unresolved_modules, init_values);
+  // const auto unresolved_modules = this->getSolutionMapping();
+  // resolveSolutionUseKW(unresolved_modules, init_values);
 
   std::vector<int> ids_to_erase;
 
@@ -182,122 +183,4 @@ void IPhreeqcPOET::parseInitValues() {
   //         solution_only, init_values[val.sol_n].second);
   //   }
   // }
-}
-
-IPhreeqcPOET::essential_names
-IPhreeqcPOET::dump_essential_names(std::size_t cell_number) {
-
-  essential_names eNames;
-
-  // Solutions
-  if (this->Get_solution(cell_number) != NULL) {
-    std::vector<std::string> &eSolNames = eNames[POET_SOL];
-    this->Get_solution(cell_number)->dump_essential_names(eSolNames);
-  }
-
-  // Exchange
-  if (this->Get_exchange(cell_number) != NULL) {
-    std::vector<std::string> &eExchNames = eNames[POET_EXCH];
-    this->Get_exchange(cell_number)->dump_essential_names(eExchNames);
-  }
-
-  // Kinetics
-  if (this->Get_kinetic(cell_number) != NULL) {
-    std::vector<std::string> &eKinNames = eNames[POET_KIN];
-    this->Get_kinetic(cell_number)->dump_essential_names(eKinNames);
-  }
-
-  // PPassemblage
-  if (this->Get_equilibrium(cell_number) != NULL) {
-    std::vector<std::string> &eEquNames = eNames[POET_EQUIL];
-    this->Get_equilibrium(cell_number)->dump_essential_names(eEquNames);
-  }
-
-  // Surface
-  if (this->Get_surface(cell_number) != NULL) {
-    std::vector<std::string> &eSurfNames = eNames[POET_SURF];
-    this->Get_surface(cell_number)->dump_essential_names(eSurfNames);
-  }
-
-  return eNames;
-}
-
-std::vector<double>
-IPhreeqcPOET::get_essential_values(std::size_t cell_number,
-                                   const std::vector<std::string> &order) {
-  std::vector<double> essentials;
-
-  // Solutions
-  if (this->Get_solution(cell_number) != NULL) {
-    std::vector<double> sol_values;
-
-    this->Get_solution(cell_number)->get_essential_values(sol_values, order);
-    essentials.insert(essentials.end(), sol_values.begin(), sol_values.end());
-  }
-
-  // Exchange
-  if (this->Get_exchange(cell_number) != NULL) {
-    std::vector<double> exch_values;
-
-    this->Get_exchange(cell_number)->get_essential_values(exch_values);
-    essentials.insert(essentials.end(), exch_values.begin(), exch_values.end());
-  }
-
-  // Kinetics
-  if (this->Get_kinetic(cell_number) != NULL) {
-    std::vector<double> kin_values;
-
-    this->Get_kinetic(cell_number)->get_essential_values(kin_values);
-    essentials.insert(essentials.end(), kin_values.begin(), kin_values.end());
-  }
-
-  // PPassemblage
-  if (this->Get_equilibrium(cell_number) != NULL) {
-    std::vector<double> equ_values;
-
-    this->Get_equilibrium(cell_number)->get_essential_values(equ_values);
-    essentials.insert(essentials.end(), equ_values.begin(), equ_values.end());
-  }
-
-  // Surface
-  if (this->Get_surface(cell_number) != NULL) {
-    std::vector<double> surf_values;
-
-    this->Get_surface(cell_number)->get_essential_values(surf_values);
-    essentials.insert(essentials.end(), surf_values.begin(), surf_values.end());
-  }
-
-  return essentials;
-}
-
-void IPhreeqcPOET::set_essential_values(std::size_t cell_number,
-                                        const std::vector<std::string> &order,
-                                        std::vector<double> &values) {
-
-  auto dump_it = values.begin();
-
-  // Solutions
-  if (this->Get_solution(cell_number) != NULL) {
-    this->Get_solution(cell_number)->set_essential_values(dump_it, order);
-  }
-
-  // Exchange
-  if (this->Get_exchange(cell_number) != NULL) {
-    this->Get_exchange(cell_number)->set_essential_values(dump_it);
-  }
-
-  // Kinetics
-  if (this->Get_kinetic(cell_number) != NULL) {
-    this->Get_kinetic(cell_number)->set_essential_values(dump_it);
-  }
-
-  // PPassemblage
-  if (this->Get_equilibrium(cell_number) != NULL) {
-    this->Get_equilibrium(cell_number)->set_essential_values(dump_it);
-  }
-
-  // Surface
-  if (this->Get_surface(cell_number) != NULL) {
-    this->Get_surface(cell_number)->set_essential_values(dump_it);
-  }
 }
