@@ -31,8 +31,8 @@ public:
 
   IPhreeqcPOET(const std::string &database, const std::string &input_script)
       : IPhreeqc() {
-    this->LoadDatabase(database.c_str());
-    this->RunFile(input_script.c_str());
+    this->LoadDatabaseString(database.c_str());
+    this->RunString(input_script.c_str());
 
     this->parseInit();
   }
@@ -41,8 +41,8 @@ public:
                const std::vector<std::string> &solutionInitVector,
                std::uint32_t n_cells)
       : IPhreeqc(), n_cells(n_cells), solutionInitVector(solutionInitVector) {
-    this->LoadDatabase(database.c_str());
-    this->RunFile(input_script.c_str());
+    this->LoadDatabaseString(database.c_str());
+    this->RunString(input_script.c_str());
 
     if (n_cells > 1) {
       std::string copy_string =
