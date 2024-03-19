@@ -57,8 +57,7 @@ public:
   };
 
   PhreeqcMat getPhreeqcMat();
-
-  PhreeqcMat getPhreeqcMat(const std::vector<int> &ids);
+  // PhreeqcMat getPhreeqcMat(const std::vector<int> &ids);
 
   std::map<int, std::string> raw_dumps() {
     std::map<int, std::string> dumps;
@@ -79,14 +78,7 @@ public:
   using essential_names = std::array<std::vector<std::string>, 5>;
   using ModulesArray = std::array<std::uint32_t, 5>;
 
-  ModulesArray getModuleSizes() const {
-    ModulesArray module_sizes;
-    for (std::uint8_t i = 0; i < 5; i++) {
-      module_sizes[i] = this->initial_names[i].size();
-    }
-
-    return module_sizes;
-  }
+  ModulesArray getModuleSizes(const std::vector<int> &cell_ids);
 
 private:
   // required only for simulation
