@@ -90,21 +90,69 @@ IPhreeqcPOET::conc_from_essentials(const RawMap &raws,
 
     values.push_back(combined_conc_vec);
   }
+
+  return values;
 }
 
 IPhreeqcPOET::PhreeqcMat IPhreeqcPOET::getPhreeqcMat() {
   std::vector<std::vector<double>> values;
 
-  const IPhreeqcPOET::essential_names names =
+  const IPhreeqcPOET::essential_names ess_names =
       this->union_raws(this->raw_initials);
 
   const std::vector<std::vector<double>> conc_values =
-      this->conc_from_essentials(this->raw_initials, names);
+      this->conc_from_essentials(this->raw_initials, ess_names);
 
+  std::vector<std::string> conc_names;
+
+  for (const auto &i : ess_names) {
+    conc_names.insert(conc_names.end(), i.begin(), i.end());
+  }
 
   std::vector<int> ids(this->raw_initials.size());
 
   std::transform(this->raw_initials.begin(), this->raw_initials.end(),
                  ids.begin(), [](const auto &pair) { return pair.first; });
 
+  return {.names = conc_names, .ids = ids, .values = conc_values};
 }
+
+IPhreeqcPOET::ModulesArray
+IPhreeqcPOET::getModuleSizes(const std::vector<int> &cell_ids) {
+  ModulesArray module_sizes;
+  RawMap raws;
+
+  for (const auto &id : cell_ids) {
+    raws[id] = this->raw_initials[id];
+  }
+
+  const IPhreeqcPOET::essential_names ess_names = this->union_raws(raws);
+
+  std::transform(ess_names.begin(), ess_names.end(), module_sizes.begin(),
+                 [](const auto &mod) { return mod.size(); });
+
+  return module_sizes;
+}
+
+// IPhreeqcPOET::PhreeqcMat
+// IPhreeqcPOET::getPhreeqcMat(const std::vector<int> &use_ids) {
+//   std::vector<std::vector<double>> values;
+//   RawMap raws;
+
+//   for (const auto &id : use_ids) {
+//     raws[id] = this->raw_initials[id];
+//   }
+
+//   const IPhreeqcPOET::essential_names ess_names = this->union_raws(raws);
+
+//   const std::vector<std::vector<double>> conc_values =
+//       this->conc_from_essentials(raws, ess_names);
+
+//   std::vector<std::string> conc_names;
+
+//   for (const auto &i : ess_names) {
+//     conc_names.insert(conc_names.end(), i.begin(), i.end());
+//   }
+
+//   return {.names = conc_names, .ids = use_ids, .values = conc_values};
+// }
