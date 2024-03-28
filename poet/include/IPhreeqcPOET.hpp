@@ -11,7 +11,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <cxxKinetics.h>
+#include <iomanip>
 #include <map>
+#include <sstream>
 #include <string>
 #include <sys/types.h>
 #include <utility>
@@ -21,14 +23,6 @@ enum { POET_SOL = 0, POET_EXCH, POET_KIN, POET_EQUIL, POET_SURF };
 
 class IPhreeqcPOET : public IPhreeqc {
 public:
-  std::vector<double>
-  get_essential_values(std::size_t cell_number,
-                       const std::vector<std::string> &order);
-
-  void set_essential_values(std::size_t cell_number,
-                            const std::vector<std::string> &order,
-                            std::vector<double> &values);
-
   IPhreeqcPOET(const std::string &database, const std::string &input_script)
       : IPhreeqc() {
     this->LoadDatabaseString(database.c_str());
@@ -50,6 +44,51 @@ public:
     }
   }
 
+  void queueCell(std::vector<double> &values) {
+    if (this->queued_cell_pointer > this->n_cells) {
+      return;
+    }
+
+    setCell(this->queued_cell_pointer++, values);
+  }
+
+  void dequeueCells(std::vector<std::vector<double>> &values) {
+    if (this->queued_cell_pointer == 1) {
+      return;
+    }
+
+    for (std::size_t i = 1; i < this->queued_cell_pointer; i++) {
+      std::vector<double> cell_values;
+      getCell(i, cell_values);
+      values.push_back(cell_values);
+    }
+  }
+
+  void runQueuedCells(double time_step) {
+    if (this->queued_cell_pointer == 1) {
+      return;
+    }
+    run(1, this->queued_cell_pointer - 1, time_step);
+  }
+
+  void setCell(int cell_number, std::vector<double> &values) {
+    this->set_essential_values(cell_number, this->solutionInitVector, values);
+  }
+
+  void getCell(int cell_number, std::vector<double> &values) {
+    values = this->get_essential_values(cell_number, this->solutionInitVector);
+  }
+
+  void run(int start_cell, int end_cell, double time_step) {
+    std::stringstream time_ss;
+    time_ss << std::fixed << std::setprecision(20) << time_step;
+
+    const std::string runs_string =
+        "RUN_CELLS\n -cells " + std::to_string(start_cell) + "-" +
+        std::to_string(end_cell) + "\n -time_step " + time_ss.str();
+    this->RunString(runs_string.c_str());
+  }
+
   struct PhreeqcMat {
     std::vector<std::string> names;
     std::vector<int> ids;
@@ -57,7 +96,6 @@ public:
   };
 
   PhreeqcMat getPhreeqcMat();
-  // PhreeqcMat getPhreeqcMat(const std::vector<int> &ids);
 
   std::map<int, std::string> raw_dumps() {
     std::map<int, std::string> dumps;
@@ -133,5 +171,15 @@ private:
     return name;
   };
 
+  std::vector<double>
+  get_essential_values(std::size_t cell_number,
+                       const std::vector<std::string> &order);
+
+  void set_essential_values(std::size_t cell_number,
+                            const std::vector<std::string> &order,
+                            std::vector<double> &values);
+
   RawMap raw_initials;
+
+  std::size_t queued_cell_pointer = 1;
 };
