@@ -41,6 +41,7 @@ public:
     if (n_cells > 1) {
       std::string copy_string =
           "COPY cell 1 2-" + std::to_string(n_cells) + "\n";
+      this->RunString(copy_string.c_str());
     }
   }
 
