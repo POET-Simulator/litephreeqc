@@ -63,6 +63,8 @@ public:
       getCell(i, cell_values);
       values.push_back(cell_values);
     }
+
+    this->queued_cell_pointer = 1;
   }
 
   void runQueuedCells(double time_step) {
