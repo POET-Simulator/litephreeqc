@@ -121,6 +121,10 @@ public:
 
   ModulesArray getModuleSizes(const std::vector<int> &cell_ids);
 
+  std::vector<std::string> getSolutionNames(int cell_id) {
+    return this->raw_initials[cell_id].first[POET_SOL];
+  }
+
 private:
   // required only for simulation
   essential_names initial_names;
