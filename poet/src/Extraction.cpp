@@ -1,4 +1,6 @@
-#include <IPhreeqcPOET.hpp>
+#include <PhreeqcInit.hpp>
+
+#include "Solution.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -37,9 +39,19 @@ createConcVector(const std::vector<std::string> &conc_names,
   return conc_vec;
 }
 
-void IPhreeqcPOET::parseInit() {
+PhreeqcInit::PhreeqcInit(const std::string &database,
+                         const std::string &input_script)
+    : IPhreeqc() {
+  this->LoadDatabaseString(database.c_str());
+  this->RunString(input_script.c_str());
 
-  std::map<int, std::pair<essential_names, std::vector<double>>> init_values;
+  this->parseInit();
+  pqc_mat = this->buildPhreeqcMat();
+}
+
+void PhreeqcInit::parseInit() {
+
+  std::map<int, essential_names> init_values;
 
   for (const auto &[id, val] : this->PhreeqcPtr->Get_Rxn_solution_map()) {
     // A key less than zero indicates an internal solution
@@ -47,16 +59,50 @@ void IPhreeqcPOET::parseInit() {
       continue;
     }
 
-    const essential_names curr_conc_names = this->dump_essential_names(id);
+    essential_names curr_conc_names;
+
+    curr_conc_names[POET_SOL] = dump_solution_names(id);
+    init_values[id] = curr_conc_names;
+
+    // auto pair =
+    //     std::make_pair(curr_conc_names,
+    //                    this->get_essential_values_init(id,
+    //                    curr_conc_names[0]));
+    // raw_initials[id] = pair;
+  }
+
+  std::vector<std::string> union_solution_names;
+
+  for (const auto &[id, val] : init_values) {
+    union_solution_names =
+        unionStringVectors(union_solution_names, val[POET_SOL]);
+  }
+
+  for (auto &[id, val] : init_values) {
+    dump_reactant_names(id, union_solution_names, val);
+
+    std::vector<std::string> solution_order(val[POET_SOL].begin() + 3,
+                                            val[POET_SOL].end());
 
     auto pair = std::make_pair(
-        curr_conc_names, this->get_essential_values(id, curr_conc_names[0]));
+        val, this->get_essential_values_init(id, solution_order));
     raw_initials[id] = pair;
   }
 }
 
-IPhreeqcPOET::essential_names IPhreeqcPOET::union_raws(const RawMap &raws) {
-  IPhreeqcPOET::essential_names names;
+std::string PhreeqcInit::subExchangeName(std::string name) {
+  for (const auto &species : this->PhreeqcPtr->Get_species_list()) {
+    const std::string &species_name = species.s->name;
+    // check if `name` is a prefix of `species_name`
+    if (species_name.compare(0, name.size(), name) == 0) {
+      return species_name;
+    }
+  }
+  return name;
+};
+
+PhreeqcInit::essential_names PhreeqcInit::union_raws(const RawMap &raws) {
+  PhreeqcInit::essential_names names;
   for (const auto &[sol_id, val] : raws) {
     for (std::size_t i = 0; i < names.size(); i++) {
       names[i] = unionStringVectors(names[i], val.first[i]);
@@ -71,8 +117,8 @@ IPhreeqcPOET::essential_names IPhreeqcPOET::union_raws(const RawMap &raws) {
 }
 
 std::vector<std::vector<double>>
-IPhreeqcPOET::conc_from_essentials(const RawMap &raws,
-                                   const essential_names &names) {
+PhreeqcInit::conc_from_essentials(const RawMap &raws,
+                                  const essential_names &names) {
   std::vector<std::vector<double>> values;
 
   for (const auto &[key, val] : raws) {
@@ -94,10 +140,10 @@ IPhreeqcPOET::conc_from_essentials(const RawMap &raws,
   return values;
 }
 
-IPhreeqcPOET::PhreeqcMat IPhreeqcPOET::getPhreeqcMat() {
+PhreeqcInit::PhreeqcMat PhreeqcInit::buildPhreeqcMat() {
   std::vector<std::vector<double>> values;
 
-  const IPhreeqcPOET::essential_names ess_names =
+  const PhreeqcInit::essential_names ess_names =
       this->union_raws(this->raw_initials);
 
   const std::vector<std::vector<double>> conc_values =
@@ -117,8 +163,8 @@ IPhreeqcPOET::PhreeqcMat IPhreeqcPOET::getPhreeqcMat() {
   return {.names = conc_names, .ids = ids, .values = conc_values};
 }
 
-IPhreeqcPOET::ModulesArray
-IPhreeqcPOET::getModuleSizes(const std::vector<int> &cell_ids) {
+PhreeqcInit::ModulesArray
+PhreeqcInit::getModuleSizes(const std::vector<int> &cell_ids) {
   ModulesArray module_sizes;
   RawMap raws;
 
@@ -126,7 +172,7 @@ IPhreeqcPOET::getModuleSizes(const std::vector<int> &cell_ids) {
     raws[id] = this->raw_initials[id];
   }
 
-  const IPhreeqcPOET::essential_names ess_names = this->union_raws(raws);
+  const PhreeqcInit::essential_names ess_names = this->union_raws(raws);
 
   std::transform(ess_names.begin(), ess_names.end(), module_sizes.begin(),
                  [](const auto &mod) { return mod.size(); });

@@ -159,45 +159,6 @@ cxxKinetics::dump_raw(std::ostream & s_oss, unsigned int indent, int * n_out) co
 	return;
 }
 
-void cxxKinetics::dump_essential_names(
-    std::vector<std::string> &e_names) const {
-  e_names.clear();
-  e_names.reserve(this->kinetics_comps.size() * 2);
-
-  for (const auto &comp : this->kinetics_comps) {
-    const std::string name = comp.Get_rate_name();
-    e_names.push_back(name);
-    for (int i = 0; i < comp.Get_d_params().size(); i++) {
-      e_names.push_back(name + "_p" + std::to_string(i + 1));
-    }
-  }
-}
-
-void cxxKinetics::get_essential_values(std::vector<LDBLE> &e_values) const {
-  e_values.clear();
-  e_values.reserve(this->kinetics_comps.size() * 2);
-
-  for (const auto &comp : this->kinetics_comps) {
-    e_values.push_back(comp.Get_m());
-    for (const auto &param : comp.Get_d_params()) {
-      e_values.push_back(param);
-    }
-  }
-
-  return;
-}
-
-void cxxKinetics::set_essential_values(std::vector<LDBLE>::iterator &it) {
-  for (auto &comp : this->kinetics_comps) {
-    comp.Set_m(*(it++));
-    for (auto &param : comp.Get_d_params()) {
-      param = *(it++);
-    }
-  }
-
-  return;
-}
-
 void
 cxxKinetics::read_raw(CParser & parser, bool check)
 {

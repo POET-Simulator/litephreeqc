@@ -1,3 +1,4 @@
+#include <set>
 #if !defined(SURFACE_H_INCLUDED)
 #define SURFACE_H_INCLUDED
 
@@ -30,11 +31,6 @@ public:
 
 	//void dump_xml(std::ostream & os, unsigned int indent = 0) const;
 	void dump_raw(std::ostream & s_oss, unsigned int indent, int *n_out=NULL) const;
-
-        void dump_essential_names(std::vector<std::string> &e_names);
-
-        void get_essential_values(std::vector<LDBLE> &e_values);
-        void set_essential_values(std::vector<LDBLE>::iterator &it);
 
         void read_raw(CParser & parser, bool check = true);
 	bool Get_related_phases(void) const;
