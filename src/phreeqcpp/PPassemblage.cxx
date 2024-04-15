@@ -131,40 +131,6 @@ cxxPPassemblage::dump_raw(std::ostream & s_oss, unsigned int indent, int *n_out)
 	this->assemblage_totals.dump_raw(s_oss, indent + 1);
 }
 
-void cxxPPassemblage::dump_essential_names(
-    std::vector<std::string> &e_names) const {
-  e_names.clear();
-  e_names.reserve(this->pp_assemblage_comps.size() * 2);
-
-  for (const auto &pp_comp : this->pp_assemblage_comps) {
-    e_names.push_back(pp_comp.first);
-    e_names.push_back(pp_comp.first + "_si");
-  }
-
-  return;
-}
-
-void cxxPPassemblage::get_essential_values(std::vector<LDBLE> &e_values) const {
-  e_values.clear();
-  e_values.reserve(this->pp_assemblage_comps.size() * 2);
-
-  for (const auto &pp_comp : this->pp_assemblage_comps) {
-    e_values.push_back(pp_comp.second.Get_moles());
-    e_values.push_back(pp_comp.second.Get_si());
-  }
-
-  return;
-}
-
-void cxxPPassemblage::set_essential_values(std::vector<LDBLE>::iterator &it) {
-  for (auto &pp_comp : this->pp_assemblage_comps) {
-    pp_comp.second.Set_moles(*(it++));
-    pp_comp.second.Set_si(*(it++));
-  }
-
-  return;
-}
-
 void
 cxxPPassemblage::read_raw(CParser & parser, bool check)
 {

@@ -36,21 +36,11 @@ prep(void)
  */
 	cxxSolution *solution_ptr;
 
-	if (state >= REACTION)
-	{
-		same_model = check_same_model();
-	}
-	else
-	{
-		same_model = FALSE;
-		last_model.force_prep = true;
-	}
-	/*same_model = FALSE; */
-/*
- *   Initialize s, master, and unknown pointers
- */
-	solution_ptr = use.Get_solution_ptr();
-	if (solution_ptr == NULL)
+        // UP: we force to reset the model
+        same_model = FALSE;
+        last_model.force_prep = true;
+        solution_ptr = use.Get_solution_ptr();
+        if (solution_ptr == NULL)
 	{
 		error_msg("Solution needed for calculation not found, stopping.",
 				  STOP);
@@ -87,12 +77,17 @@ prep(void)
  *   Allocate space for array
  */
 		my_array.resize((max_unknowns + 1) * max_unknowns);
-		delta.resize(max_unknowns);
-		residual.resize(max_unknowns);
-		for (int j = 0; j < max_unknowns; j++)
-		{
-		  residual[j] = 0;
-		}
+                for (double &val : my_array) {
+                  val = 0;
+                }
+                delta.resize(max_unknowns);
+                for (double &val : delta) {
+                  val = 0;
+                }
+                residual.resize(max_unknowns);
+                for (int j = 0; j < max_unknowns; j++) {
+                  residual[j] = 0;
+                }
 
 /*
  *   Build lists to fill Jacobian array and species list

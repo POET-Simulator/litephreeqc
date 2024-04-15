@@ -426,7 +426,10 @@ public:
 	int initial_exchangers(int print);
 	int initial_gas_phases(int print);
 	int initial_solutions(int print);
-	int step_save_exch(int n_user);
+
+        int initial_solutions_poet(int sol_id);
+
+        int step_save_exch(int n_user);
 	int step_save_surf(int n_user);
 	int initial_surfaces(int print);
 	int reactions(void);
@@ -1853,8 +1856,10 @@ protected:
 	friend class IPhreeqcMMS;
 	friend class IPhreeqcPhast;
 	friend class PhreeqcRM;
+        friend class PhreeqcInit;
+        friend class PhreeqcEngine;
 
-	std::vector<int> keycount;  // used to mark keywords that have been read 
+        std::vector<int> keycount;  // used to mark keywords that have been read 
 
 public:
 	static const class const_iso iso_defaults[];
