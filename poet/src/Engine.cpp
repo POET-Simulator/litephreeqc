@@ -1,6 +1,8 @@
 #include "PhreeqcEngine.hpp"
 #include <cstddef>
+#include <iomanip>
 #include <span>
+#include <sstream>
 
 void PhreeqcEngine::init_wrappers(const POETInitCell &cell) {
 
@@ -215,6 +217,15 @@ void PhreeqcEngine::runCell(std::vector<double> &cell_values,
   std::span<double> cell_data{cell_values.begin() + 1, cell_values.end()};
 
   this->set_essential_values(cell_data);
-  this->run(1, 1, time_step);
+  this->run(time_step);
   this->get_essential_values(cell_data);
+}
+
+void PhreeqcEngine::run(double time_step) {
+  std::stringstream time_ss;
+  time_ss << std::fixed << std::setprecision(20) << time_step;
+
+  const std::string runs_string =
+      "RUN_CELLS\n -cells 1\n -time_step " + time_ss.str() + "\nEND\n";
+  this->RunString(runs_string.c_str());
 }
