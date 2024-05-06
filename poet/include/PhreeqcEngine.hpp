@@ -17,18 +17,27 @@
 #include <Surface.h>
 #include <cstddef>
 #include <cxxKinetics.h>
-#include <iomanip>
-#include <iostream>
 #include <memory>
-#include <ostream>
 #include <span>
-#include <sstream>
 #include <string>
-#include <sys/types.h>
 #include <vector>
 
+/**
+ * @brief Class for running Phreeqc wrappped in POET
+ *
+ * Direct interface to Phreeqc, without utilizing *_MODIFY keywords/scripts to
+ * set new values. Use with already initialized Phreeqc config.
+ *
+ */
 class PhreeqcEngine : public IPhreeqc {
 public:
+  /**
+   * @brief Construct a new Phreeqc Engine object
+   *
+   * Construct a new Phreeqc Engine object by previously initialized POETConfig.
+   *
+   * @param config Holds the configuration for the Phreeqc engine.
+   */
   PhreeqcEngine(const POETConfig &config) : IPhreeqc() {
     this->LoadDatabaseString(config.database.c_str());
     this->RunString(config.input_script.c_str());
@@ -36,27 +45,19 @@ public:
     this->init_wrappers(config.cell);
   }
 
+  /**
+   * @brief Siimulate a cell for a given time step
+   *
+   * @param cell_values Vector containing the input values for the cell
+   * (**including the ID**). Output values are written back in place to this
+   * vector!
+   * @param time_step Time step to simulate in seconds
+   */
   void runCell(std::vector<double> &cell_values, double time_step);
-
-  void run(int start_cell, int end_cell) {
-    const std::string runs_string = "RUN_CELLS\n -cells " +
-                                    std::to_string(start_cell) + "-" +
-                                    std::to_string(end_cell) + "\nEND\n";
-    this->RunString(runs_string.c_str());
-  }
-
-  void run(int start_cell, int end_cell, double time_step) {
-    std::stringstream time_ss;
-    time_ss << std::fixed << std::setprecision(20) << time_step;
-
-    const std::string runs_string =
-        "RUN_CELLS\n -cells " + std::to_string(start_cell) + "-" +
-        std::to_string(end_cell) + "\n -time_step " + time_ss.str() + "\nEND\n";
-    this->RunString(runs_string.c_str());
-  }
 
 private:
   void init_wrappers(const POETInitCell &cell);
+  void run(double time_step);
 
   cxxSolution *Get_solution(std::size_t n) {
     return Utilities::Rxn_find(this->PhreeqcPtr->Get_Rxn_solution_map(), n);
