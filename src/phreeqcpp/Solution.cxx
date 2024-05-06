@@ -367,70 +367,6 @@ cxxSolution::dump_raw(std::ostream & s_oss, unsigned int indent, int *n_out) con
 	return;
 }
 
-void cxxSolution::dump_essential_names(
-    std::vector<std::string> &e_names) const {
-  e_names.clear();
-  e_names.reserve(this->totals.size() + 3);
-
-  // e_names.push_back("H20");
-  e_names.push_back("H");
-  e_names.push_back("O");
-  e_names.push_back("Charge");
-
-  for (const auto &total : this->totals) {
-    if ((total.first == "O(0)") || (total.first == "H(0)")) {
-      continue;
-    }
-    e_names.push_back(total.first);
-  }
-
-  return;
-}
-
-void cxxSolution::get_essential_values(
-    std::vector<LDBLE> &e_values, const std::vector<std::string> &order) const {
-  e_values.clear();
-  e_values.reserve(this->totals.size() + 4);
-
-  // e_values.push_back(mass_water);
-  e_values.push_back(total_h);
-  e_values.push_back(total_o);
-  e_values.push_back(cb);
-
-  for (int i = 3; i < order.size(); i++) {
-    const auto tot = totals.find(order[i]);
-    if (tot == totals.end()) {
-      e_values.push_back(0);
-      continue;
-    }
-    e_values.push_back((tot->second));
-  }
-
-  return;
-}
-
-void cxxSolution::set_essential_values(std::vector<LDBLE>::iterator &it,
-                                       const std::vector<std::string> &order) {
-  // skip first field of moles H2O
-  //  it++;
-
-  double t_h = *(it++);
-  double t_o = *(it++);
-  double c_b = *(it++);
-
-  cxxNameDouble nd;
-  for (int i = 3; i < order.size(); i++) {
-    double curr_val = *(it++);
-
-    if (curr_val < 0) {
-      curr_val = 0;
-    }
-    nd.add(order[i].c_str(), curr_val);
-  }
-
-  this->Update(t_h, t_o, c_b, nd);
-}
-
 #ifdef USE_REVISED_READ_RAW
 void
 cxxSolution::read_raw(CParser & parser, bool check)
@@ -1258,17 +1194,20 @@ cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, const cxxNameDouble 
 	this->cb = charge;
 	this->mass_water = o_tot / 55.5;
 
-	// Don`t bother to update activities?
-	this->Update(const_nd);
-	//this->totals = const_nd;
-	cxxNameDouble::iterator it;
-	for (it = this->totals.begin(); it != this->totals.end(); it++)
-	{
-		if (it->second < 1e-25)
-		{
-			it->second = 0.0;
-		}
-	}
+        // Don`t bother to update activities?
+        // this->Update(const_nd);
+
+        // UP: instead of updating, we just set the new totals ...
+        this->totals = const_nd;
+
+        // UP: ... and doesn't need another check for zero values
+
+        // cxxNameDouble::iterator it;
+        // for (it = this->totals.begin(); it != this->totals.end(); it++) {
+        //   if (it->second < 1e-25) {
+        //     it->second = 0.0;
+        //   }
+        // }
 }
 void
 cxxSolution::Update_activities(const cxxNameDouble &original_tot)

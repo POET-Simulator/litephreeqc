@@ -5003,16 +5003,16 @@ surface_model(void)
  */
 	debug_diffuse_layer_save = debug_diffuse_layer;
 	debug_model_save = debug_model;
-	if (last_model.force_prep)
-	{
+        // if (last_model.force_prep)
+        // {
+        // 	same_model = FALSE;
+        // }
+        // else
+        // {
+        // 	same_model = check_same_model();
+        // }
 		same_model = FALSE;
-	}
-	else
-	{
-		same_model = check_same_model();
-	}
-	if (dl_type_x != cxxSurface::NO_DL && same_model == FALSE)
-	{
+        if (dl_type_x != cxxSurface::NO_DL && same_model == FALSE) {
 		s_diff_layer.clear();
 		for (i = 0; i < (int)s.size(); i++)
 		{
