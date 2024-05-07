@@ -63,6 +63,10 @@ void PhreeqcInit::dump_reactant_names(
     auto *surface = this->Get_surface(cell_number);
 
     if (this->surface_primaries.empty()) {
+      // this is fixed! Always add H and O
+      this->surface_primaries.insert("H");
+      this->surface_primaries.insert("O");
+
       for (std::size_t i = 3; i < union_sol_names.size(); i++) {
         const auto master_primary = this->PhreeqcPtr->master_bsearch_primary(
             union_sol_names[i].c_str());
