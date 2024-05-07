@@ -6,8 +6,6 @@
 
 void PhreeqcEngine::init_wrappers(const POETInitCell &cell) {
 
-  // TODO: Implement the rest of the wrappers. Currently supported: EXCHANGE
-
   // Solutions
   this->solutionWrapperPtr =
       std::make_unique<SolutionWrapper>(this->Get_solution(1), cell.solutions);
