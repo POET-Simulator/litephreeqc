@@ -59,20 +59,20 @@ KineticWrapper::names(cxxKinetics *kinetics,
     kin_comps.push_back(comp.Get_rate_name());
   }
 
-  for (const auto &kin_name : kin_comps) {
-    auto it = std::find_if(kinetics->Get_kinetics_comps().begin(),
-                           kinetics->Get_kinetics_comps().end(),
-                           [&](const cxxKineticsComp &comp) {
-                             return comp.Get_rate_name() == kin_name;
-                           });
+  // for (const auto &kin_name : kin_comps) {
+  //   auto it = std::find_if(kinetics->Get_kinetics_comps().begin(),
+  //                          kinetics->Get_kinetics_comps().end(),
+  //                          [&](const cxxKineticsComp &comp) {
+  //                            return comp.Get_rate_name() == kin_name;
+  //                          });
 
-    if (it == kinetics->Get_kinetics_comps().end()) {
-      throw std::runtime_error(
-          "Kinetic component not found in Phreeqc variables");
-    }
+  //   if (it == kinetics->Get_kinetics_comps().end()) {
+  //     throw std::runtime_error(
+  //         "Kinetic component not found in Phreeqc variables");
+  //   }
 
-    names.push_back(it->Get_rate_name());
-  }
+  //   names.push_back(it->Get_rate_name());
+  // }
 
   return names;
 }
