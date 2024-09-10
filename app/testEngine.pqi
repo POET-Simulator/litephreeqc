@@ -1,0 +1,13 @@
+SOLUTION 1
+units mol/kgw
+temp 25
+Ca 0.1
+Mg 0.1
+Cl 0.5 charge
+Na 0.1
+PURE 1
+Calcite  0.0 1
+Dolomite 0.0 0
+## RUN_CELLS
+##  -cells 1
+END 
