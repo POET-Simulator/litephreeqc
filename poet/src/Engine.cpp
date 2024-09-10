@@ -4,7 +4,89 @@
 #include <span>
 #include <sstream>
 
-void PhreeqcEngine::init_wrappers(const POETInitCell &cell) {
+#include <IPhreeqc.hpp>
+#include <Phreeqc.h>
+
+#include "Wrapper/EquilibriumWrapper.hpp"
+#include "Wrapper/ExchangeWrapper.hpp"
+#include "Wrapper/KineticWrapper.hpp"
+#include "Wrapper/SolutionWrapper.hpp"
+#include "Wrapper/SurfaceWrapper.hpp"
+class PhreeqcEngine::Impl : public IPhreeqc {
+public:
+  Impl(const POETConfig &config);
+  void init_wrappers(const POETInitCell &cell);
+  void run(double time_step);
+
+  cxxSolution *Get_solution(std::size_t n) {
+    return Utilities::Rxn_find(this->PhreeqcPtr->Get_Rxn_solution_map(), n);
+  }
+
+  cxxExchange *Get_exchange(std::size_t n) {
+    return Utilities::Rxn_find(this->PhreeqcPtr->Get_Rxn_exchange_map(), n);
+  }
+
+  cxxKinetics *Get_kinetic(std::size_t n) {
+    return Utilities::Rxn_find(this->PhreeqcPtr->Get_Rxn_kinetics_map(), n);
+  }
+
+  cxxPPassemblage *Get_equilibrium(std::size_t n) {
+    return Utilities::Rxn_find(this->PhreeqcPtr->Get_Rxn_pp_assemblage_map(),
+                               n);
+  }
+
+  cxxSurface *Get_surface(std::size_t n) {
+    return Utilities::Rxn_find(this->PhreeqcPtr->Get_Rxn_surface_map(), n);
+  }
+
+  void get_essential_values(std::span<double> &data);
+
+  void set_essential_values(const std::span<double> &data);
+
+  std::unique_ptr<SolutionWrapper> solutionWrapperPtr;
+  std::unique_ptr<ExchangeWrapper> exchangeWrapperPtr;
+  std::unique_ptr<KineticWrapper> kineticsWrapperPtr;
+  std::unique_ptr<EquilibriumWrapper> equilibriumWrapperPtr;
+  std::unique_ptr<SurfaceWrapper> surfaceWrapperPtr;
+
+  bool has_exchange = false;
+  bool has_kinetics = false;
+  bool has_equilibrium = false;
+  bool has_surface = false;
+};
+
+PhreeqcEngine::PhreeqcEngine(const POETConfig &config)
+    : impl(std::make_unique<Impl>(config)) {}
+
+PhreeqcEngine::Impl::Impl(const POETConfig &config) {
+  this->LoadDatabaseString(config.database.c_str());
+  this->RunString(config.input_script.c_str());
+
+  this->init_wrappers(config.cell);
+}
+
+PhreeqcEngine::~PhreeqcEngine() = default;
+
+void PhreeqcEngine::runCell(std::vector<double> &cell_values,
+                            double time_step) {
+  // skip ID
+  std::span<double> cell_data{cell_values.begin() + 1, cell_values.end()};
+
+  this->impl->set_essential_values(cell_data);
+  this->impl->run(time_step);
+  this->impl->get_essential_values(cell_data);
+}
+
+void PhreeqcEngine::Impl::run(double time_step) {
+  std::stringstream time_ss;
+  time_ss << std::fixed << std::setprecision(20) << time_step;
+
+  const std::string runs_string =
+      "RUN_CELLS\n -cells 1\n -time_step " + time_ss.str() + "\nEND\n";
+  this->RunString(runs_string.c_str());
+}
+
+void PhreeqcEngine::Impl::init_wrappers(const POETInitCell &cell) {
 
   // Solutions
   this->solutionWrapperPtr =
@@ -41,7 +123,7 @@ void PhreeqcEngine::init_wrappers(const POETInitCell &cell) {
   }
 }
 
-void PhreeqcEngine::get_essential_values(std::span<double> &data) {
+void PhreeqcEngine::Impl::get_essential_values(std::span<double> &data) {
 
   this->solutionWrapperPtr->get(data);
 
@@ -76,54 +158,9 @@ void PhreeqcEngine::get_essential_values(std::span<double> &data) {
         data.subspan(offset, this->surfaceWrapperPtr->size())};
     this->surfaceWrapperPtr->get(surf_span);
   }
-
-  // // Exchange
-  // if (this->Get_exchange(cell_number) != NULL) {
-  //   std::vector<double> exch_values(this->exchangeWrapperPtr->size());
-
-  //   std::span<double> exch_span{exch_values};
-
-  //   this->exchangeWrapperPtr->get(exch_span);
-
-  //   // this->Get_exchange(cell_number)->get_essential_values(exch_values);
-  //   essentials.insert(essentials.end(), exch_values.begin(),
-  //   exch_values.end());
-  // }
-
-  // // Kinetics
-  // if (this->Get_kinetic(cell_number) != NULL) {
-  //   std::vector<double> kin_values;
-
-  //   this->Get_kinetic(cell_number)->get_essential_values(kin_values);
-  //   essentials.insert(essentials.end(), kin_values.begin(),
-  //   kin_values.end());
-  // }
-
-  // // PPassemblage
-  // if (this->Get_equilibrium(cell_number) != NULL) {
-  //   std::vector<double> equ_values;
-
-  //   this->Get_equilibrium(cell_number)->get_essential_values(equ_values);
-  //   essentials.insert(essentials.end(), equ_values.begin(),
-  //   equ_values.end());
-  // }
-
-  // // Surface
-  // if (this->Get_surface(cell_number) != NULL) {
-  //   std::vector<double> surf_values(this->surfaceWrapperPtr->size());
-  //   std::span<double> surf_span{surf_values};
-
-  //   this->surfaceWrapperPtr->get(surf_span);
-
-  //   // this->Get_surface(cell_number)->get_essential_values(surf_values);
-  //   essentials.insert(essentials.end(), surf_values.begin(),
-  //   surf_values.end());
-  // }
-
-  // return essentials;
 }
 
-void PhreeqcEngine::set_essential_values(const std::span<double> &data) {
+void PhreeqcEngine::Impl::set_essential_values(const std::span<double> &data) {
 
   this->solutionWrapperPtr->set(data);
   this->PhreeqcPtr->initial_solutions_poet(1);
@@ -159,71 +196,4 @@ void PhreeqcEngine::set_essential_values(const std::span<double> &data) {
         data.subspan(offset, this->surfaceWrapperPtr->size())};
     this->surfaceWrapperPtr->set(surf_span);
   }
-
-  // // Solutions
-  // if (this->Get_solution(cell_number) != NULL) {
-  //   this->Get_solution(cell_number)->set_essential_values(dump_it, order);
-  //   this->PhreeqcPtr->initial_solutions_poet(cell_number);
-  // }
-
-  // // Exchange
-  // if (this->Get_exchange(cell_number) != NULL) {
-  //   auto &exch_pointer = this->exchangeWrapperPtr;
-  //   std::span<double> exch_span{dump_it, exch_pointer->size()};
-  //   exch_pointer->set(exch_span);
-
-  //   dump_it += exch_pointer->size();
-
-  //   // this->Get_exchange(cell_number)->set_essential_values(dump_it);
-  //   // this->PhreeqcPtr->Rxn_new_exchange.insert(cell_number);
-  //   // this->Get_exchange(cell_number)->Set_new_def(true);
-  //   // this->Get_exchange(cell_number)->Set_solution_equilibria(true);
-  //   // this->Get_exchange(cell_number)->Set_n_solution(cell_number);
-  //   // this->PhreeqcPtr->initial_exchangers(FALSE);
-  // }
-
-  // // Kinetics
-  // if (this->Get_kinetic(cell_number) != NULL) {
-  //   this->Get_kinetic(cell_number)->set_essential_values(dump_it);
-  // }
-
-  // // PPassemblage
-  // if (this->Get_equilibrium(cell_number) != NULL) {
-  //   this->Get_equilibrium(cell_number)->set_essential_values(dump_it);
-  // }
-
-  // // Surface
-  // if (this->Get_surface(cell_number) != NULL) {
-  //   auto *tmp = this->Get_surface(cell_number);
-  //   auto &surf_pointer = this->surfaceWrapperPtr;
-  //   std::span<double> surf_span{dump_it, surf_pointer->size()};
-  //   surf_pointer->set(surf_span);
-
-  //   dump_it += surf_pointer->size();
-
-  //   // this->PhreeqcPtr->Rxn_new_surface.insert(cell_number);
-
-  //   // this->Get_surface(cell_number)->set_essential_values(dump_it);
-  //   // this->PhreeqcPtr->Rxn_new_surface.insert(cell_number);
-  //   // this->PhreeqcPtr->initial_surfaces(TRUE);
-  // }
-}
-
-void PhreeqcEngine::runCell(std::vector<double> &cell_values,
-                            double time_step) {
-  // skip ID
-  std::span<double> cell_data{cell_values.begin() + 1, cell_values.end()};
-
-  this->set_essential_values(cell_data);
-  this->run(time_step);
-  this->get_essential_values(cell_data);
-}
-
-void PhreeqcEngine::run(double time_step) {
-  std::stringstream time_ss;
-  time_ss << std::fixed << std::setprecision(20) << time_step;
-
-  const std::string runs_string =
-      "RUN_CELLS\n -cells 1\n -time_step " + time_ss.str() + "\nEND\n";
-  this->RunString(runs_string.c_str());
 }

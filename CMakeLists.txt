@@ -393,6 +393,7 @@ if (BUILD_CLR_LIBS)
 endif()
 
 add_subdirectory(poet)
+add_subdirectory(app)
 
 include (CTest)
 

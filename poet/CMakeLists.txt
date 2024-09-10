@@ -9,4 +9,4 @@ target_include_directories(IPhreeqcPOET PUBLIC
     PRIVATE src)
 
 # Set C++23 standard
-target_compile_features(IPhreeqcPOET PUBLIC cxx_std_23)
+target_compile_features(IPhreeqcPOET PUBLIC cxx_std_20)
