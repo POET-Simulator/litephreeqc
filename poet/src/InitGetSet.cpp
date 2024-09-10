@@ -1,9 +1,9 @@
-#include "EquilibriumWrapper.hpp"
-#include "ExchangeWrapper.hpp"
-#include "KineticWrapper.hpp"
 #include "PhreeqcInit.hpp"
-#include "SolutionWrapper.hpp"
-#include "SurfaceWrapper.hpp"
+#include "Wrapper/EquilibriumWrapper.hpp"
+#include "Wrapper/ExchangeWrapper.hpp"
+#include "Wrapper/KineticWrapper.hpp"
+#include "Wrapper/SolutionWrapper.hpp"
+#include "Wrapper/SurfaceWrapper.hpp"
 #include "global_structures.h"
 
 #include <cassert>
