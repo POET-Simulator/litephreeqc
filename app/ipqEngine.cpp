@@ -39,13 +39,14 @@ void printVectorsAsTable(const std::vector<std::string> &names,
     return;
   }
 
-  std::cout << std::left << std::setw(20) << "Name" << std::setw(20) << "Value"
-            << std::endl;
+  std::cout << std::left << std::setw(20) << "Array Index" << std::setw(20)
+            << "Name" << std::setw(20) << "Value" << std::endl;
   std::cout << std::string(40, '-') << std::endl;
 
   for (std::size_t i = 0; i < names.size(); ++i) {
-    std::cout << std::left << std::setw(20) << names[i] << std::setw(20)
-              << values[i] << std::endl;
+    std::cout << std::left << std::setw(20) << std::to_string(i)
+              << std::setw(20) << names[i] << std::setw(20) << values[i]
+              << std::endl;
   }
 }
 
@@ -111,8 +112,8 @@ int main(int argc, char *argv[]) {
   // std::for_each(NewInp.begin()+3, NewInp.end(),
   //               [](double a) { return a * 0.8;});
 
-  NewInp[7] += 0.2; // Cl
-  NewInp[9] += 0.2; // Na
+  NewInp[5] += 0.2; // Cl
+  NewInp[7] += 0.2; // Na
   MyEngine.runCell(NewInp, 200);
 
   std::cout << "\n\nAfter running the cell:\n";
