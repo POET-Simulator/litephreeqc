@@ -13,6 +13,7 @@
 #include "PhreeqcEngine.hpp"
 #include "PhreeqcInit.hpp"
 
+
 static std::string readFile(const std::string &path) {
   std::string string_rpath(PATH_MAX, '\0');
 
@@ -57,26 +58,42 @@ template <class T> void printVector(const std::vector<T> &vec) {
   std::cout << std::endl;
 }
 
+
+
+static std::string TestInput = R"(SOLUTION 1
+  units mol/kgw
+  temp 25
+  Ca 0.1
+  Mg 0.1
+  Cl 0.5 charge
+  Na 0.1
+  PURE 1
+  Calcite  0.0 1
+  Dolomite 0.0 0
+  ## RUN_CELLS
+  ##  -cells 1
+  END)";
+
+
 int main(int argc, char *argv[]) {
 
-  if (argc < 3) {
-    std::cout << "Two args needed, PHREEQC script and database" << std::endl;
+  if (argc < 2) {
+    std::cout << "PHREEQC database needed as argument" << std::endl;
     return 1;
   }
 
-  const std::string &script = argv[1];
-  const std::string &database = argv[2];
+  const std::string &database = argv[1];
   wordexp_t exp_result;
 
-  std::cout << "Reading script from file " << script << " using database "
-            << database << std::endl;
+  // std::cout << "Reading script from file " << script << " using database "
+  //           << database << std::endl;
 
   // expand the script and database path
-  const std::string read_script = readFile(script);
+  // const std::string read_script = readFile(script);
   const std::string read_database = readFile(database);
 
   // initialize the module instance "ipqcmod"
-  PhreeqcInit ipqcmod(read_database, read_script);
+  PhreeqcInit ipqcmod(read_database, TestInput);
 
   // allocate tabular data
   PhreeqcInit::PhreeqcMat pqc_mat = ipqcmod.getPhreeqcMat();
@@ -87,7 +104,7 @@ int main(int argc, char *argv[]) {
 
   POETConfig MyConfig;
   MyConfig.database = read_database;
-  MyConfig.input_script = read_script;
+  MyConfig.input_script = TestInput;
   MyConfig.cell = POETInitCell{
       // H, O and charge need to be removed. I'm not sure why I did it this way.
       std::vector<std::string>(totals_names.begin() + 3, totals_names.end()),
