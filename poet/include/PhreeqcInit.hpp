@@ -102,7 +102,7 @@ public:
    * cell. Empty if no exchange is defined.
    */
   std::vector<std::string> getExchanger(int id) {
-    if (this->exchanger.contains(id)) {
+    if (contains_id(this->exchanger, id)) {
       return this->exchanger[id];
     }
 
@@ -117,7 +117,7 @@ public:
    * cell. Empty if no kinetics are defined.
    */
   std::vector<std::string> getKineticsNames(int id) {
-    if (this->kinetics.contains(id)) {
+    if (contains_id(this->kinetics, id)) {
       return this->kinetics[id];
     }
 
@@ -132,7 +132,7 @@ public:
    * cell. Empty if no equilibrium is defined.
    */
   std::vector<std::string> getEquilibriumNames(int id) {
-    if (this->equilibrium.contains(id)) {
+    if (contains_id(this->equilibrium, id)) {
       return this->equilibrium[id];
     }
 
@@ -147,7 +147,7 @@ public:
    * for the cell. Empty if no surface is defined.
    */
   std::vector<std::string> getSurfaceCompNames(int id) {
-    if (this->surface_comps.contains(id)) {
+    if (contains_id(this->surface_comps, id)) {
       return this->surface_comps[id];
     }
 
@@ -162,7 +162,7 @@ public:
    * the cell. Empty if no surface is defined.
    */
   std::vector<std::string> getSurfaceChargeNames(int id) {
-    if (this->surface_charge.contains(id)) {
+    if (contains_id(this->surface_charge, id)) {
       return this->surface_charge[id];
     }
 
@@ -215,6 +215,15 @@ private:
   std::map<int, std::vector<std::string>> equilibrium;
   std::map<int, std::vector<std::string>> surface_comps;
   std::map<int, std::vector<std::string>> surface_charge;
+
+  bool contains_id(const std::map<int, std::vector<std::string>> &map,
+                   int id) const {
+#if __cplusplus >= 202002L
+    return map.contains(id);
+#else
+    return map.find(id) != map.end();
+#endif
+  }
 
   std::set<std::string> surface_primaries;
 
