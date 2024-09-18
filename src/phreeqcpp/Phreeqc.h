@@ -1833,14 +1833,20 @@ protected:
 	friend class IPhreeqcMMS;
 	friend class IPhreeqcPhast;
 	friend class PhreeqcRM;
-        friend class PhreeqcInit;
-        friend class PhreeqcEngine;
+  friend class PhreeqcInit;
+  friend class PhreeqcEngine;
 
-        std::vector<int> keycount;  // used to mark keywords that have been read 
+  std::vector<int> keycount;  // used to mark keywords that have been read 
+
+  int lol;
 
 public:
-	static const class const_iso iso_defaults[];
-	static const int count_iso_defaults;
+  std::vector<std::string>
+  find_all_valence_states(const std::vector<std::string> &&solution_names,
+                          const std::size_t offset);
+
+  static const class const_iso iso_defaults[];
+  static const int count_iso_defaults;
 };
 #endif /* _INC_PHREEQC_H */
 

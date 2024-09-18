@@ -1,0 +1,274 @@
+#pragma once
+
+#include <array>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "IPhreeqc.hpp"
+
+/**
+ * @brief Class for storing information from Phreeqc
+ *
+ * PhreeqcMatrix is used as a container for storing **essential** information
+ * from Phreeqc in a C++ data structure. The usage of Phreeqc's interpreter is
+ * minimized. Thus, values are written directly from/to Phreeqc's internal data
+ * structures, minimizing the overhead of parsing and eliminate floating point
+ * errors due to conversion.
+ *
+ * The class is also used to initialize the PhreeqcEngine class.
+ */
+class PhreeqcMatrix {
+public:
+  /**
+   * @brief Construct a new Phreeqc Matrix object
+   *
+   * Default constructor. Does nothing. Used only for assignment operator.
+   */
+  PhreeqcMatrix() = default;
+
+  /**
+   * @brief Construct a new Phreeqc Matrix object
+   *
+   * Construct a new Phreeqc Matrix object by reading the database and input
+   * script already present as a string.
+   *
+   * @param database
+   * @param input_script
+   */
+  PhreeqcMatrix(const std::string &database, const std::string &input_script);
+
+  /**
+   * @brief Construct a new Phreeqc Matrix object
+   *
+   * Copy constructor. The interal used Phreeqc instance is reused by the new
+   * object!
+   * @param other
+   */
+  PhreeqcMatrix(const PhreeqcMatrix &other);
+
+  /**
+   * @brief Construct a new Phreeqc Matrix object
+   *
+   * Copy constructor. The interal used Phreeqc instance is reused by the new
+   * object!
+   * @param other
+   */
+  PhreeqcMatrix(PhreeqcMatrix &&other);
+
+  /**
+   * @brief Assignment operator
+   *
+   * The interal used Phreeqc instance is reused by the new object!
+   * @param other
+   * @return PhreeqcMatrix&
+   */
+  PhreeqcMatrix &operator=(const PhreeqcMatrix &other);
+
+  /**
+   * @brief Assignment operator
+   *
+   * The interal used Phreeqc instance is reused by the new object!
+   * @param other
+   * @return PhreeqcMatrix&
+   */
+  PhreeqcMatrix &operator=(PhreeqcMatrix &&other);
+
+  /**
+   * @brief Access the value of a given cell by name.
+   *
+   * @param cell_id ID of the cell (user id from Phreeqc script) to get the
+   * value from.
+   * @param name Name of the component to get the value from.
+   * @return double The stored value.
+   * @throw std::runtime_error if the component is not found.
+   */
+  double operator()(int cell_id, const std::string &name) const;
+
+  /**
+   * @brief Subset the PhreeqcMatrix to given cell IDs.
+   *
+   * With a given set of cell IDs, a new PhreeqcMatrix is created containing
+   * only the given cell IDs. All entries, which values refer to NaN, are
+   * removed.
+   *
+   * @param indices Cell IDs to subset the PhreeqcMatrix to.
+   * @return PhreeqcMatrix A new PhreeqcMatrix containing only the given cell
+   * IDs.
+   */
+  PhreeqcMatrix subset(const std::vector<int> &indices) const;
+
+  /**
+   * @brief Erase the given cell IDs from the PhreeqcMatrix.
+   *
+   * With a given set of cell IDs, the PhreeqcMatrix is modified to contain only
+   * the cell IDs not in the given set. All entries, which values refer to NaN,
+   * are removed.
+   *
+   * @param indices Cell IDs to erase from the PhreeqcMatrix.
+   * @return PhreeqcMatrix A new PhreeqcMatrix containing only the cell IDs not
+   * in the given set.
+   */
+  PhreeqcMatrix erase(const std::vector<int> &indices) const;
+
+  /**
+   * @brief Type of vector export
+   *
+   */
+  enum class VectorExportType { COLUMN_MAJOR, ROW_MAJOR };
+
+  /**
+   * @brief Struct holding a format of the exported data
+   *
+   */
+  struct STLExport {
+    std::vector<std::string> names;
+    std::vector<double> values;
+  };
+
+  /**
+   * @brief Export the internal data to consecutive vectors.
+   *
+   * @param type Type of the order of the exported data
+   * @param include_id Whether to include a column with the cell IDs or not
+   * @return STLExport Exported data
+   */
+  STLExport get(VectorExportType type = VectorExportType::ROW_MAJOR,
+                bool include_id = true) const;
+
+  enum class PhreeqcComponent {
+    SOLUTION = 0,
+    EXCHANGE,
+    KINETIC,
+    EQUILIBRIUM,
+    SURFACE_COMPS
+  };
+
+  struct element {
+    std::string name;
+    PhreeqcComponent type;
+    double value;
+  };
+
+  struct base_names {
+    enum class Components {
+      EXCHANGER = static_cast<int>(PhreeqcComponent::EXCHANGE),
+      KINETICS,
+      EQUILIBRIUM,
+      SURACE_COMP,
+      SURFACE_CHARGE
+    } type;
+
+    std::string name;
+  };
+
+  /**
+   * @brief Get all found solution names
+   *
+   * @return std::vector<std::string> Vector containing all solution names.
+   */
+  std::vector<std::string>
+  getSolutionNames(bool include_h_o_charge = false) const;
+
+  /**
+   * @brief Get solution total names of all found solutions (excluding H, O,
+   * Charge)
+   *
+   * @return std::vector<std::string> Names of all found solutions (excluding H,
+   * O, Charge)
+   */
+  std::vector<std::string> getSolutionPrimaries() const;
+
+  /**
+   * @brief Get the exchange names for a given cell
+   *
+   * @param cell_id ID of the cell to get the exchange names for
+   * @return std::vector<std::string> Whole vector of exchange names for the
+   * cell. Empty if no exchange is defined.
+   */
+  std::vector<std::string> getExchanger(int cell_id) const;
+
+  /**
+   * @brief Get the kinetics names for a given cell
+   *
+   * @param cell_id ID of the cell to get the kinetics names for
+   * @return std::vector<std::string> Whole vector of kinetics names for the
+   * cell. Empty if no kinetics are defined.
+   */
+  std::vector<std::string> getKineticsNames(int cell_id) const;
+
+  /**
+   * @brief Get the equilibrium names for a given cell
+   *
+   * @param cell_id ID of the cell to get the equilibrium names for
+   * @return std::vector<std::string> Whole vector of equilibrium names for the
+   * cell. Empty if no equilibrium is defined.
+   */
+  std::vector<std::string> getEquilibriumNames(int cell_id) const;
+
+  /**
+   * @brief Get the surface component names for a given cell
+   *
+   * @param cell_id ID of the cell to get the surface component names for
+   * @return std::vector<std::string> Whole vector of surface component names
+   * for the cell. Empty if no surface is defined.
+   */
+  std::vector<std::string> getSurfaceCompNames(int cell_id) const;
+
+  /**
+   * @brief Get the surface charge names for a given cell
+   *
+   * @param cell_id ID of the cell to get the surface charge names for
+   * @return std::vector<std::string> Whole vector of surface charge names for
+   * the cell. Empty if no surface is defined.
+   */
+  std::vector<std::string> getSurfaceChargeNames(int cell_id) const;
+
+  /**
+   * @brief Get all cell IDs stored in the PhreeqcMatrix.
+   *
+   * @return std::vector<int> IDs of all cells stored in the PhreeqcMatrix.
+   */
+  std::vector<int> getIds() const;
+
+  // std::array<std::size_t, 5> getComponentCount(int cell_id) const;
+
+  /**
+   * @brief Dump all cells into a **DUMP** format of Phreeqc.
+   *
+   * @return std::map<int, std::string> Map containing the cell ID as key and
+   * the exported DUMP string as value.
+   */
+  std::map<int, std::string> getDumpStringsPQI() const;
+
+  /**
+   * @brief Get the **DUMP** string for a given cell.
+   *
+   * @param cell_id Cell ID to get the **DUMP** string for.
+   * @return std::string Phreeqc **DUMP** string for the given cell.
+   */
+  std::string getDumpStringsPQI(int cell_id) const;
+
+  /**
+   * @brief Get the Database used to initialize the PhreeqcMatrix.
+   *
+   * @return std::string Database string.
+   */
+  std::string getDatabase() const;
+
+private:
+  std::map<int, std::vector<element>> _m_map;
+  std::map<int, std::vector<base_names>> _m_internal_names;
+
+  std::set<std::string> _m_surface_primaries;
+
+  void initialize();
+
+  void remove_NaNs();
+
+  std::shared_ptr<IPhreeqc> _m_pqc;
+  std::string _m_database;
+};
