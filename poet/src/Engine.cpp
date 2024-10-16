@@ -194,7 +194,7 @@ void PhreeqcEngine::Impl::get_essential_values(std::span<double> &data) {
 void PhreeqcEngine::Impl::set_essential_values(const std::span<double> &data) {
 
   this->solutionWrapperPtr->set(data);
-  this->PhreeqcPtr->initial_solutions_poet(1);
+  // this->PhreeqcPtr->initial_solutions_poet(1);
 
   std::size_t offset = this->solutionWrapperPtr->size();
 
