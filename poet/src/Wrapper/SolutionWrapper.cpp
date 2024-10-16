@@ -22,7 +22,7 @@ void SolutionWrapper::get(std::span<LDBLE> &data) const {
       data[i++] = 0.0;
       continue;
     }
-    data[i++] = it->second;
+    data[i++] = it->second > 1e-25 ? it->second : 0.;
   }
 }
 
