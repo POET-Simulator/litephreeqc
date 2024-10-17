@@ -1,12 +1,16 @@
 #include "PhreeqcEngine.hpp"
 #include <cstddef>
 #include <iomanip>
+#include <regex>
 #include <span>
 #include <sstream>
 
 #include <IPhreeqc.hpp>
 #include <Phreeqc.h>
+#include <string>
+#include <vector>
 
+#include "PhreeqcMatrix.hpp"
 #include "Wrapper/EquilibriumWrapper.hpp"
 #include "Wrapper/ExchangeWrapper.hpp"
 #include "Wrapper/KineticWrapper.hpp"
@@ -14,8 +18,7 @@
 #include "Wrapper/SurfaceWrapper.hpp"
 class PhreeqcEngine::Impl : public IPhreeqc {
 public:
-  Impl(const POETConfig &config);
-  void init_wrappers(const POETInitCell &cell);
+  Impl(const PhreeqcMatrix &pqc_mat, const int cell_id);
   void run(double time_step);
 
   cxxSolution *Get_solution(std::size_t n) {
@@ -53,19 +56,47 @@ public:
   bool has_kinetics = false;
   bool has_equilibrium = false;
   bool has_surface = false;
+  struct InitCell {
+    std::vector<std::string> solutions;
+    std::vector<std::string> exchanger;
+    std::vector<std::string> kinetics;
+    std::vector<std::string> equilibrium;
+    std::vector<std::string> surface_comps;
+    std::vector<std::string> surface_charges;
+    std::vector<std::string> solution_primaries;
+  };
+  void init_wrappers(const InitCell &cell);
 };
 
-PhreeqcEngine::PhreeqcEngine(const POETConfig &config)
-    : impl(std::make_unique<Impl>(config)) {}
-
-PhreeqcEngine::Impl::Impl(const POETConfig &config) {
-  this->LoadDatabaseString(config.database.c_str());
-  this->RunString(config.input_script.c_str());
-
-  this->init_wrappers(config.cell);
-}
+PhreeqcEngine::PhreeqcEngine(const PhreeqcMatrix &pqc_mat, const int cell_id)
+    : impl(std::make_unique<Impl>(pqc_mat, cell_id)) {}
 
 PhreeqcEngine::~PhreeqcEngine() = default;
+
+static inline std::string
+replaceRawKeywordID(const std::string &raw_dump_string) {
+  std::regex re(R"((RAW\s+)(\d+))");
+  return std::regex_replace(raw_dump_string, re, "RAW 1");
+}
+
+PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
+  this->LoadDatabaseString(pqc_mat.getDatabase().c_str());
+
+  const std::string pqc_string =
+      replaceRawKeywordID(pqc_mat.getDumpStringsPQI(cell_id));
+
+  this->RunString(pqc_string.c_str());
+
+  InitCell cell = {pqc_mat.getSolutionNames(),
+                   pqc_mat.getExchanger(cell_id),
+                   pqc_mat.getKineticsNames(cell_id),
+                   pqc_mat.getEquilibriumNames(cell_id),
+                   pqc_mat.getSurfaceCompNames(cell_id),
+                   pqc_mat.getSurfaceChargeNames(cell_id),
+                   pqc_mat.getSolutionPrimaries()};
+
+  this->init_wrappers(cell);
+}
 
 void PhreeqcEngine::runCell(std::vector<double> &cell_values,
                             double time_step) {
@@ -86,7 +117,7 @@ void PhreeqcEngine::Impl::run(double time_step) {
   this->RunString(runs_string.c_str());
 }
 
-void PhreeqcEngine::Impl::init_wrappers(const POETInitCell &cell) {
+void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {
 
   // Solutions
   this->solutionWrapperPtr =

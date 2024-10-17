@@ -23,7 +23,7 @@ std::vector<std::string> EquilibriumWrapper::EquilibriumCompWrapper::names(
   std::vector<std::string> names;
 
   const std::string &comp_name = comp.Get_name();
-  names.push_back(comp_name);
+  names.push_back(comp_name + "_eq");
   names.push_back(comp_name + "_si");
 
   return names;

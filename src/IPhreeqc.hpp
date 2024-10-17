@@ -888,6 +888,8 @@ public:
 	virtual bool output_open(const char *file_name, std::ios_base::openmode mode = std::ios_base::out);
 	virtual bool punch_open(const char *file_name, std::ios_base::openmode mode = std::ios_base::out, int n_user = 1);
 
+	Phreeqc *GetPhreeqcPtr(void) { return this->PhreeqcPtr; };
+
 protected:
 	int EndRow(void);
 	void AddSelectedOutput(const char* name, const char* format, va_list argptr);
