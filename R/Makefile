@@ -32,9 +32,13 @@ DBS = \
 	ex15.ascii \
 	frezchem.ascii \
 	iso.ascii \
+	Kinec_v3.ascii \
+	Kinec.v2.ascii \
 	llnl.ascii \
 	minteq.ascii \
 	minteq.v4.ascii \
+	phreeqc_rates.ascii \
+	PHREEQC_ThermoddemV1.10_15Dec2020.ascii \
 	phreeqc.ascii \
 	pitzer.ascii \
 	sit.ascii \
