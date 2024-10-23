@@ -21,6 +21,9 @@ POET_TEST(PhreeqcMatrixOneSolution) {
   EXPECT_EQ(ids.size(), 1);
   EXPECT_EQ(ids[0], 1);
 
+  EXPECT_TRUE(pqc_mat.checkIfExists(1));
+  EXPECT_FALSE(pqc_mat.checkIfExists(2));
+
   PhreeqcMatrix::STLExport exported_init = pqc_mat.get();
   // ID + H,O,Charge,H(0),O(0) + 4 Solutions + 4 Equil incl. params
   EXPECT_EQ(exported_init.names.size(), 14);

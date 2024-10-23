@@ -1,5 +1,4 @@
 #include "PhreeqcMatrix.hpp"
-#include <cstddef>
 
 std::vector<int> PhreeqcMatrix::getIds() const {
   std::vector<int> ids;
@@ -51,3 +50,7 @@ std::string PhreeqcMatrix::getDumpStringsPQI(int cell_id) const {
 }
 
 std::string PhreeqcMatrix::getDatabase() const { return _m_database; }
+
+bool PhreeqcMatrix::checkIfExists(int cell_id) const {
+  return this->_m_map.find(cell_id) != this->_m_map.end();
+}

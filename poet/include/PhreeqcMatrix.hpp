@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "IPhreeqc.hpp"
+#include "global_structures.h"
 
 /**
  * @brief Class for storing information from Phreeqc
@@ -257,6 +258,15 @@ public:
    * @return std::string Database string.
    */
   std::string getDatabase() const;
+
+  /**
+   * @brief Check if a cell with given ID exists in the PhreeqcMatrix.
+   *
+   * @param cell_id ID of the cell (user id from Phreeqc script) to check for.
+   * @return true Entry exists
+   * @return false Entry doesn't exist
+   */
+  bool checkIfExists(int cell_id) const;
 
 private:
   std::map<int, std::vector<element>> _m_map;
