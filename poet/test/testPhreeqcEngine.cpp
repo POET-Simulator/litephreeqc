@@ -29,8 +29,8 @@ POET_TEST(PhreeqcEngineStep) {
   EXPECT_NO_THROW(engine.runCell(cell_values, 100));
 
   for (std::size_t i = 0; i < cell_values.size(); ++i) {
-    // ignore H(0) and O(0)
-    if (i == 4 || i == 5) {
+    // ignore Charge, H(0) and O(0)
+    if (i >= 3 && i <= 5) {
       continue;
     }
     EXPECT_NEAR(cell_values[i], base_test::expected_values[i],

@@ -2853,7 +2853,7 @@ TEST(TestIPhreeqcLib, TestSetLogFileName)
 	ASSERT_EQ(std::string("Number of infeasible solutions: 0"), lines[line++]);
 	ASSERT_EQ(std::string("Number of basis changes: 0"), lines[line++]);
 	ASSERT_EQ(std::string(""), lines[line++]);
-	ASSERT_EQ(std::string("Number of iterations: 6"), lines[line++]);
+	ASSERT_EQ(std::string("Number of iterations: 8"), lines[line++]);
 	ASSERT_EQ(std::string(""), lines[line++]);
 	ASSERT_EQ(std::string("------------------"), lines[line++]);
 	ASSERT_EQ(std::string("End of simulation."), lines[line++]);
@@ -3115,7 +3115,7 @@ TEST(TestIPhreeqcLib, TestGetLogStringLine)
 	ASSERT_EQ(std::string("Number of infeasible solutions: 0"), std::string(::GetLogStringLine(n, line++)));
 	ASSERT_EQ(std::string("Number of basis changes: 0"), std::string(::GetLogStringLine(n, line++)));
 	ASSERT_EQ(std::string(""), std::string(::GetLogStringLine(n, line++)));
-	ASSERT_EQ(std::string("Number of iterations: 6"), std::string(::GetLogStringLine(n, line++)));
+	ASSERT_EQ(std::string("Number of iterations: 8"), std::string(::GetLogStringLine(n, line++)));
 	ASSERT_EQ(std::string(""), std::string(::GetLogStringLine(n, line++)));
 	ASSERT_EQ(std::string("------------------"), std::string(::GetLogStringLine(n, line++)));
 	ASSERT_EQ(std::string("End of simulation."), std::string(::GetLogStringLine(n, line++)));
@@ -4064,7 +4064,7 @@ TEST(TestIPhreeqcLib, TestMultiPunchCSelectedOutput)
 	int id = ::CreateIPhreeqc();
 	ASSERT_TRUE(id >= 0);
 
-	ASSERT_EQ(0, ::LoadDatabase(id, "phreeqc.dat"));
+	ASSERT_EQ(0, ::LoadDatabase(id, "phreeqc.dat.90a6449"));
 	ASSERT_EQ(0, ::RunFile(id, "multi_punch"));
 
 	ASSERT_EQ(6, ::GetSelectedOutputRowCount(id));

@@ -2,18 +2,19 @@
 //
 //////////////////////////////////////////////////////////////////////
 #ifdef _DEBUG
-#pragma warning(disable : 4786)	// disable truncation warning (Only used by debugger)
+#pragma warning(                                                               \
+    disable : 4786) // disable truncation warning (Only used by debugger)
 #endif
 
-#include <set>
-#include <cassert>				// assert
-#include <algorithm>			// std::sort
-#include "Utils.h"				// define first
-#include "Phreeqc.h"
 #include "Solution.h"
+#include "Dictionary.h"
+#include "Phreeqc.h"
+#include "Utils.h" // define first
 #include "cxxMix.h"
 #include "phqalloc.h"
-#include "Dictionary.h"
+#include <algorithm> // std::sort
+#include <cassert>   // assert
+#include <set>
 
 #if defined(PHREEQCI_GUI)
 #ifdef _DEBUG

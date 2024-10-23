@@ -342,106 +342,6 @@ set_use(void)
 	return (OK);
 }
 
-int Phreeqc::initial_solutions_poet(int sol_id)
-/* ---------------------------------------------------------------------- */
-{
-  /*
-   *   Go through list of solutions, make initial solution calculations
-   *   for any marked "new".
-   */
-  int converge, converge1;
-  int last, n_user, print1;
-  char token[2 * MAX_LENGTH];
-
-  //   state = INITIAL_SOLUTION;
-  set_use();
-  print1 = TRUE;
-  dl_type_x = cxxSurface::NO_DL;
-  // std::map<int, cxxSolution>::iterator it = Rxn_solution_map.begin();
-  // for ( ; it != Rxn_solution_map.end(); it++)
-  //{
-  // for (size_t nn = 0; nn < Rxn_new_solution.size(); nn++)
-  cxxSolution &solution_ref = Rxn_solution_map.find(sol_id)->second;
-  initial_solution_isotopes = FALSE;
-  //   if (solution_ref.Get_new_def()) {
-  use.Set_solution_ptr(&solution_ref);
-  LDBLE d0 = solution_ref.Get_density();
-  // LDBLE d1 = 0;
-  bool diag = (diagonal_scale == TRUE) ? true : false;
-  int count_iterations = 0;
-  //   std::string input_units = solution_ref.Get_initial_data()->Get_units();
-  //   cxxISolution *initial_data_ptr = solution_ref.Get_initial_data();
-  density_iterations = 0;
-  // for (;;) {
-  prep();
-  k_temp(solution_ref.Get_tc(), solution_ref.Get_patm());
-  set(TRUE);
-  always_full_pitzer = FALSE;
-
-  diagonal_scale = TRUE;
-  converge = model();
-  if (converge == ERROR /*&& diagonal_scale == FALSE*/) {
-    diagonal_scale = TRUE;
-    always_full_pitzer = TRUE;
-    set(TRUE);
-    converge = model();
-  }
-  //   density_iterations++;
-  //   if (solution_ref.Get_initial_data()->Get_calc_density()) {
-  //     solution_ref.Set_density(calc_dens());
-  //     if (!equal(d0, solution_ref.Get_density(), 1e-8)) {
-  //       initial_data_ptr->Set_units(input_units);
-  //       d0 = solution_ref.Get_density();
-  //       if (count_iterations++ < 20) {
-  //         diag = (diagonal_scale == TRUE) ? true : false;
-  //         continue;
-  //       } else {
-  //         error_msg(
-  //             sformatf("%s %d.",
-  //                      "Density calculation failed for initial solution ",
-  //                      solution_ref.Get_n_user()),
-  //             STOP);
-  //       }
-  //     }
-  //   }
-  //   break;
-  // }
-  diagonal_scale = (diag) ? TRUE : FALSE;
-  converge1 = check_residuals();
-  sum_species();
-  viscosity();
-  add_isotopes(solution_ref);
-  punch_all();
-  //   print_all();
-  density_iterations = 0;
-  /* free_model_allocs(); */
-  // remove pr_in
-  for (size_t i = 0; i < count_unknowns; i++) {
-    if (x[i]->type == SOLUTION_PHASE_BOUNDARY)
-      x[i]->phase->pr_in = false;
-  }
-
-  if (converge == ERROR || converge1 == ERROR) {
-    error_msg(sformatf("%s %d.",
-                       "Model failed to converge for initial solution ",
-                       solution_ref.Get_n_user()),
-              STOP);
-  }
-  n_user = solution_ref.Get_n_user();
-  last = solution_ref.Get_n_user_end();
-  /* copy isotope data */
-  if (solution_ref.Get_isotopes().size() > 0) {
-    isotopes_x = solution_ref.Get_isotopes();
-  } else {
-    isotopes_x.clear();
-  }
-  xsolution_save(n_user);
-  Utilities::Rxn_copies(Rxn_solution_map, n_user, last);
-  //   }
-  initial_solution_isotopes = FALSE;
-  return (OK);
-}
-
 /* ---------------------------------------------------------------------- */
 int Phreeqc::
 initial_solutions(int print)
@@ -510,6 +410,8 @@ initial_solutions(int print)
 					set(TRUE);
 					converge = model();
 				}
+				calc_dens();
+				kgw_kgs = mass_water_aq_x / solution_mass_x;
 				density_iterations++;
 				if (solution_ref.Get_initial_data()->Get_calc_density())
 				{
@@ -535,7 +437,10 @@ initial_solutions(int print)
 			diagonal_scale = (diag) ? TRUE : FALSE;
 			converge1 = check_residuals();
 			sum_species();
-			viscosity();
+			viscos = viscosity(NULL);
+			use.Get_solution_ptr()->Set_viscosity(viscos);
+			if (use.Get_surface_ptr() != NULL && dl_type_x != cxxSurface::NO_DL)
+				use.Get_surface_ptr()->Set_DDL_viscosity(viscosity(use.Get_surface_ptr()));
 			add_isotopes(solution_ref);
 			punch_all();
 			print_all();
@@ -638,7 +543,6 @@ initial_exchangers(int print)
 			converge = model();
 			converge1 = check_residuals();
 			sum_species();
-			viscosity();
 			species_list_sort();
 			print_exchange();
 			if (pr.user_print)
@@ -1361,12 +1265,12 @@ xsolution_save(int n_user)
 	temp_solution.Set_pe(solution_pe_x);
 	temp_solution.Set_mu(mu_x);
 	temp_solution.Set_ah2o(ah2o_x);
-	//temp_solution.Set_density(density_x);
-	temp_solution.Set_density(calc_dens());
-	temp_solution.Set_viscosity(this->viscos);
+	// the subroutine is called at the start of a new simulation, and the following 2 go wrong since s_x is not updated 
+	temp_solution.Set_density(density_x);
+	temp_solution.Set_viscosity(viscos);
 	temp_solution.Set_total_h(total_h_x);
 	temp_solution.Set_total_o(total_o_x);
-	temp_solution.Set_cb(cb_x);	/* cb_x does not include surface charge sfter sum_species */
+	temp_solution.Set_cb(cb_x);	/* cb_x does not include surface charge after sum_species */
 								/* does include surface charge after step */
 	temp_solution.Set_mass_water(mass_water_aq_x);
 	temp_solution.Set_total_alkalinity(total_alkalinity);

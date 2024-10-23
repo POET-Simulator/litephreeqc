@@ -93,13 +93,13 @@ public:
 	int basic_run(char* commands, void* lnbase, void* vbase, void* lpbase);
 	void basic_free(void);
 #ifdef IPHREEQC_NO_FORTRAN_MODULE
-	double basic_callback(double x1, double x2, char* str);
+	double basic_callback(double x1, double x2, const char* str);
 #else
 	double basic_callback(double x1, double x2, const char* str);
 #endif
 	void register_basic_callback(double (*fcn)(double x1, double x2, const char* str, void* cookie), void* cookie1);
 #ifdef IPHREEQC_NO_FORTRAN_MODULE
-	void register_fortran_basic_callback(double (*fcn)(double* x1, double* x2, char* str, size_t l));
+	void register_fortran_basic_callback(double (*fcn)(double* x1, double* x2, const char* str, size_t l));
 #else
 	void register_fortran_basic_callback(double (*fcn)(double* x1, double* x2, const char* str, int l));
 #endif
@@ -110,7 +110,7 @@ public:
 	LDBLE aqueous_vm(const char* species_name);
 	LDBLE phase_vm(const char* phase_name);
 	LDBLE diff_c(const char* species_name);
-	LDBLE setdiff_c(const char* species_name, double d);
+	LDBLE setdiff_c(const char * species_name, double d, double d_v_d);
 	LDBLE flux_mcd(const char* species_name, int option);
 	LDBLE sa_declercq(double type, double sa, double d, double m, double m0, double gfw);
 	LDBLE calc_SC(void);
@@ -167,6 +167,8 @@ public:
 	std::string kinetics_formula(std::string kinetics_name, cxxNameDouble& stoichiometry);
 	std::string phase_formula(std::string phase_name, cxxNameDouble& stoichiometry);
 	std::string species_formula(std::string phase_name, cxxNameDouble& stoichiometry);
+	std::string phase_equation(std::string phase_name, std::vector<std::pair<std::string, double> >& stoichiometry);
+	std::string species_equation(std::string species_name, std::vector<std::pair<std::string, double> >& stoichiometry);
 	LDBLE list_ss(std::string ss_name, cxxNameDouble& composition);
 	int system_total_elements(void);
 	int system_total_si(void);
@@ -283,7 +285,7 @@ public:
 	int sum_diffuse_layer(cxxSurfaceCharge* surface_charge_ptr1);
 	int calc_all_donnan(void);
 	int calc_init_donnan(void);
-	LDBLE calc_psi_avg(cxxSurfaceCharge * charge_ptr, LDBLE surf_chrg_eq, LDBLE nDbl, std::vector<LDBLE> &zcorr);
+	LDBLE calc_psi_avg(cxxSurfaceCharge * charge_ptr, LDBLE surf_chrg_eq, LDBLE nDbl, LDBLE f_free, std::vector<LDBLE> &zcorr);
 	LDBLE g_function(LDBLE x_value);
 	LDBLE midpnt(LDBLE x1, LDBLE x2, int n);
 	void polint(LDBLE* xa, LDBLE* ya, int n, LDBLE xv, LDBLE* yv,
@@ -425,8 +427,6 @@ public:
 	int initial_gas_phases(int print);
 	int initial_solutions(int print);
 
-        int initial_solutions_poet(int sol_id);
-
         int step_save_exch(int n_user);
 	int step_save_surf(int n_user);
 	int initial_surfaces(int print);
@@ -558,6 +558,7 @@ public:
 	LDBLE calc_PR(std::vector<class phase*> phase_ptrs, LDBLE P, LDBLE TK, LDBLE V_m);
 	LDBLE calc_PR();
 	int calc_vm(LDBLE tc, LDBLE pa);
+	LDBLE calc_vm0(const char *species_name, LDBLE tc, LDBLE pa, LDBLE mu);
 	int clear(void);
 	int convert_units(cxxSolution* solution_ptr);
 	class unknown* find_surface_charge_unknown(std::string& str_ptr, int plane);
@@ -696,6 +697,10 @@ public:
 	bool read_vector_ints(const char** cptr, std::vector<int>& v, int positive);
 	bool read_vector_t_f(const char** ptr, std::vector<bool>& v);
 	int read_master_species(void);
+	int read_rate_parameters_pk(void);
+	int read_rate_parameters_svd(void);
+	int read_rate_parameters_hermanska(void);
+	int read_mean_gammas(void);
 	int read_mix(void);
 	int read_entity_mix(std::map<int, cxxMix>& mix_map);
 	//int read_solution_mix(void);
@@ -998,7 +1003,7 @@ public:
 		LDBLE new_Dw);
 	int reformat_surf(const char* comp_name, LDBLE fraction, const char* new_comp_name,
 		LDBLE new_Dw, int cell);
-	LDBLE viscosity(void);
+	LDBLE viscosity(cxxSurface *surf_ptr);
 	LDBLE calc_f_visc(const char *name);
 	LDBLE calc_vm_Cl(void);
 	int multi_D(LDBLE DDt, int mobile_cell, int stagnant);
@@ -1157,6 +1162,7 @@ protected:
 	*   Save
 	*---------------------------------------------------------------------- */
 	std::map<std::string, double> save_values;
+	std::map<std::string, std::string> save_strings;
 	class save save;
 
 	/*----------------------------------------------------------------------
@@ -1184,7 +1190,16 @@ protected:
 	*---------------------------------------------------------------------- */
 	std::vector<class inverse> inverse;
 	int count_inverse;
-
+	/*----------------------------------------------------------------------
+	*   Rates
+	*---------------------------------------------------------------------- */
+	std::map<std::string, std::vector<double> > rate_parameters_pk;
+	std::map<std::string, std::vector<double> > rate_parameters_svd;
+	std::map<std::string, std::vector<double> > rate_parameters_hermanska;
+	/*----------------------------------------------------------------------
+	*   Mean gammas
+	*---------------------------------------------------------------------- */
+	std::map<std::string, cxxNameDouble> mean_gammas;
 	/*----------------------------------------------------------------------
 	*   Mix
 	*---------------------------------------------------------------------- */
@@ -1284,7 +1299,6 @@ protected:
 	LDBLE solution_pe_x;
 	LDBLE mu_x;
 	LDBLE ah2o_x;
-	LDBLE density_x;
 	LDBLE total_h_x;
 	LDBLE total_o_x;
 	LDBLE cb_x;
@@ -1519,6 +1533,7 @@ protected:
 	int iterations;
 	int gamma_iterations;
 	size_t density_iterations;
+	LDBLE kgw_kgs;
 	int run_reactions_iterations;
 	int overall_iterations;
 
@@ -1624,6 +1639,9 @@ protected:
 
 	int print_viscosity;
 	LDBLE viscos, viscos_0, viscos_0_25; // viscosity of the solution, of pure water, of pure water at 25 C
+	LDBLE density_x;
+	LDBLE solution_volume_x;
+	LDBLE solution_mass_x;
 	LDBLE cell_pore_volume;
 	LDBLE cell_porosity;
 	LDBLE cell_volume;
@@ -1651,7 +1669,7 @@ protected:
 	double (*basic_callback_ptr) (double x1, double x2, const char* str, void* cookie);
 	void* basic_callback_cookie;
 #ifdef IPHREEQC_NO_FORTRAN_MODULE
-	double (*basic_fortran_callback_ptr) (double* x1, double* x2, char* str, size_t l);
+	double (*basic_fortran_callback_ptr) (double* x1, double* x2, const char* str, size_t l);
 #else
 	double (*basic_fortran_callback_ptr) (double* x1, double* x2, const char* str, int l);
 #endif
@@ -1894,7 +1912,8 @@ namespace Utilities
 		for (it = b.begin(); it != b.end(); ++it)
 		{
 			// Adding logic to dump only non-negative entities
-			if (it->second.Get_n_user() >= 0)
+			//if (it->second.Get_n_user() >= 0)
+			if (it->first >= 0 && it->second.Get_n_user() >= 0)
 			{
 				it->second.dump_raw(s_oss, indent);
 			}

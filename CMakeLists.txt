@@ -271,6 +271,12 @@ if (MSVC_VERSION EQUAL 1400 OR MSVC_VERSION GREATER 1400)
   target_compile_definitions(IPhreeqc PUBLIC _SCL_SECURE_NO_WARNINGS)
 endif()
 
+if (WIN32 AND BUILD_SHARED_LIBS)
+  # Required to build IMPLIB
+  # (Seems to be automatically set when using Visual Studio as the generator)
+  target_compile_definitions(IPhreeqc PRIVATE _WINDLL)
+endif()
+
 # Allow user to override POSTFIX properties (but mandate them so that
 # all builds can be installed to the same directory)
 if (NOT CMAKE_DEBUG_POSTFIX)
@@ -409,10 +415,14 @@ if (STANDALONE_BUILD)
   if (BUILD_TESTING)  # may need to add MSVC version check
     include(FetchContent)
 
+    # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+      cmake_policy(SET CMP0135 NEW)
+    endif()    
+
     FetchContent_Declare(
       googletest
-      GIT_REPOSITORY https://github.com/google/googletest.git
-      GIT_TAG        58d77fa8070e8cec2dc1ed015d66b454c8d78850 # release-1.12.1
+      URL https://github.com/google/googletest/archive/release-1.12.1.tar.gz
       )
 
     mark_as_advanced(
@@ -449,8 +459,11 @@ if (STANDALONE_BUILD)
 
     FetchContent_MakeAvailable(googletest)
     if (NOT googletest_POPULATED)
-      FetchContent_Populate(googletest)
-      add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+      # Always build googletest static
+      set(SAVE_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+      set(BUILD_SHARED_LIBS OFF)
+      FetchContent_MakeAvailable(googletest)
+      set(BUILD_SHARED_LIBS ${SAVE_BUILD_SHARED_LIBS})
     endif()
 
     add_subdirectory(gtest)

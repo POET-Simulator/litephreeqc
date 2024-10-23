@@ -135,6 +135,18 @@ read_input(void)
 		case Keywords::KEY_MIX:
 			read_mix();
 			break;
+		case Keywords::KEY_RATE_PARAMETERS_PK:
+			read_rate_parameters_pk();
+			break;
+		case Keywords::KEY_RATE_PARAMETERS_SVD:
+			read_rate_parameters_svd();
+			break;
+		case Keywords::KEY_RATE_PARAMETERS_HERMANSKA:
+			read_rate_parameters_hermanska();
+			break;
+		case Keywords::KEY_MEAN_GAMMAS:
+			read_mean_gammas();
+			break;
 		case Keywords::KEY_SOLUTION_MIX:
 			//read_solution_mix();
 			read_entity_mix(Rxn_solution_mix_map);
@@ -2357,6 +2369,317 @@ read_kinetics(void)
 	return (return_value);
 }
 /* ---------------------------------------------------------------------- */
+int Phreeqc::
+read_rate_parameters_pk(void)
+/* ---------------------------------------------------------------------- */
+{
+	/*
+	 *      Reads kinetics data
+	 *
+	 *      Arguments:
+	 *	 none
+	 *
+	 *      Returns:
+	 *	 KEYWORD if keyword encountered, input_error may be incremented if
+	 *		    a keyword is encountered in an unexpected position
+	 *	 EOF     if eof encountered while reading mass balance concentrations
+	 *	 ERROR   if error occurred reading data
+	 *
+	 */
+	std::string token;
+	int return_value, opt;
+	const char* next_char;
+	const char* opt_list[] = {
+		"xxxx",					/* 0 */
+	};
+	int count_opt_list = 0;
+	/*
+	 *   Read rate parameters
+	 */
+	return_value = UNKNOWN;
+	for (;;)
+	{
+		opt = get_option(opt_list, count_opt_list, &next_char);
+		switch (opt)
+		{
+		case OPTION_EOF:		/* end of file */
+			return_value = EOF;
+			break;
+		case OPTION_KEYWORD:	/* keyword */
+			return_value = KEYWORD;
+			break;
+		case OPTION_DEFAULT:	/* add to rate_parameters_pk map */
+		{
+			std::string min_name;
+			int j = copy_token(token, &next_char);
+			if (j != EMPTY)
+			{
+				min_name = token;
+				str_tolower(min_name);
+			}
+			std::vector<double> v;
+			read_vector_doubles(&next_char, v);
+			rate_parameters_pk[min_name] = v;
+		}
+		break;
+		case OPTION_ERROR:
+			input_error++;
+			error_msg("Unknown input in KINETICS keyword.", CONTINUE);
+			error_msg(line_save, CONTINUE);
+			break;
+		}
+		if (return_value == EOF || return_value == KEYWORD)
+			break;
+	}
+	return (return_value);
+}
+/* ---------------------------------------------------------------------- */
+int Phreeqc::
+read_mean_gammas(void)
+/* ---------------------------------------------------------------------- */
+{
+	/*
+	 *      Reads MEAN_GAMMAS data
+	 *
+	 *      Arguments:
+	 *	 none
+	 *
+	 *      Returns:
+	 *	 KEYWORD if keyword encountered, input_error may be incremented if
+	 *		    a keyword is encountered in an unexpected position
+	 *	 EOF     if eof encountered while reading mass balance concentrations
+	 *	 ERROR   if error occurred reading data
+	 *
+	 */
+	std::string token;
+	int return_value, opt;
+	const char* next_char;
+	const char* opt_list[] = {
+		"xxxx",					/* 0 */
+	};
+	int count_opt_list = 0;
+	/*
+	 *   Read rate parameters
+	 */
+	return_value = UNKNOWN;
+	for (;;)
+	{
+		opt = get_option(opt_list, count_opt_list, &next_char);
+		switch (opt)
+		{
+		case OPTION_EOF:		/* end of file */
+			return_value = EOF;
+			break;
+		case OPTION_KEYWORD:	/* keyword */
+			return_value = KEYWORD;
+			break;
+		case OPTION_DEFAULT:	/* add to mean_gammas map */
+		{
+			std::string salt_name;
+			int j = copy_token(token, &next_char);
+			if (j != EMPTY)
+			{
+				salt_name = token;
+				str_tolower(salt_name);
+			}
+			cxxNameDouble nd;
+
+			/*
+			 *   Store reactant name, default coefficient
+			 */
+			const char* cptr = next_char;
+			bool have_name = false;
+			std::string name;
+			LDBLE coef = 1;
+			while (copy_token(token, &cptr) != EMPTY)
+			{
+				coef = 1;
+				if (isalpha((int)token[0]) || (token[0] == '(')
+					|| (token[0] == '['))
+				{
+					if (have_name)
+					{
+						nd.add(name.c_str(), coef);
+					}
+					name = token;
+					have_name = true;
+				}
+				else
+				{
+					if (!have_name)
+					{
+						error_string = sformatf("No species name has been defined.");
+						error_msg(error_string, CONTINUE);
+						input_error++;
+					}
+					/*
+					 *   Store relative coefficient
+					*/
+					int j = sscanf(token.c_str(), SCANFORMAT, &coef);
+
+					if (j == 1)
+					{
+						nd.add(name.c_str(), coef);
+						have_name = false;
+					}
+					else
+					{
+						error_msg("Reading relative coefficient of reactant.", CONTINUE);
+						error_msg(line_save, CONTINUE);
+						input_error++;
+					}
+				}
+				//if (have_name)
+				//{
+				//	nd.add(name.c_str(), coef);
+				//}
+			}
+			//read_vector_doubles(&next_char, v);
+			mean_gammas[salt_name] = nd;
+		}
+		break;
+		case OPTION_ERROR:
+			input_error++;
+			error_msg("Unknown input in MEAN_GAMMAS keyword.", CONTINUE);
+			error_msg(line_save, CONTINUE);
+			break;
+		}
+		if (return_value == EOF || return_value == KEYWORD)
+			break;
+	}
+	return (return_value);
+}
+/* ---------------------------------------------------------------------- */
+int Phreeqc::
+read_rate_parameters_svd(void)
+/* ---------------------------------------------------------------------- */
+{
+	/*
+	 *      Reads kinetics data
+	 *
+	 *      Arguments:
+	 *	 none
+	 *
+	 *      Returns:
+	 *	 KEYWORD if keyword encountered, input_error may be incremented if
+	 *		    a keyword is encountered in an unexpected position
+	 *	 EOF     if eof encountered while reading mass balance concentrations
+	 *	 ERROR   if error occurred reading data
+	 *
+	 */
+	std::string token;
+	int return_value, opt;
+	const char* next_char;
+	const char* opt_list[] = {
+		"xxxx",					/* 0 */
+	};
+	int count_opt_list = 0;
+	/*
+	 *   Read rate parameters
+	 */
+	return_value = UNKNOWN;
+	for (;;)
+	{
+		opt = get_option(opt_list, count_opt_list, &next_char);
+		switch (opt)
+		{
+		case OPTION_EOF:		/* end of file */
+			return_value = EOF;
+			break;
+		case OPTION_KEYWORD:	/* keyword */
+			return_value = KEYWORD;
+			break;
+		case OPTION_DEFAULT:	/* add to rate_parameters_svd map */
+		{
+			std::string min_name;
+			int j = copy_token(token, &next_char);
+			if (j != EMPTY)
+			{
+				min_name = token;
+				str_tolower(min_name);
+			}
+			std::vector<double> v;
+			read_vector_doubles(&next_char, v);
+			rate_parameters_svd[min_name] = v;
+		}
+		break;
+		case OPTION_ERROR:
+			input_error++;
+			error_msg("Unknown input in KINETICS keyword.", CONTINUE);
+			error_msg(line_save, CONTINUE);
+			break;
+		}
+		if (return_value == EOF || return_value == KEYWORD)
+			break;
+	}
+	return (return_value);
+}
+/* ---------------------------------------------------------------------- */
+int Phreeqc::
+read_rate_parameters_hermanska(void)
+/* ---------------------------------------------------------------------- */
+{
+	/*
+	 *      Reads kinetics data
+	 *
+	 *      Arguments:
+	 *	 none
+	 *
+	 *      Returns:
+	 *	 KEYWORD if keyword encountered, input_error may be incremented if
+	 *		    a keyword is encountered in an unexpected position
+	 *	 EOF     if eof encountered while reading mass balance concentrations
+	 *	 ERROR   if error occurred reading data
+	 *
+	 */
+	std::string token;
+	int return_value, opt;
+	const char* next_char;
+	const char* opt_list[] = {
+		"xxxx",					/* 0 */
+	};
+	int count_opt_list = 0;
+	/*
+	 *   Read rate parameters
+	 */
+	return_value = UNKNOWN;
+	for (;;)
+	{
+		opt = get_option(opt_list, count_opt_list, &next_char);
+		switch (opt)
+		{
+		case OPTION_EOF:		/* end of file */
+			return_value = EOF;
+			break;
+		case OPTION_KEYWORD:	/* keyword */
+			return_value = KEYWORD;
+			break;
+		case OPTION_DEFAULT:	/* add to rate_parameters_hermanska map */
+		{
+			std::string min_name;
+			int j = copy_token(token, &next_char);
+			if (j != EMPTY)
+			{
+				min_name = token;
+				str_tolower(min_name);
+			}
+			std::vector<double> v;
+			read_vector_doubles(&next_char, v);
+			rate_parameters_hermanska[min_name] = v;
+		}
+		break;
+		case OPTION_ERROR:
+			input_error++;
+			error_msg("Unknown input in KINETICS keyword.", CONTINUE);
+			error_msg(line_save, CONTINUE);
+			break;
+		}
+		if (return_value == EOF || return_value == KEYWORD)
+			break;
+	}
+	return (return_value);
+}
+/* ---------------------------------------------------------------------- */
 bool Phreeqc::
 read_vector_doubles(const char** cptr, std::vector<double>& v)
 /* ---------------------------------------------------------------------- */
@@ -4440,9 +4763,6 @@ read_selected_output(void)
 		temp_selected_output.Set_percent_error    ( so_ref.Get_percent_error() );
 		temp_selected_output.Set_have_punch_name  ( so_ref.Get_have_punch_name() );
 		temp_selected_output.Set_file_name        ( so_ref.Get_file_name() );
-#if PHREEQCI_GUI
-		assert(false);
-#endif
 	}
 	else if (n_user == 1 && so == SelectedOutput_map.end())
 	{
@@ -5499,9 +5819,17 @@ read_species(void)
 				input_error++;
 				break;
 			}
-			s_ptr->dw_t = 0;  s_ptr->dw_a = 0; s_ptr->dw_a2 = 0; s_ptr->dw_a_visc = 0;
-			i = sscanf(next_char, SCANFORMAT SCANFORMAT SCANFORMAT SCANFORMAT SCANFORMAT, &s_ptr->dw, &s_ptr->dw_t,
-				&s_ptr->dw_a, &s_ptr->dw_a2, &s_ptr->dw_a_visc);
+			s_ptr->dw_t = 0;  s_ptr->dw_a = 0; s_ptr->dw_a2 = 0; s_ptr->dw_a3 = 0; s_ptr->dw_a_visc = 0; s_ptr->dw_a_v_dif = 0;
+			i = sscanf(next_char, SCANFORMAT SCANFORMAT SCANFORMAT SCANFORMAT SCANFORMAT SCANFORMAT SCANFORMAT, 
+				&s_ptr->dw, &s_ptr->dw_t, &s_ptr->dw_a, &s_ptr->dw_a2, &s_ptr->dw_a_visc, &s_ptr->dw_a3, &s_ptr->dw_a_v_dif);
+			if (i < 1)
+			{
+				input_error++;
+				error_msg("Expecting numeric values for the diffusion coefficient, its temperature dependence, and coefficients for the SC calculation.",
+					CONTINUE);
+				return (ERROR);
+			}
+
 			s_ptr->dw_corr = s_ptr->dw;
 			opt_save = OPTION_DEFAULT;
 			break;
@@ -6414,7 +6742,7 @@ read_surface(void)
 							if (thickness != 0)
 							{
 								error_msg
-									("You must enter EITHER thickness OR Debye lengths (1/k),\n	   and relative DDL viscosity, DDL limit.\nCorrect is (for example): -donnan 1e-8 viscosity 0.5 limit 0.9 correct_GC true\n or (default values):     -donnan debye_lengths 1 viscosity 1 limit 0.8 correct_GC false",
+									("You must enter EITHER thickness OR Debye lengths (1/k),\n	   and relative DDL viscosity, DDL limit.\nCorrect is (for example): -donnan 1e-8 viscosity 0.5 limit 0.9 correct_D true\n or (default values):     -donnan debye_lengths 1 viscosity 1 limit 0.8 correct_D false",
 									CONTINUE);
 								error_msg(line_save, CONTINUE);
 								input_error++;
@@ -6442,12 +6770,12 @@ read_surface(void)
 							copy_token(token1, &next_char);
 							if (token1[0] == 'T' || token1[0] == 't' || token1[0] == 'F' || token1[0] == 'f')
 							{
-								temp_surface.Set_correct_GC(get_true_false(token1.c_str(), TRUE) == TRUE);
+								temp_surface.Set_correct_D(get_true_false(token1.c_str(), TRUE) == TRUE);
 								continue;
 							} else
 							{
 								error_msg
-									("Expected True or False for correct_GC (which brings co-ion concentrations closer to their integrated double layer value).",
+									("Expected True or False for correct_D (which brings co-ion concentrations closer to their integrated double layer value).",
 									CONTINUE);
 								error_msg(line_save, CONTINUE);
 								input_error++;
@@ -6460,7 +6788,17 @@ read_surface(void)
 							if (j == DIGIT)
 							{
 								(void)sscanf(token1.c_str(), SCANFORMAT, &dummy);
+								if(dummy == 0)
+								{
+									dummy = 1; temp_surface.Calc_DDL_viscosity(true);
+								}
 								temp_surface.Set_DDL_viscosity(dummy);
+								continue;
+							}
+							else if (token1[0] == 'C' || token1[0] == 'c' )
+							{
+								temp_surface.Calc_DDL_viscosity(true);
+								temp_surface.Set_DDL_viscosity(1.0);
 								continue;
 							}
 							else if (j != EMPTY)
@@ -6601,10 +6939,10 @@ read_surface(void)
 					i1++;
 					continue;
 				}
-				else if (i != EMPTY || i1 > 8)
+				else if (i != EMPTY || i1 > 4)
 				{
 					error_msg
-					("Expected at most 8 numbers for the Donnan_factors for co- and counter-ions,\n 	z *= cgc[0] * (mu_x**(cgc[1] * nDbl**cgc[2] * (abs(surf_chrg_eq / A_surf / 1e-6)**cgc[3] * mu_x**(cgc[4])",
+					("Expected 4 numbers for the Donnan_factors of single and double-charged coounter- and co-ions,\n 	z1, z2, z_1, z_2",
 						CONTINUE);
 					error_msg(line_save, CONTINUE);
 					input_error++;
