@@ -20,8 +20,8 @@ POET_TEST(PhreeqcMatrixOneSolution) {
   EXPECT_EQ(ids[0], 1);
 
   PhreeqcMatrix::STLExport exported_init = pqc_mat.get();
-  // ID + H,O,Charge + 4 Solutions + 4 Equil incl. params
-  EXPECT_EQ(exported_init.names.size(), 12);
+  // ID + H,O,Charge,H(0),O(0) + 4 Solutions + 4 Equil incl. params
+  EXPECT_EQ(exported_init.names.size(), 14);
 
   EXPECT_EQ(exported_init.names, base_test::expected_names);
   for (std::size_t i = 0; i < exported_init.values.size(); ++i) {
@@ -58,7 +58,7 @@ POET_TEST(PhreeqcMatrixMultiSolution) {
 
   EXPECT_EQ(exported.names, barite_test::expected_names);
   for (std::size_t i = 0; i < exported.names.size(); i++) {
-    if (i > 8 && i < 13) {
+    if (i > 10 && i < 15) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }
@@ -109,7 +109,7 @@ POET_TEST(PhreeqcMatrixCtor) {
 
   EXPECT_EQ(exported.names, barite_test::expected_names);
   for (std::size_t i = 0; i < exported.names.size(); i++) {
-    if (i > 8 && i < 13) {
+    if (i > 10 && i < 15) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }
@@ -134,7 +134,7 @@ POET_TEST(PhreeqcMatrixOperator) {
 
   EXPECT_EQ(exported.names, barite_test::expected_names);
   for (std::size_t i = 0; i < exported.names.size(); i++) {
-    if (i > 8 && i < 13) {
+    if (i > 10 && i < 15) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }

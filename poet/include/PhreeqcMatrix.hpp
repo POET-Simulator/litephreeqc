@@ -166,19 +166,18 @@ public:
   };
 
   /**
-   * @brief Get all found solution names
+   * @brief Get all found solution names.
    *
    * @return std::vector<std::string> Vector containing all solution names.
    */
-  std::vector<std::string>
-  getSolutionNames(bool include_h_o_charge = false) const;
+  std::vector<std::string> getSolutionNames() const;
 
   /**
    * @brief Get solution total names of all found solutions (excluding H, O,
-   * Charge)
+   * Charge, H(0), O(0))
    *
    * @return std::vector<std::string> Names of all found solutions (excluding H,
-   * O, Charge)
+   * O, Charge, H(0), O(0))
    */
   std::vector<std::string> getSolutionPrimaries() const;
 
