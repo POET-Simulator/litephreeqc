@@ -36,4 +36,6 @@ POET_TEST(PhreeqcEngineStep) {
     EXPECT_NEAR(cell_values[i], base_test::expected_values[i],
                 base_test::expected_errors[i]);
   }
+
+  EXPECT_THROW(engine.runCell(cell_values, -1), std::invalid_argument);
 }
