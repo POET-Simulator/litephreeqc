@@ -34,6 +34,10 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
   std::size_t i = NUM_ESSENTIALS;
   cxxNameDouble new_totals;
 
+  const double &total_h = data[0];
+  const double &total_o = data[1];
+  const double &cb = data[2];
+
   new_totals["H(0)"] = data[3];
   new_totals["O(0)"] = data[4];
 
@@ -46,7 +50,7 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
     new_totals[tot_name] = value;
   }
 
-  this->solution->Update(data[0], data[1], data[2], new_totals);
+  this->solution->Update(total_h, total_o, cb, new_totals);
 }
 
 std::vector<std::string>

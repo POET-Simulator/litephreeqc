@@ -80,6 +80,11 @@ replaceRawKeywordID(const std::string &raw_dump_string) {
 }
 
 PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
+
+  if (!pqc_mat.checkIfExists(cell_id)) {
+    throw std::invalid_argument("Cell ID does not exist in PhreeqcMatrix");
+  }
+
   this->LoadDatabaseString(pqc_mat.getDatabase().c_str());
 
   const std::string pqc_string =
