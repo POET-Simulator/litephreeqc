@@ -471,7 +471,6 @@ if (STANDALONE_BUILD)
 endif()
 
 add_subdirectory(poet)
-# add_subdirectory(app)
 
 # get_cmake_property(_variableNames VARIABLES)
 # list (SORT _variableNames)
