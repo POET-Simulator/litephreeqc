@@ -447,7 +447,7 @@ if (STANDALONE_BUILD)
       gtest_hide_internal_symbols
       )
 
-    FetchContent_GetProperties(googletest)
+    FetchContent_MakeAvailable(googletest)
     if (NOT googletest_POPULATED)
       FetchContent_Populate(googletest)
       add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
