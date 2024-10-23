@@ -1,14 +1,27 @@
 #include "Phreeqc.h"
+#include <set>
+
+const std::set<std::string> to_ignore = {"H", "O", "Charge", "H(0)", "O(0)"};
 
 std::vector<std::string> Phreeqc::find_all_valence_states(
-    const std::vector<std::string> &&solution_names, const std::size_t offset) {
-  std::vector<std::string> solution_with_valences(
-      solution_names.begin(), solution_names.begin() + offset);
+    const std::vector<std::string> &&solution_names) {
+  std::vector<std::string> solution_with_valences;
+  solution_with_valences.reserve(solution_names.size());
 
   // to avoid duplicates store already evaluated master species
   std::set<std::string> master_species_found;
 
-  for (std::size_t i = offset; i < solution_names.size(); i++) {
+  auto is_ignored = [](const std::string &in) {
+    return (to_ignore.find(in) != to_ignore.end());
+  };
+
+  for (std::size_t i = 0; i < solution_names.size(); i++) {
+
+    if (is_ignored(solution_names[i])) {
+      solution_with_valences.push_back(solution_names[i]);
+      continue;
+    }
+
     const auto master_primary =
         master_bsearch_primary(solution_names[i].c_str());
 

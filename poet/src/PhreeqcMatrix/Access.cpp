@@ -157,25 +157,18 @@ PhreeqcMatrix::STLExport PhreeqcMatrix::get(VectorExportType type,
   return result;
 }
 
-std::vector<std::string>
-PhreeqcMatrix::getSolutionNames(bool include_h_o_charge) const {
+std::vector<std::string> PhreeqcMatrix::getSolutionNames() const {
   std::vector<std::string> names;
-
-  if (include_h_o_charge) {
-    names.push_back("H");
-    names.push_back("O");
-    names.push_back("Charge");
-  }
 
   const auto &first_element = _m_map.begin()->second;
 
-  for (std::size_t i = 3; i < _m_map.begin()->second.size(); i++) {
+  for (const auto &element : _m_map.begin()->second) {
     // assuming the element vector always starts with the solution components
-    if (first_element[i].type != PhreeqcComponent::SOLUTION) {
+    if (element.type != PhreeqcComponent::SOLUTION) {
       break;
     }
 
-    names.push_back(first_element[i].name);
+    names.push_back(element.name);
   }
 
   return names;

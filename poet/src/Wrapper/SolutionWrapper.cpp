@@ -1,11 +1,13 @@
 #include "SolutionWrapper.hpp"
 #include "NameDouble.h"
+#include <set>
 #include <vector>
 
 SolutionWrapper::SolutionWrapper(
-    cxxSolution *soln, const std::vector<std::string> &solution_order_)
-    : solution(soln), solution_order(solution_order_) {
-  this->num_elements = solution_order.size() + NUM_ESSENTIALS;
+    cxxSolution *soln, const std::vector<std::string> &_solution_order)
+    : solution(soln), solution_order(_solution_order.begin() + NUM_ESSENTIALS,
+                                     _solution_order.end()) {
+  this->num_elements = _solution_order.size();
 
   auto &totals = solution->Get_totals();
 }
@@ -14,6 +16,8 @@ void SolutionWrapper::get(std::span<LDBLE> &data) const {
   data[0] = solution->Get_total_h();
   data[1] = solution->Get_total_o();
   data[2] = solution->Get_cb();
+  data[3] = solution->Get_total("H(0)");
+  data[4] = solution->Get_total("O(0)");
 
   std::size_t i = NUM_ESSENTIALS;
   for (const auto &tot_name : solution_order) {
@@ -29,6 +33,10 @@ void SolutionWrapper::get(std::span<LDBLE> &data) const {
 void SolutionWrapper::set(const std::span<LDBLE> &data) {
   std::size_t i = NUM_ESSENTIALS;
   cxxNameDouble new_totals;
+
+  new_totals["H(0)"] = data[3];
+  new_totals["O(0)"] = data[4];
+
   for (const auto &tot_name : solution_order) {
     const double value = data[i++];
 
@@ -46,18 +54,18 @@ SolutionWrapper::names(cxxSolution *solution,
                        std::vector<std::string> &solution_order) {
   std::vector<std::string> names;
 
-  names.push_back("H");
-  names.push_back("O");
-  names.push_back("Charge");
+  names.insert(names.end(), ESSENTIALS.begin(), ESSENTIALS.end());
 
-  for (const auto &[tot_name, value] : solution->Get_totals()) {
-    if (tot_name == "H(0)" || tot_name == "O(0)") {
-      continue;
-    }
-
-    solution_order.push_back(tot_name);
+  std::set<std::string> names_set;
+  for (const auto &name : solution->Get_totals()) {
+    names_set.insert(name.first);
   }
 
-  names.insert(names.end(), solution_order.begin(), solution_order.end());
+  for (const auto &to_erase : ESSENTIALS) {
+    // don't care if the element was not found
+    names_set.erase(to_erase);
+  }
+
+  names.insert(names.end(), names_set.begin(), names_set.end());
   return names;
 }
