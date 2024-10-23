@@ -105,6 +105,11 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
 
 void PhreeqcEngine::runCell(std::vector<double> &cell_values,
                             double time_step) {
+
+  if (time_step < 0) {
+    throw std::invalid_argument("Time step must be positive");
+  }
+
   // skip ID
   std::span<double> cell_data{cell_values.begin() + 1, cell_values.end()};
 
