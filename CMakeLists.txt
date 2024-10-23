@@ -457,7 +457,7 @@ if (STANDALONE_BUILD)
       gtest_hide_internal_symbols
       )
 
-    FetchContent_GetProperties(googletest)
+    FetchContent_MakeAvailable(googletest)
     if (NOT googletest_POPULATED)
       # Always build googletest static
       set(SAVE_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
