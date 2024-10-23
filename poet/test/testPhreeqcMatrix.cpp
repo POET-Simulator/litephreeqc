@@ -5,16 +5,18 @@
 #include <testPhreeqcMatrix.hpp>
 
 #include "PhreeqcMatrix.hpp"
+#include "utils.hpp"
 
 #define POET_TEST(name) TEST(TestPOET, name)
 
+const std::string base_db = readFile(base_test::phreeqc_database);
+
 POET_TEST(PhreeqcInit) {
-  EXPECT_NO_THROW(
-      PhreeqcMatrix(base_test::phreeqc_database, base_test::script));
+  EXPECT_NO_THROW(PhreeqcMatrix(base_db, base_test::script));
 }
 
 POET_TEST(PhreeqcMatrixOneSolution) {
-  PhreeqcMatrix pqc_mat(base_test::phreeqc_database, base_test::script);
+  PhreeqcMatrix pqc_mat(base_db, base_test::script);
   const auto ids = pqc_mat.getIds();
   EXPECT_EQ(ids.size(), 1);
   EXPECT_EQ(ids[0], 1);
@@ -44,8 +46,20 @@ POET_TEST(PhreeqcMatrixOneSolution) {
   EXPECT_EQ(equilibrium, expected_equilibrium);
 }
 
+POET_TEST(PhreeqcMatrixBracketOperator) {
+  PhreeqcMatrix pqc_mat(base_db, base_test::script);
+
+  EXPECT_NO_THROW(pqc_mat(1, "H"));
+  EXPECT_NEAR(pqc_mat(1, "H"), base_test::expected_values[1], 1e-5);
+  EXPECT_ANY_THROW(pqc_mat(1, "J"));
+  EXPECT_ANY_THROW(pqc_mat(2, "H"));
+}
+
+const std::string barite_db = readFile(barite_test::database);
+const std::string barite_script = readFile(barite_test::script);
+
 POET_TEST(PhreeqcMatrixMultiSolution) {
-  PhreeqcMatrix pqc_mat(barite_test::database, barite_test::script);
+  PhreeqcMatrix pqc_mat(barite_db, barite_script);
 
   const auto ids = pqc_mat.getIds();
   EXPECT_EQ(ids.size(), 4);
@@ -94,7 +108,7 @@ POET_TEST(PhreeqcMatrixMultiSolution) {
 }
 
 POET_TEST(PhreeqcMatrixCtor) {
-  PhreeqcMatrix pqc_mat(barite_test::database, barite_test::script);
+  PhreeqcMatrix pqc_mat(barite_db, barite_script);
   PhreeqcMatrix pqc_mat_copy(pqc_mat);
   PhreeqcMatrix pqc_mat_move(std::move(pqc_mat_copy));
 
@@ -119,7 +133,7 @@ POET_TEST(PhreeqcMatrixCtor) {
 }
 
 POET_TEST(PhreeqcMatrixOperator) {
-  PhreeqcMatrix pqc_mat(barite_test::database, barite_test::script);
+  PhreeqcMatrix pqc_mat(barite_db, barite_script);
   PhreeqcMatrix pqc_mat_copy = pqc_mat;
 
   const auto ids = pqc_mat_copy.getIds();
@@ -144,7 +158,7 @@ POET_TEST(PhreeqcMatrixOperator) {
 }
 
 POET_TEST(PhreeqcMatrixRvalueManipulation) {
-  PhreeqcMatrix pqc_mat(barite_test::database, barite_test::script);
+  PhreeqcMatrix pqc_mat(barite_db, barite_script);
 
   PhreeqcMatrix pqc_erased = pqc_mat.erase({1});
 
@@ -175,7 +189,7 @@ POET_TEST(PhreeqcMatrixRvalueManipulation) {
 }
 
 POET_TEST(PhreeqcMatrixColumnMajorExport) {
-  PhreeqcMatrix pqc_mat(barite_test::database, barite_test::script);
+  PhreeqcMatrix pqc_mat(barite_db, barite_script);
 
   pqc_mat = pqc_mat.subset({2, 3});
 
@@ -192,13 +206,4 @@ POET_TEST(PhreeqcMatrixColumnMajorExport) {
 
   EXPECT_EQ(exported.values[0], 2);
   EXPECT_EQ(exported.values[1], 3);
-}
-
-POET_TEST(PhreeqcMatrixBracketOperator) {
-  PhreeqcMatrix pqc_mat(base_test::phreeqc_database, base_test::script);
-
-  EXPECT_NO_THROW(pqc_mat(1, "H"));
-  EXPECT_NEAR(pqc_mat(1, "H"), base_test::expected_values[1], 1e-5);
-  EXPECT_ANY_THROW(pqc_mat(1, "J"));
-  EXPECT_ANY_THROW(pqc_mat(2, "H"));
 }
