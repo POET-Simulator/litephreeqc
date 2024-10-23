@@ -2,12 +2,10 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include <testPhreeqcMatrix.hpp>
+#include <testInput.hpp>
 
 #include "PhreeqcMatrix.hpp"
 #include "utils.hpp"
-
-#define POET_TEST(name) TEST(TestPOET, name)
 
 const std::string base_db = readFile(base_test::phreeqc_database);
 
@@ -25,8 +23,8 @@ POET_TEST(PhreeqcMatrixOneSolution) {
   EXPECT_FALSE(pqc_mat.checkIfExists(2));
 
   PhreeqcMatrix::STLExport exported_init = pqc_mat.get();
-  // ID + H,O,Charge,H(0),O(0) + 4 Solutions + 4 Equil incl. params
-  EXPECT_EQ(exported_init.names.size(), 14);
+  // ID + H,O,Charge,H(0),O(0) + 6 Solutions + 4 Equil incl. params
+  EXPECT_EQ(exported_init.names.size(), 16);
 
   EXPECT_EQ(exported_init.names, base_test::expected_names);
   for (std::size_t i = 0; i < exported_init.values.size(); ++i) {

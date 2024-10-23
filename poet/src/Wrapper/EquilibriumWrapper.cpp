@@ -6,7 +6,7 @@
 EquilibriumWrapper::EquilibriumWrapper(
     cxxPPassemblage *ppassemblage,
     const std::vector<std::string> &ppassemblage_names)
-    : ppassemblage(ppassemblage) {
+    : ppassemblage(ppassemblage), ppassemblage_order(ppassemblage_names) {
   for (const auto &ppassemblage_name : ppassemblage_names) {
     auto it = std::find_if(
         ppassemblage->Get_pp_assemblage_comps().begin(),
@@ -28,25 +28,49 @@ EquilibriumWrapper::EquilibriumWrapper(
 void EquilibriumWrapper::get(std::span<LDBLE> &data) const {
   std::size_t offset = 0;
 
-  for (const auto &comp : equilibrium_comps) {
-    std::span<LDBLE> comp_span = data.subspan(offset, comp->size());
+  for (const auto &comp_name : ppassemblage_order) {
+    auto it = std::find_if(
+        equilibrium_comps.begin(), equilibrium_comps.end(),
+        [&](const auto &comp) { return comp->getCompName() == comp_name; });
 
-    comp->get(comp_span);
+    std::span<LDBLE> comp_span = data.subspan(offset, (*it)->size());
 
-    offset += comp->size();
+    (*it)->get(comp_span);
+
+    offset += (*it)->size();
   }
+
+  // for (const auto &comp : equilibrium_comps) {
+  //   std::span<LDBLE> comp_span = data.subspan(offset, comp->size());
+
+  //   comp->get(comp_span);
+
+  //   offset += comp->size();
+  // }
 }
 
 void EquilibriumWrapper::set(const std::span<LDBLE> &data) {
   std::size_t offset = 0;
 
-  for (const auto &comp : equilibrium_comps) {
-    std::span<LDBLE> comp_span = data.subspan(offset, comp->size());
+  for (const auto &comp_name : ppassemblage_order) {
+    auto it = std::find_if(
+        equilibrium_comps.begin(), equilibrium_comps.end(),
+        [&](const auto &comp) { return comp->getCompName() == comp_name; });
 
-    comp->set(comp_span);
+    std::span<LDBLE> comp_span = data.subspan(offset, (*it)->size());
 
-    offset += comp->size();
+    (*it)->set(comp_span);
+
+    offset += (*it)->size();
   }
+
+  // for (const auto &comp : equilibrium_comps) {
+  //   std::span<LDBLE> comp_span = data.subspan(offset, comp->size());
+
+  //   comp->set(comp_span);
+
+  //   offset += comp->size();
+  // }
 }
 
 std::vector<std::string>

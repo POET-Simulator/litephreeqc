@@ -3,6 +3,7 @@
 #include "PPassemblage.h"
 #include "WrapperBase.hpp"
 #include <memory>
+#include <vector>
 
 class EquilibriumWrapper : public WrapperBase {
 public:
@@ -30,9 +31,12 @@ private:
 
     static std::vector<std::string> names(const cxxPPassemblageComp &comp);
 
+    std::string getCompName() const { return this->comp.Get_name(); }
+
   private:
     cxxPPassemblageComp &comp;
   };
 
   std::vector<std::unique_ptr<EquilibriumCompWrapper>> equilibrium_comps;
+  const std::vector<std::string> ppassemblage_order;
 };
