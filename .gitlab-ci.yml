@@ -2,7 +2,7 @@ image: ubuntu:24.04
 
 before_script:
   - apt-get update -y
-  - apt-get install -y build-essential cmake git
+  - apt-get install -y build-essential cmake git ninja-build
 
 stages:
     - test
@@ -11,8 +11,8 @@ test:
     stage: test
     script:
         - mkdir _build && cd _build
-        - cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release ..
-        - make -j$(nproc)
+        - cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -G Ninja ..
+        - ninja 
         - ctest --output-junit test_results.xml
     artifacts:
         when: always

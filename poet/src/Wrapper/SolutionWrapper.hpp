@@ -3,7 +3,9 @@
 #include "NameDouble.h"
 #include "Solution.h"
 #include "WrapperBase.hpp"
+#include <array>
 #include <cstddef>
+#include <string>
 #include <vector>
 
 class SolutionWrapper : public WrapperBase {
@@ -18,9 +20,14 @@ public:
   static std::vector<std::string>
   names(cxxSolution *solution, std::vector<std::string> &solution_order);
 
+  std::vector<std::string> getEssentials() const;
+
 private:
   cxxSolution *solution;
   const std::vector<std::string> solution_order;
 
-  static constexpr std::size_t NUM_ESSENTIALS = 3;
+  static constexpr std::array<std::string, 5> ESSENTIALS = {"H", "O", "Charge",
+                                                            "H(0)", "O(0)"};
+
+  static constexpr std::size_t NUM_ESSENTIALS = ESSENTIALS.size();
 };

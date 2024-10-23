@@ -80,6 +80,11 @@ replaceRawKeywordID(const std::string &raw_dump_string) {
 }
 
 PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
+
+  if (!pqc_mat.checkIfExists(cell_id)) {
+    throw std::invalid_argument("Cell ID does not exist in PhreeqcMatrix");
+  }
+
   this->LoadDatabaseString(pqc_mat.getDatabase().c_str());
 
   const std::string pqc_string =
@@ -100,6 +105,11 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
 
 void PhreeqcEngine::runCell(std::vector<double> &cell_values,
                             double time_step) {
+
+  if (time_step < 0) {
+    throw std::invalid_argument("Time step must be positive");
+  }
+
   // skip ID
   std::span<double> cell_data{cell_values.begin() + 1, cell_values.end()};
 
@@ -194,7 +204,7 @@ void PhreeqcEngine::Impl::get_essential_values(std::span<double> &data) {
 void PhreeqcEngine::Impl::set_essential_values(const std::span<double> &data) {
 
   this->solutionWrapperPtr->set(data);
-  this->PhreeqcPtr->initial_solutions_poet(1);
+  // this->PhreeqcPtr->initial_solutions_poet(1);
 
   std::size_t offset = this->solutionWrapperPtr->size();
 
