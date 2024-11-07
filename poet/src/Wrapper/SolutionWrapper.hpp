@@ -1,6 +1,5 @@
 #pragma once
 
-#include "NameDouble.h"
 #include "Solution.h"
 #include "WrapperBase.hpp"
 #include <array>
@@ -26,8 +25,8 @@ private:
   cxxSolution *solution;
   const std::vector<std::string> solution_order;
 
-  static constexpr std::array<std::string, 5> ESSENTIALS = {"H", "O", "Charge",
-                                                            "H(0)", "O(0)"};
+  static constexpr std::array<const char *, 5> ESSENTIALS = {"H", "O", "Charge",
+                                                             "H(0)", "O(0)"};
 
   static constexpr std::size_t NUM_ESSENTIALS = ESSENTIALS.size();
 };
