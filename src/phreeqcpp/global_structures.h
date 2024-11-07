@@ -17,19 +17,22 @@
 #define MISSING -9999.999            
 #include "NA.h"   /* NA = not available */
 
-#define F_C_MOL 96493.5			/* C/mol or joule/volt-eq */
-#define F_KJ_V_EQ  96.4935		/* kJ/volt-eq */
-#define F_KCAL_V_EQ 23.0623		/* kcal/volt-eq */
-#define R_LITER_ATM 0.0820597	/* L-atm/deg-mol */
-#define R_KCAL_DEG_MOL 0.00198726	/* kcal/deg-mol */
-#define R_KJ_DEG_MOL 0.00831470	/* kJ/deg-mol */
-#define EPSILON 78.5			/* dialectric constant, dimensionless. Is calculated as eps_r(P, T) in calc_dielectrics. Update the code?? */
-#define EPSILON_ZERO 8.854e-12	/* permittivity of free space, C/V-m = C**2/m-J */
-#define JOULES_PER_CALORIE 4.1840
-#define PASCAL_PER_ATM 1.01325E5 /* conversion from atm to Pa */
-#define AVOGADRO 6.02252e23		/* atoms / mole */
-#define pi 3.14159265358979
-#define AH2O_FACTOR 0.017
+constexpr double F_C_MOL = 96493.5;           /* C/mol or joule/volt-eq */
+constexpr double F_KJ_V_EQ = 96.4935;         /* kJ/volt-eq */
+constexpr double F_KCAL_V_EQ = 23.0623;       /* kcal/volt-eq */
+constexpr double R_LITER_ATM = 0.0820597;     /* L-atm/deg-mol */
+constexpr double R_KCAL_DEG_MOL = 0.00198726; /* kcal/deg-mol */
+constexpr double R_KJ_DEG_MOL = 0.00831470;   /* kJ/deg-mol */
+constexpr double EPSILON =
+    78.5; /* dialectric constant, dimensionless. Is calculated as eps_r(P, T) in
+             calc_dielectrics. Update the code?? */
+constexpr double EPSILON_ZERO =
+    8.854e-12; /* permittivity of free space, C/V-m = C**2/m-J */
+constexpr double JOULES_PER_CALORIE = 4.1840;
+constexpr double PASCAL_PER_ATM = 1.01325E5; /* conversion from atm to Pa */
+constexpr double AVOGADRO = 6.02252e23;      /* atoms / mole */
+constexpr double AH2O_FACTOR = 0.017;
+constexpr double piConstant = 3.14159265358979;
 
 #define TRUE 1
 #define FALSE 0
