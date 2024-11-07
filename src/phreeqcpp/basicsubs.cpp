@@ -1,4 +1,5 @@
 #include "Phreeqc.h"
+#include "global_structures.h"
 #include "phqalloc.h"
 
 #include "Utils.h"
@@ -173,15 +174,15 @@ sa_declercq(double sa_type, double Sa, double d, double m, double m0, double gfw
 		double mass0 = m0 * gfw;
 		double V0 = mass0 / d;                         // volume
 		double St0 = mass0 * Sa;                       // total surface
-		double a0 = pow(3.0 * V0/(4.0 * pi), 1.0/3.0); // ((3*V0)/(4 * 3.14159265359))^(1/3)  
-		double Sp0 = (4.0 * pi) * a0 * a0;             // surface particle
+		double a0 = pow(3.0 * V0/(4.0 * piConstant), 1.0/3.0); // ((3*V0)/(4 * 3.14159265359))^(1/3)  
+		double Sp0 = (4.0 * piConstant) * a0 * a0;             // surface particle
 		double np = St0 / Sp0;                         // number of particles
 		double RATS = Sa / St0;
  
 		double mass = m * gfw;
 		double V = mass / d;
-		double a = pow(3.0 * V/(4.0 * pi), 1.0/3.0);  //((3*V)/(4 * 3.14159265359))^(1/3)
-		double St = 4.0 * pi * a * a * np;
+		double a = pow(3.0 * V/(4.0 * piConstant), 1.0/3.0);  //((3*V)/(4 * 3.14159265359))^(1/3)
+		double St = 4.0 * piConstant * a * a * np;
 		return St * RATS;                             // total current surface
 	}
 	error_string = sformatf( "Unknown surface area type in SA_DECLERCQ %d.", (int) sa_type);
@@ -421,7 +422,7 @@ calc_SC(void)
 		sqrt_q = sqrt(q);
 
 		// B1 = relaxtion, B2 = electrophoresis in ll = (ll0 - B2 * sqrt(mu) / f2(1 + ka)) * (1 - B1 * sqrt(mu) / f1(1 + ka))
-		a = 1.60218e-19 * 1.60218e-19 / (6 * pi);
+		a = 1.60218e-19 * 1.60218e-19 / (6 * piConstant);
 		B1 = a / (2 * 8.8542e-12 * eps_r * 1.38066e-23 * tk_x) * q / (1 + sqrt_q) * DH_B * 1e10 * z_plus * z_min;  // DH_B is per Angstrom (*1e10)
 		B2 = a * AVOGADRO / viscos_0 * DH_B * 1e17;  // DH_B per Angstrom (*1e10), viscos in mPa.s (*1e3), B2 in cm2 (*1e4)
 		//B1 = a / (2 * 8.8542e-12 * eps_c * 1.38066e-23 * tk_x) * q / (1 + sqrt_q) * DH_B * 1e10 * z_plus * z_min;  // DH_B is per Angstrom (*1e10)
