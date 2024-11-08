@@ -32,6 +32,14 @@ public:
   PhreeqcMatrix() = default;
 
   /**
+   * @brief Destroy the Phreeqc Matrix object
+   *
+   * There is no special cleanup needed for PhreeqcMatrix, thus the default (and
+   * implicit) destructor is used.
+   */
+  ~PhreeqcMatrix() = default;
+
+  /**
    * @brief Construct a new Phreeqc Matrix object
    *
    * Construct a new Phreeqc Matrix object by reading the database and input
