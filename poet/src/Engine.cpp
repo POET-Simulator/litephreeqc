@@ -110,8 +110,8 @@ void PhreeqcEngine::runCell(std::vector<double> &cell_values,
     throw std::invalid_argument("Time step must be positive");
   }
 
-  // skip ID
-  std::span<double> cell_data{cell_values.begin() + 1, cell_values.end()};
+  // ID is already skipped by PhreeqcRunner, so no need to start ahead
+  std::span<double> cell_data{cell_values.begin(), cell_values.end()};
 
   this->impl->set_essential_values(cell_data);
   this->impl->run(time_step);

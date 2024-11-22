@@ -57,7 +57,7 @@ public:
    * object!
    * @param other
    */
-  PhreeqcMatrix(const PhreeqcMatrix &other);
+  PhreeqcMatrix(const PhreeqcMatrix &other) = default;
 
   /**
    * @brief Construct a new Phreeqc Matrix object
@@ -66,7 +66,7 @@ public:
    * object!
    * @param other
    */
-  PhreeqcMatrix(PhreeqcMatrix &&other);
+  PhreeqcMatrix(PhreeqcMatrix &&other) = default;
 
   /**
    * @brief Assignment operator
@@ -75,7 +75,7 @@ public:
    * @param other
    * @return PhreeqcMatrix&
    */
-  PhreeqcMatrix &operator=(const PhreeqcMatrix &other);
+  PhreeqcMatrix &operator=(const PhreeqcMatrix &other) = default;
 
   /**
    * @brief Assignment operator
@@ -84,7 +84,7 @@ public:
    * @param other
    * @return PhreeqcMatrix&
    */
-  PhreeqcMatrix &operator=(PhreeqcMatrix &&other);
+  PhreeqcMatrix &operator=(PhreeqcMatrix &&other) = default;
 
   /**
    * @brief Access the value of a given cell by name.

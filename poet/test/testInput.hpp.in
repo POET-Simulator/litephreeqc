@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <gtest/gtest.h>
+
 #define POET_TEST(name) TEST(TestPOET, name)
 
 namespace base_test {

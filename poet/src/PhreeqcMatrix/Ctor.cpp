@@ -17,32 +17,32 @@ PhreeqcMatrix::PhreeqcMatrix(const std::string &database,
   this->initialize();
 }
 
-PhreeqcMatrix::PhreeqcMatrix(const PhreeqcMatrix &other)
-    : _m_map(other._m_map), _m_internal_names(other._m_internal_names),
-      _m_surface_primaries(other._m_surface_primaries), _m_pqc(other._m_pqc),
-      _m_database(other._m_database) {}
+// PhreeqcMatrix::PhreeqcMatrix(const PhreeqcMatrix &other)
+//     : _m_map(other._m_map), _m_internal_names(other._m_internal_names),
+//       _m_surface_primaries(other._m_surface_primaries), _m_pqc(other._m_pqc),
+//       _m_database(other._m_database) {}
 
-PhreeqcMatrix::PhreeqcMatrix(PhreeqcMatrix &&other)
-    : _m_map(other._m_map), _m_internal_names(other._m_internal_names),
-      _m_surface_primaries(other._m_surface_primaries), _m_pqc(other._m_pqc),
-      _m_database(other._m_database) {}
+// PhreeqcMatrix::PhreeqcMatrix(PhreeqcMatrix &&other)
+//     : _m_map(other._m_map), _m_internal_names(other._m_internal_names),
+//       _m_surface_primaries(other._m_surface_primaries), _m_pqc(other._m_pqc),
+//       _m_database(other._m_database) {}
 
-PhreeqcMatrix &PhreeqcMatrix::operator=(const PhreeqcMatrix &other) {
-  _m_map = other._m_map;
-  _m_internal_names = other._m_internal_names;
-  _m_surface_primaries = other._m_surface_primaries;
-  _m_pqc = other._m_pqc;
-  _m_database = other._m_database;
+// PhreeqcMatrix &PhreeqcMatrix::operator=(const PhreeqcMatrix &other) {
+//   _m_map = other._m_map;
+//   _m_internal_names = other._m_internal_names;
+//   _m_surface_primaries = other._m_surface_primaries;
+//   _m_pqc = other._m_pqc;
+//   _m_database = other._m_database;
 
-  return *this;
-}
+//   return *this;
+// }
 
-PhreeqcMatrix &PhreeqcMatrix::operator=(PhreeqcMatrix &&other) {
-  _m_map = other._m_map;
-  _m_internal_names = other._m_internal_names;
-  _m_surface_primaries = other._m_surface_primaries;
-  _m_pqc = other._m_pqc;
-  _m_database = other._m_database;
+// PhreeqcMatrix &PhreeqcMatrix::operator=(PhreeqcMatrix &&other) {
+//   _m_map = other._m_map;
+//   _m_internal_names = other._m_internal_names;
+//   _m_surface_primaries = other._m_surface_primaries;
+//   _m_pqc = other._m_pqc;
+//   _m_database = other._m_database;
 
-  return *this;
-}
+//   return *this;
+// }

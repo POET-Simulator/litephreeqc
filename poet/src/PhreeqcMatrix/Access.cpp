@@ -7,9 +7,10 @@
 #include <vector>
 
 PhreeqcMatrix PhreeqcMatrix::subset(const std::vector<int> &indices) const {
-  PhreeqcMatrix result;
+  PhreeqcMatrix result(*this);
 
-  result._m_pqc = _m_pqc;
+  result._m_map.clear();
+  result._m_internal_names.clear();
 
   for (const auto &index : indices) {
     result._m_map[index] = _m_map.at(index);
