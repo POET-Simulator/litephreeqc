@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-#include <cstddef>
 #include <map>
 #include <memory>
 #include <set>
@@ -9,7 +7,6 @@
 #include <vector>
 
 #include "IPhreeqc.hpp"
-#include "global_structures.h"
 
 /**
  * @brief Class for storing information from Phreeqc
