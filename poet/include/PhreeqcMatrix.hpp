@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-#include <cstddef>
 #include <map>
 #include <memory>
 #include <set>
@@ -9,7 +7,7 @@
 #include <vector>
 
 #include "IPhreeqc.hpp"
-#include "global_structures.h"
+#include "PhreeqcKnobs.hpp"
 
 /**
  * @brief Class for storing information from Phreeqc
@@ -276,6 +274,16 @@ public:
    */
   bool checkIfExists(int cell_id) const;
 
+  /**
+   * @brief Retrieves the current PhreeqcKnobs settings.
+   *
+   * This function returns a copy of the PhreeqcKnobs object that contains
+   * the current configuration settings for the Phreeqc instance.
+   *
+   * @return PhreeqcKnobs The current configuration settings.
+   */
+  PhreeqcKnobs getKnobs() const { return *_m_knobs; }
+
 private:
   std::map<int, std::vector<element>> _m_map;
   std::map<int, std::vector<base_names>> _m_internal_names;
@@ -287,5 +295,7 @@ private:
   void remove_NaNs();
 
   std::shared_ptr<IPhreeqc> _m_pqc;
+  std::shared_ptr<PhreeqcKnobs> _m_knobs;
+
   std::string _m_database;
 };
