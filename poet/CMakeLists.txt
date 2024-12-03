@@ -58,3 +58,6 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
     include(GoogleTest)
     gtest_discover_tests(poet_test)
 endif()
+
+add_executable(golemrunner test/testGolemRunner.cpp)
+target_link_libraries(golemrunner IPhreeqcPOET)
