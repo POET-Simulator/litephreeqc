@@ -1,9 +1,11 @@
 #include "IPhreeqc.hpp"
+#include "PhreeqcKnobs.hpp"
 #include "PhreeqcMatrix.hpp"
 
 #include <Phreeqc.h>
 #include <Solution.h>
 #include <cmath>
+#include <memory>
 #include <string>
 
 PhreeqcMatrix::PhreeqcMatrix(const std::string &database,
@@ -13,6 +15,9 @@ PhreeqcMatrix::PhreeqcMatrix(const std::string &database,
 
   this->_m_pqc->LoadDatabaseString(database.c_str());
   this->_m_pqc->RunString(input_script.c_str());
+
+  this->_m_knobs =
+      std::make_shared<PhreeqcKnobs>(this->_m_pqc.get()->GetPhreeqcPtr());
 
   this->initialize();
 }

@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "PhreeqcKnobs.hpp"
 #include "PhreeqcMatrix.hpp"
 #include "Wrapper/EquilibriumWrapper.hpp"
 #include "Wrapper/ExchangeWrapper.hpp"
@@ -86,6 +87,8 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
   }
 
   this->LoadDatabaseString(pqc_mat.getDatabase().c_str());
+
+  pqc_mat.getKnobs().writeKnobs(this->PhreeqcPtr);
 
   const std::string pqc_string =
       replaceRawKeywordID(pqc_mat.getDumpStringsPQI(cell_id));
