@@ -1,0 +1,32 @@
+## Initial: everywhere equilibrium with calcite NB: The aqueous
+## solution *resulting* from this calculation is to be used as initial
+## state everywhere in the domain
+
+SOLUTION 1 Initial state
+units	mol/kgw
+water	1
+temperature	25
+pH      7
+pe      4
+Cl      1e-2   charge
+Na      1e-2
+Ca      1e-13
+C(4)    1e-13
+Mg      1e-13
+PURE 1
+Calcite   0.0 1
+Dolomite  0.0 0
+
+SOLUTION 2    MgCl2 solution to be injected from the inlet
+units   mol/kgw
+pH    7
+water 1
+temp 25
+Mg  0.1
+Cl  0.2
+
+END
+
+RUN_CELLS
+ -cells 1-2
+END
