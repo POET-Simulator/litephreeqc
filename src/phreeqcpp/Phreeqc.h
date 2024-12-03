@@ -1856,6 +1856,7 @@ protected:
 	friend class IPhreeqcMMS;
 	friend class IPhreeqcPhast;
 	friend class PhreeqcRM;
+	friend class PhreeqcKnobs;
 
   std::vector<int> keycount;  // used to mark keywords that have been read 
 
