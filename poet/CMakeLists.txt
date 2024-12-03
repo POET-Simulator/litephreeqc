@@ -1,6 +1,7 @@
 set(POET_SOURCE_FILES
     src/Engine.cpp
     src/Runner.cpp 
+    src/Knobs.cpp
     #Wrappers
     src/Wrapper/EquilibriumWrapper.cpp
     src/Wrapper/EquilibriumCompWrapper.cpp
@@ -35,6 +36,7 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
         test/testPhreeqcEngine.cpp
         test/testPhreeqcMatrix.cpp
         test/testPhreeqcRunner.cpp
+        test/testPhreeqcKnobs.cpp
         test/utils.cpp
     )
 
