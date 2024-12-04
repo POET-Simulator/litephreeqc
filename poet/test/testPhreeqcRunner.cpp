@@ -73,3 +73,25 @@ POET_TEST(PhreeqcRunnerUnknownID) {
 
   EXPECT_THROW(runner.run(simulationInOut, 100), std::out_of_range);
 }
+
+POET_TEST(PhreeqcRunnerSimulationWithIgnoredCells) {
+  PhreeqcMatrix pqc_mat(test_database, test_script);
+  const auto subsetted_pqc_mat = pqc_mat.subset({2, 3});
+  PhreeqcRunner runner(subsetted_pqc_mat);
+
+  const auto stl_mat = subsetted_pqc_mat.get();
+  const auto matrix_values = stl_mat.values;
+  const auto num_columns = stl_mat.names.size();
+
+  std::vector<double> second_line(matrix_values.begin() + num_columns,
+                                  matrix_values.end());
+  std::vector<std::vector<double>> simulationInOut;
+
+  simulationInOut.push_back(second_line);
+
+  EXPECT_NO_THROW(runner.run(simulationInOut, 10000, {0}));
+
+  for (std::size_t i = 0; i < num_columns; ++i) {
+    EXPECT_DOUBLE_EQ(simulationInOut[0][i], second_line[i]);
+  }
+}
