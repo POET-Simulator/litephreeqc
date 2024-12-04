@@ -51,6 +51,18 @@ public:
            const double time_step);
 
   /**
+   * @brief Runs the simulation with the given input and output data.
+   *
+   * @param simulationInOut A reference to a 2D vector containing the simulation
+   * input and output data.
+   * @param time_step The time step for the simulation.
+   * @param to_ignore A vector of indices specifying which elements to ignore
+   * during the simulation.
+   */
+  void run(std::vector<std::vector<double>> &simulationInOut,
+           const double time_step, const std::vector<std::size_t> &to_ignore);
+
+  /**
    * @brief Returns the number of engines currently stored.
    *
    * This function provides the count of engines that are currently

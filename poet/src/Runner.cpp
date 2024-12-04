@@ -1,9 +1,11 @@
 #include "PhreeqcEngine.hpp"
 #include "PhreeqcMatrix.hpp"
 #include "PhreeqcRunner.hpp"
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <memory>
+#include <set>
 #include <vector>
 
 PhreeqcRunner::PhreeqcRunner(const PhreeqcMatrix &matrix) {
@@ -40,6 +42,32 @@ static void copy_from_buffer(const std::vector<double> &buffer,
 void PhreeqcRunner::run(std::vector<std::vector<double>> &simulationInOut,
                         const double time_step) {
   for (std::size_t i = 0; i < simulationInOut.size(); i++) {
+    const auto &current_inout = simulationInOut[i];
+    const auto pqc_id = static_cast<int>(current_inout[0]);
+
+    this->_buffer.clear();
+
+    // Copy the input to the buffer while ignoring the first element and NaNs
+    copy_to_buffer(this->_buffer, current_inout);
+
+    this->_engineStorage.at(pqc_id)->runCell(this->_buffer, time_step);
+
+    // Copy the buffer back to the output while ignoring the first element and
+    // NaNs
+    copy_from_buffer(this->_buffer, simulationInOut[i]);
+  }
+}
+
+void PhreeqcRunner::run(std::vector<std::vector<double>> &simulationInOut,
+                        const double time_step,
+                        const std::vector<std::size_t> &to_ignore) {
+  const std::set<std::size_t> to_ignore_set(to_ignore.begin(), to_ignore.end());
+
+  for (std::size_t i = 0; i < simulationInOut.size(); i++) {
+    if (to_ignore_set.find(i) != to_ignore_set.end()) {
+      continue;
+    }
+
     const auto &current_inout = simulationInOut[i];
     const auto pqc_id = static_cast<int>(current_inout[0]);
 
