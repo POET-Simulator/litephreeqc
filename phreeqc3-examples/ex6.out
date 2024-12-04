@@ -9,6 +9,7 @@ Reading data base.
 	SOLUTION_MASTER_SPECIES
 	SOLUTION_SPECIES
 	PHASES
+	GAS_BINARY_PARAMETERS
 	EXCHANGE_MASTER_SPECIES
 	EXCHANGE_SPECIES
 	SURFACE_MASTER_SPECIES
@@ -3228,7 +3229,7 @@ Initial solution 1.
       Specific Conductance (µS/cm,  25°C)  = 288
                           Density (g/cm³)  =   0.99712
                                Volume (L)  =   1.00297
-                        Viscosity (mPa s)  =   0.89020
+                        Viscosity (mPa s)  =   0.89019
                         Activity of water  =   1.000
                  Ionic strength (mol/kgw)  =   1.175e-03
                        Mass of water (kg)  =   1.000e+00
@@ -3559,7 +3560,7 @@ Initial solution 1.
       Specific Conductance (µS/cm,  25°C)  = 279
                           Density (g/cm³)  =   0.99714
                                Volume (L)  =   1.00299
-                        Viscosity (mPa s)  =   0.89016
+                        Viscosity (mPa s)  =   0.89015
                         Activity of water  =   1.000
                  Ionic strength (mol/kgw)  =   1.372e-03
                        Mass of water (kg)  =   1.000e+00
