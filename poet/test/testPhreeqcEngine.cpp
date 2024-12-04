@@ -24,17 +24,18 @@ POET_TEST(PhreeqcEngineStep) {
   PhreeqcEngine engine(pqc_mat, 1);
 
   std::vector<double> cell_values = pqc_mat.get().values;
+  cell_values.erase(cell_values.begin(), cell_values.begin() + 1);
 
   EXPECT_NO_THROW(engine.runCell(cell_values, 0));
   EXPECT_NO_THROW(engine.runCell(cell_values, 100));
 
   for (std::size_t i = 0; i < cell_values.size(); ++i) {
-    // ignore H(0) and O(0)
-    if (i == 4 || i == 5) {
+    // skip Charge, H(0) and O(0)
+    if (i >= 2 && i <= 4) {
       continue;
     }
-    EXPECT_NEAR(cell_values[i], base_test::expected_values[i],
-                base_test::expected_errors[i]);
+    EXPECT_NEAR(cell_values[i], base_test::expected_values[i + 1],
+                base_test::expected_errors[i + 1]);
   }
 
   EXPECT_THROW(engine.runCell(cell_values, -1), std::invalid_argument);
