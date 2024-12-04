@@ -285,7 +285,7 @@ int Phreeqc::transport(void)
     //{
     //	error_string = sformatf(
     //		"Sorry, implicit diffusion can handle only 1 stagnant layer for
-    //now. Please remove -implicit true, or set -stagnant 1.");
+    // now. Please remove -implicit true, or set -stagnant 1.");
     //	//error_msg(error_string, CONTINUE);
     // }
     if (implicit && current_cells == NULL) {
@@ -1866,9 +1866,9 @@ int Phreeqc::fill_spec(int l_cell_no, int ref_cell)
         // == 1 && bcon_first != 2)))
         //{
         //	// name_ret = dif_spec_names.insert(s_ptr->name); // but not in
-        //implicit now...
+        // implicit now...
         //	// must fill in the spec in previous cells, order the names, see
-        //below for aqueous species...
+        // below for aqueous species...
         // }
         count_exch_spec++;
         count_spec++;
@@ -2041,8 +2041,9 @@ int Phreeqc::fill_spec(int l_cell_no, int ref_cell)
     //{
     //	error_string = sformatf(
     //		"Species in implicit diffusion in cell %d are %; different from
-    //previous cells with %d species.", 		l_cell_no, loc_spec_names.size(),
-    //dif_spec_names.size()); 	error_msg(error_string, CONTINUE);
+    // previous cells with %d species.", 		l_cell_no,
+    // loc_spec_names.size(), dif_spec_names.size()); 	error_msg(error_string,
+    // CONTINUE);
     // }
   }
   if (implicit && l_cell_no /* && l_cell_no < count_cells + 2 */) {
@@ -2656,7 +2657,7 @@ void Phreeqc::diffuse_implicit(LDBLE DDt, int stagnant)
     dVc = current_cells[i].R * (current_x - current_cells[i].dif);
     // if (((dV_dcell && (dVc * j_0e > 0)) ||
     //	(dV_dcell > 0 && (cell_data[i].potV + dVc) > (cell_data[count_cells +
-    //1].potV)) || 	(dV_dcell < 0 && (cell_data[i].potV + dVc) <
+    // 1].potV)) || 	(dV_dcell < 0 && (cell_data[i].potV + dVc) <
     //(cell_data[count_cells + 1].potV))))
     if ((dV_dcell && (dVc * j_0e > 0)) ||
         ((dV_dcell > 0) &&
@@ -2807,7 +2808,7 @@ void Phreeqc::diffuse_implicit(LDBLE DDt, int stagnant)
         //	sptr2->Set_cb(sptr2->Get_cb() + ct[icell + 1].J_ij_sum);
         //	if (sptr_stag)
         //		sptr_stag->Set_cb(sptr_stag->Get_cb() +
-        //ct[i1].J_ij_sum);
+        // ct[i1].J_ij_sum);
         // }
         continue;
       }
@@ -2991,7 +2992,7 @@ void Phreeqc::diffuse_implicit(LDBLE DDt, int stagnant)
       //	sptr2->Set_cb(sptr2->Get_cb() + ct[icell + 1].J_ij_sum);
       //   if (sptr_stag)
       //		sptr_stag->Set_cb(sptr_stag->Get_cb() +
-      //ct[i1].J_ij_sum);
+      // ct[i1].J_ij_sum);
       // }
     }
   }
@@ -3307,7 +3308,7 @@ int Phreeqc::multi_D(LDBLE DDt, int mobile_cell, int stagnant)
   // check for negative conc's...
   // if (stagnant)
   //	first_c = mobile_cell; // allow for stagnant cell mixing with boundary
-  //cell 0
+  // cell 0
   for (i = first_c; i <= last_c2; i++) {
     // if (stagnant && i > first_c && i <= count_cells + first_c)
     //	continue;
@@ -3498,21 +3499,22 @@ void Phreeqc::calc_b_ij(int icell, int jcell, int k, LDBLE b_i, LDBLE b_j,
 //	// for boundary cells...
 //	if (stagnant > 1)
 //	{ /* for a diffusion experiment with well-mixed reservoir in cell 3 and
-//the last stagnant cell, 		   and with the mixf * 2 for the boundary cells in the
-//input... */ 		if (icell == 3 && !g_i && g_j) 			ct[icell].v_m[k].b_ij = b_j *
-//(free_j + g_j) / 2; 		else if (jcell == all_cells - 1 && !g_j && g_i)
-//			ct[icell].v_m[k].b_ij = b_i * (free_i + g_i) / 2;
+// the last stagnant cell, 		   and with the mixf * 2 for the
+// boundary cells in the input... */ 		if (icell == 3 && !g_i && g_j)
+// ct[icell].v_m[k].b_ij = b_j * (free_j + g_j) / 2; 		else if (jcell
+//== all_cells - 1 && !g_j && g_i) 			ct[icell].v_m[k].b_ij = b_i * (free_i + g_i)
+/// 2;
 //	}
 //	else
 //	{
 //		if (icell == 0 || (icell == count_cells + 1 && jcell ==
-//count_cells + count_cells + 1)) 			ct[icell].v_m[k].b_ij = b_j * (free_j + g_j);
-//		else if (icell == count_cells && jcell == count_cells + 1)
-//			ct[icell].v_m[k].b_ij = b_i * (free_i + g_i);
+// count_cells + count_cells + 1)) 			ct[icell].v_m[k].b_ij =
+// b_j * (free_j + g_j); 		else if (icell == count_cells && jcell == count_cells +
+//1) 			ct[icell].v_m[k].b_ij = b_i * (free_i + g_i);
 //	}
 //	if (ct[icell].v_m[k].z)
 //		ct[icell].Dz2c += ct[icell].v_m[k].b_ij * ct[icell].v_m[k].zc *
-//ct[icell].v_m[k].z; 	return;
+// ct[icell].v_m[k].z; 	return;
 //}
 {
   // Oct. 2023, with g_i,j = exp(g*z) * SS (charge_ptr-water / aq_x)
@@ -4072,7 +4074,7 @@ LDBLE Phreeqc::find_J(int icell, int jcell, LDBLE mixf, LDBLE DDt, int stagnant)
           b_j *= sol_D[icell].spec[i].Dw * dum2;
         }
         if (sol_D[icell].spec[i].dw_a_v_dif)
-          b_j *= pow(sol_D[jcell].viscos_f / sol_D[icell].viscos_f,
+          b_j *= pow(sol_D[jcell].viscos_0 / sol_D[icell].viscos_0,
                      sol_D[icell].spec[i].dw_a_v_dif);
         calc_b_ij(icell, jcell, k, b_i, b_j, g_i, g_j, f_free_i, f_free_j,
                   stagnant);
@@ -4181,7 +4183,7 @@ LDBLE Phreeqc::find_J(int icell, int jcell, LDBLE mixf, LDBLE DDt, int stagnant)
           b_i *= sol_D[jcell].spec[j].Dw * dum2;
         }
         if (sol_D[icell].spec[i].dw_a_v_dif)
-          b_i *= pow(sol_D[icell].viscos_f / sol_D[jcell].viscos_f,
+          b_i *= pow(sol_D[icell].viscos_0 / sol_D[jcell].viscos_0,
                      sol_D[icell].spec[i].dw_a_v_dif);
 
         calc_b_ij(icell, jcell, k, b_i, b_j, g_i, g_j, f_free_i, f_free_j,
@@ -4281,7 +4283,7 @@ LDBLE Phreeqc::find_J(int icell, int jcell, LDBLE mixf, LDBLE DDt, int stagnant)
         // ddlm = sol_D[jcell].spec[j].lm - sol_D[icell].spec[i].lm; // appt:
         // this could give an incorrect large factor for implicit if (fabs(ddlm)
         // > 1e-10) 	ct[icell].v_m[k].grad *= (1 + (sol_D[jcell].spec[j].lg -
-        //sol_D[icell].spec[i].lg) / ddlm);
+        // sol_D[icell].spec[i].lg) / ddlm);
         ddlm = sol_D[jcell].spec[j].lm - sol_D[icell].spec[i].lm;
         dum1 = sol_D[jcell].spec[j].lg - sol_D[icell].spec[i].lg;
         dum = 1;

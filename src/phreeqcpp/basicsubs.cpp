@@ -382,7 +382,7 @@ LDBLE Phreeqc::calc_SC(void)
 
     // B1 = relaxation, B2 = electrophoresis in ll = (ll0 - B2 * sqrt(mu) / f2(1
     // + ka)) * (1 - B1 * sqrt(mu) / f1(1 + ka))
-    a = 1.60218e-19 * 1.60218e-19 / (6 * pi);
+    a = 1.60218e-19 * 1.60218e-19 / (6 * piConstant);
     B1 = a / (2 * 8.8542e-12 * eps_r * 1.38066e-23 * tk_x) * q / (1 + sqrt_q) *
          DH_B * 1e10 * z_plus * z_min; // DH_B is per Angstrom (*1e10)
     B2 = a * AVOGADRO / viscos_0 * DH_B *
@@ -477,7 +477,7 @@ LDBLE Phreeqc::calc_SC(void)
                        (1 + ka))); // +ka * ka / 6))); // S.cm2/eq / (kgw/L)
         // t1 = (Dw - B2 * l_z * sqrt_mu / (1 + ka)) *
         //	(1 - B1 * sqrt_mu / ((1 + ka) *(1 + ka * sqrt_q + ka * ka /
-        //6))); // S.cm2/eq / (kgw/L)
+        // 6))); // S.cm2/eq / (kgw/L)
         if (av)
           t1 *= pow(viscos_0 / viscos, av);
         if (correct_Dw)
