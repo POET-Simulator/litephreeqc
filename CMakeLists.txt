@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project (
   IPhreeqc
-  VERSION 3.8.2
+  VERSION 3.8.5
   LANGUAGES CXX C
   )
 
