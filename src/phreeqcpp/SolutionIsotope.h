@@ -5,6 +5,7 @@
 #include <string>				// std::string
 #include <list>					// std::list
 #include "Parser.h"
+#include "phrqtype.h"
 class Dictionary;
 
 class cxxSolutionIsotope: public PHRQ_base

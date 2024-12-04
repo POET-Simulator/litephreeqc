@@ -427,9 +427,7 @@ public:
 	int initial_gas_phases(int print);
 	int initial_solutions(int print);
 
-        int initial_solutions_poet(int sol_id);
-
-        int step_save_exch(int n_user);
+	int step_save_exch(int n_user);
 	int step_save_surf(int n_user);
 	int initial_surfaces(int print);
 	int reactions(void);
