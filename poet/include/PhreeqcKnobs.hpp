@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Phreeqc.h"
 #include <cstdint>
 /**
  * @brief A struct to hold the parameters for PhreeqcKnobs.
@@ -17,6 +16,8 @@ struct PhreeqcKnobsParams {
   double pe_step_size;
   bool diagonal_scale;
 };
+
+class Phreeqc;
 
 /**
  * @class PhreeqcKnobs
