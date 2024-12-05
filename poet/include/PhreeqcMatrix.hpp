@@ -6,8 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "IPhreeqc.hpp"
 #include "PhreeqcKnobs.hpp"
+
+class IPhreeqc;
 
 /**
  * @brief Class for storing information from Phreeqc

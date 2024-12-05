@@ -1,5 +1,7 @@
 #include "PhreeqcMatrix.hpp"
 
+#include <IPhreeqc.hpp>
+
 std::vector<int> PhreeqcMatrix::getIds() const {
   std::vector<int> ids;
   for (const auto &[id, _] : _m_map) {

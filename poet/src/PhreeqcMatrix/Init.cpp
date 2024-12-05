@@ -6,6 +6,7 @@
 #include "../Wrapper/SolutionWrapper.hpp"
 #include "../Wrapper/SurfaceWrapper.hpp"
 
+#include <IPhreeqc.hpp>
 #include <Phreeqc.h>
 #include <Solution.h>
 #include <cmath>
