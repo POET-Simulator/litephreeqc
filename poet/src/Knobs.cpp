@@ -1,5 +1,7 @@
 #include "PhreeqcKnobs.hpp"
 
+#include <Phreeqc.h>
+
 PhreeqcKnobs::PhreeqcKnobs(Phreeqc *pqc_instance) {
   this->readKnobs(pqc_instance);
 }
