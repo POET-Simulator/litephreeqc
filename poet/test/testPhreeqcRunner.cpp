@@ -48,10 +48,10 @@ POET_TEST(PhreeqcRunnerSimulation) {
     const bool is_first_half = cell_index < half_cells;
     if (is_first_half) {
       EXPECT_EQ(simulationInOut[cell_index][0], expected_value_first_half);
-      EXPECT_TRUE(std::isnan(simulationInOut[cell_index][11]));
+      EXPECT_TRUE(std::isnan(simulationInOut[cell_index][9]));
     } else {
       EXPECT_EQ(simulationInOut[cell_index][0], expected_value_second_half);
-      EXPECT_FALSE(std::isnan(simulationInOut[cell_index][11]));
+      EXPECT_FALSE(std::isnan(simulationInOut[cell_index][9]));
     }
 
     EXPECT_NEAR(simulationInOut[cell_index][1], 111, 1);

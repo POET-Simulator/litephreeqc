@@ -54,19 +54,25 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
 }
 
 std::vector<std::string>
-SolutionWrapper::names(cxxSolution *solution,
+SolutionWrapper::names(cxxSolution *solution, bool include_h0_o0,
                        std::vector<std::string> &solution_order) {
   std::vector<std::string> names;
 
   names.insert(names.end(), ESSENTIALS.begin(), ESSENTIALS.end());
 
+  if (include_h0_o0) {
+    names.push_back("H(0)");
+    names.push_back("O(0)");
+  }
+
   std::set<std::string> names_set;
+
   for (const auto &name : solution->Get_totals()) {
     names_set.insert(name.first);
   }
 
-  for (const auto &to_erase : ESSENTIALS) {
-    // don't care if the element was not found
+  // remove H(0) and O(0) from the set as they are already in the vector (if)
+  for (const auto &to_erase : {"H(0)", "O(0)"}) {
     names_set.erase(to_erase);
   }
 

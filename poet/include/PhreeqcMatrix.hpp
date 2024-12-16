@@ -44,10 +44,12 @@ public:
    * Construct a new Phreeqc Matrix object by reading the database and input
    * script already present as a string.
    *
-   * @param database
-   * @param input_script
+   * @param database Phreeqc database as a string.
+   * @param input_script Phreeqc input script as a string.
+   * @param with_h0_o0 Whether to include H(0) and O(0) in the output or not.
    */
-  PhreeqcMatrix(const std::string &database, const std::string &input_script);
+  PhreeqcMatrix(const std::string &database, const std::string &input_script,
+                bool with_h0_o0 = false);
 
   /**
    * @brief Construct a new Phreeqc Matrix object
@@ -299,4 +301,6 @@ private:
   std::shared_ptr<PhreeqcKnobs> _m_knobs;
 
   std::string _m_database;
+
+  bool _m_with_h0_o0;
 };

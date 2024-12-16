@@ -18,12 +18,14 @@
 #include <utility>
 #include <vector>
 
+bool include_h0_o0 = false;
+
 static std::vector<std::string> dump_solution_names(cxxSolution *solution,
                                                     Phreeqc *phreeqc) {
   std::vector<std::string> placeholder;
 
   return phreeqc->find_all_valence_states(
-      SolutionWrapper::names(solution, placeholder));
+      SolutionWrapper::names(solution, include_h0_o0, placeholder));
 }
 
 template <enum PhreeqcMatrix::PhreeqcComponent comp, class T>
@@ -204,6 +206,8 @@ void PhreeqcMatrix::initialize() {
   if (!phreeqc->Get_Rxn_surface_map().empty()) {
     this->_m_pqc->RunString("RUN_CELLS\n-cells 1\nEND");
   }
+
+  include_h0_o0 = this->_m_with_h0_o0;
 
   std::vector<std::string> solutions = find_all_solutions(phreeqc);
 
