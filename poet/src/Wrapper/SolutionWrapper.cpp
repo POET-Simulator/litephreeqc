@@ -16,8 +16,6 @@ void SolutionWrapper::get(std::span<LDBLE> &data) const {
   data[0] = solution->Get_total_h();
   data[1] = solution->Get_total_o();
   data[2] = solution->Get_cb();
-  data[3] = solution->Get_total("H(0)");
-  data[4] = solution->Get_total("O(0)");
 
   std::size_t i = NUM_ESSENTIALS;
   for (const auto &tot_name : solution_order) {
@@ -37,9 +35,6 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
   const double &total_h = data[0];
   const double &total_o = data[1];
   const double &cb = data[2];
-
-  new_totals["H(0)"] = data[3];
-  new_totals["O(0)"] = data[4];
 
   for (const auto &tot_name : solution_order) {
     const double value = data[i++];
