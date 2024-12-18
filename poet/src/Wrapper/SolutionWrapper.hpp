@@ -17,7 +17,8 @@ public:
   void set(const std::span<LDBLE> &data);
 
   static std::vector<std::string>
-  names(cxxSolution *solution, std::vector<std::string> &solution_order);
+  names(cxxSolution *solution, bool include_h0_o0,
+        std::vector<std::string> &solution_order);
 
   std::vector<std::string> getEssentials() const;
 
@@ -25,8 +26,8 @@ private:
   cxxSolution *solution;
   const std::vector<std::string> solution_order;
 
-  static constexpr std::array<const char *, 5> ESSENTIALS = {"H", "O", "Charge",
-                                                             "H(0)", "O(0)"};
+  static constexpr std::array<const char *, 3> ESSENTIALS = {"H", "O",
+                                                             "Charge"};
 
   static constexpr std::size_t NUM_ESSENTIALS = ESSENTIALS.size();
 };

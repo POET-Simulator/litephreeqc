@@ -16,8 +16,6 @@ void SolutionWrapper::get(std::span<LDBLE> &data) const {
   data[0] = solution->Get_total_h();
   data[1] = solution->Get_total_o();
   data[2] = solution->Get_cb();
-  data[3] = solution->Get_total("H(0)");
-  data[4] = solution->Get_total("O(0)");
 
   std::size_t i = NUM_ESSENTIALS;
   for (const auto &tot_name : solution_order) {
@@ -38,9 +36,6 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
   const double &total_o = data[1];
   const double &cb = data[2];
 
-  new_totals["H(0)"] = data[3];
-  new_totals["O(0)"] = data[4];
-
   for (const auto &tot_name : solution_order) {
     const double value = data[i++];
 
@@ -54,19 +49,25 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
 }
 
 std::vector<std::string>
-SolutionWrapper::names(cxxSolution *solution,
+SolutionWrapper::names(cxxSolution *solution, bool include_h0_o0,
                        std::vector<std::string> &solution_order) {
   std::vector<std::string> names;
 
   names.insert(names.end(), ESSENTIALS.begin(), ESSENTIALS.end());
 
+  if (include_h0_o0) {
+    names.push_back("H(0)");
+    names.push_back("O(0)");
+  }
+
   std::set<std::string> names_set;
+
   for (const auto &name : solution->Get_totals()) {
     names_set.insert(name.first);
   }
 
-  for (const auto &to_erase : ESSENTIALS) {
-    // don't care if the element was not found
+  // remove H(0) and O(0) from the set as they are already in the vector (if)
+  for (const auto &to_erase : {"H(0)", "O(0)"}) {
     names_set.erase(to_erase);
   }
 

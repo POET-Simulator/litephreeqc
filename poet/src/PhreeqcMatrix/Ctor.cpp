@@ -9,8 +9,8 @@
 #include <string>
 
 PhreeqcMatrix::PhreeqcMatrix(const std::string &database,
-                             const std::string &input_script)
-    : _m_database(database) {
+                             const std::string &input_script, bool with_h0_o0)
+    : _m_database(database), _m_with_h0_o0(with_h0_o0) {
   this->_m_pqc = std::make_shared<IPhreeqc>();
 
   this->_m_pqc->LoadDatabaseString(database.c_str());
