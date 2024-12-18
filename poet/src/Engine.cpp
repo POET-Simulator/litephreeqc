@@ -59,6 +59,7 @@ public:
   bool has_surface = false;
   struct InitCell {
     std::vector<std::string> solutions;
+    bool with_redox;
     std::vector<std::string> exchanger;
     std::vector<std::string> kinetics;
     std::vector<std::string> equilibrium;
@@ -96,6 +97,7 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
   this->RunString(pqc_string.c_str());
 
   InitCell cell = {pqc_mat.getSolutionNames(),
+                   pqc_mat.withRedox(),
                    pqc_mat.getExchanger(cell_id),
                    pqc_mat.getKineticsNames(cell_id),
                    pqc_mat.getEquilibriumNames(cell_id),
@@ -133,8 +135,8 @@ void PhreeqcEngine::Impl::run(double time_step) {
 void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {
 
   // Solutions
-  this->solutionWrapperPtr =
-      std::make_unique<SolutionWrapper>(this->Get_solution(1), cell.solutions);
+  this->solutionWrapperPtr = std::make_unique<SolutionWrapper>(
+      this->Get_solution(1), cell.solutions, cell.with_redox);
 
   if (this->Get_exchange(1) != nullptr) {
     this->exchangeWrapperPtr = std::make_unique<ExchangeWrapper>(

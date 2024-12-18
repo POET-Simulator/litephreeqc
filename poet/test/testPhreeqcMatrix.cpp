@@ -1,5 +1,6 @@
 #include <cmath>
 #include <gtest/gtest.h>
+#include <string>
 #include <vector>
 
 #include <testInput.hpp>
@@ -207,4 +208,14 @@ POET_TEST(PhreeqcMatrixColumnMajorExport) {
 
   EXPECT_EQ(exported.values[0], 2);
   EXPECT_EQ(exported.values[1], 3);
+}
+
+POET_TEST(PhreeqcMatrixWithoutRedoxAndH0O0) {
+  PhreeqcMatrix pqc_mat(barite_db, barite_script, false, false);
+
+  const std::vector<std::string> expected_names_without_redox = {
+      "H", "O", "Charge", "Ba", "Cl", "S", "Sr",
+  };
+
+  EXPECT_EQ(expected_names_without_redox, pqc_mat.getSolutionNames());
 }
