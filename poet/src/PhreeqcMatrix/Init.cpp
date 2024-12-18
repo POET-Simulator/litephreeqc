@@ -19,13 +19,20 @@
 #include <vector>
 
 bool include_h0_o0 = false;
+bool with_redox = false;
 
 static std::vector<std::string> dump_solution_names(cxxSolution *solution,
                                                     Phreeqc *phreeqc) {
   std::vector<std::string> placeholder;
 
-  return phreeqc->find_all_valence_states(
-      SolutionWrapper::names(solution, include_h0_o0, placeholder));
+  std::vector<std::string> solnames =
+      SolutionWrapper::names(solution, include_h0_o0, placeholder, with_redox);
+
+  if (with_redox) {
+    solnames = phreeqc->find_all_valence_states(solnames);
+  }
+
+  return solnames;
 }
 
 template <enum PhreeqcMatrix::PhreeqcComponent comp, class T>
@@ -123,7 +130,8 @@ create_vector_from_phreeqc(Phreeqc *phreeqc, int id,
 
   // Solution
   SolutionWrapper sol_wrapper(
-      Utilities::Rxn_find(phreeqc->Get_Rxn_solution_map(), id), solution_names);
+      Utilities::Rxn_find(phreeqc->Get_Rxn_solution_map(), id), solution_names,
+      with_redox);
 
   base_add_to_element_vector<PhreeqcMatrix::PhreeqcComponent::SOLUTION>(
       sol_wrapper, solution_names, elements);
@@ -208,6 +216,7 @@ void PhreeqcMatrix::initialize() {
   }
 
   include_h0_o0 = this->_m_with_h0_o0;
+  with_redox = this->_m_with_redox;
 
   std::vector<std::string> solutions = find_all_solutions(phreeqc);
 

@@ -10,7 +10,8 @@
 class SolutionWrapper : public WrapperBase {
 public:
   SolutionWrapper(cxxSolution *soln,
-                  const std::vector<std::string> &solution_order);
+                  const std::vector<std::string> &solution_order,
+                  bool with_redox);
 
   void get(std::span<LDBLE> &data) const;
 
@@ -18,7 +19,7 @@ public:
 
   static std::vector<std::string>
   names(cxxSolution *solution, bool include_h0_o0,
-        std::vector<std::string> &solution_order);
+        std::vector<std::string> &solution_order, bool with_redox);
 
   std::vector<std::string> getEssentials() const;
 
@@ -30,4 +31,6 @@ private:
                                                              "Charge"};
 
   static constexpr std::size_t NUM_ESSENTIALS = ESSENTIALS.size();
+
+  const bool _with_redox;
 };

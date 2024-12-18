@@ -1913,7 +1913,7 @@ protected:
 
 public:
   std::vector<std::string>
-  find_all_valence_states(const std::vector<std::string> &&solution_names);
+  find_all_valence_states(const std::vector<std::string> &solution_names);
 
   static const class const_iso iso_defaults[];
   static const int count_iso_defaults;

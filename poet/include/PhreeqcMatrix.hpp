@@ -19,7 +19,8 @@ class IPhreeqc;
  * structures, minimizing the overhead of parsing and eliminate floating point
  * errors due to conversion.
  *
- * The class is also used to initialize the PhreeqcEngine class.
+ * The class is also used to initialize the PhreeqcEngine and PhreeqcRunner
+ * class.
  */
 class PhreeqcMatrix {
 public:
@@ -39,6 +40,20 @@ public:
   ~PhreeqcMatrix() = default;
 
   /**
+   * @brief Constructs a PhreeqcMatrix object with the specified database and
+   * input script.
+   *
+   * This constructor initializes a PhreeqcMatrix object using the provided
+   * database and input script. It sets the default values to exclude H(0) and
+   * O(0) in the output and to include redox states.
+   *
+   * @param database The path to the database file.
+   * @param input_script The input script to be used.
+   */
+  PhreeqcMatrix(const std::string &database, const std::string &input_script)
+      : PhreeqcMatrix(database, input_script, false, true) {}
+
+  /**
    * @brief Construct a new Phreeqc Matrix object
    *
    * Construct a new Phreeqc Matrix object by reading the database and input
@@ -47,9 +62,10 @@ public:
    * @param database Phreeqc database as a string.
    * @param input_script Phreeqc input script as a string.
    * @param with_h0_o0 Whether to include H(0) and O(0) in the output or not.
+   * @param with_redox Whether to include redox states in the output or not.
    */
   PhreeqcMatrix(const std::string &database, const std::string &input_script,
-                bool with_h0_o0 = false);
+                bool with_h0_o0, bool with_redox);
 
   /**
    * @brief Construct a new Phreeqc Matrix object
@@ -287,6 +303,16 @@ public:
    */
   PhreeqcKnobs getKnobs() const { return *_m_knobs; }
 
+  /**
+   * @brief Checks if the redox states are included in solution.
+   *
+   * This function returns a boolean value indicating whether the redox states
+   * of a species are considered in the solution.
+   *
+   * @return true if redox states are included, false otherwise.
+   */
+  bool withRedox() const { return _m_with_redox; }
+
 private:
   std::map<int, std::vector<element>> _m_map;
   std::map<int, std::vector<base_names>> _m_internal_names;
@@ -303,4 +329,5 @@ private:
   std::string _m_database;
 
   bool _m_with_h0_o0;
+  bool _m_with_redox;
 };
