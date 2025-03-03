@@ -1,4 +1,4 @@
-set(POET_SOURCE_FILES
+set(LPQC_SOURCE_FILES
     src/Engine.cpp
     src/Runner.cpp 
     src/Knobs.cpp
@@ -20,19 +20,19 @@ set(POET_SOURCE_FILES
     src/PhreeqcMatrix/Misc.cpp
 )
 
-add_library(IPhreeqcPOET ${POET_SOURCE_FILES})
-target_link_libraries(IPhreeqcPOET PUBLIC IPhreeqc)
-target_include_directories(IPhreeqcPOET PUBLIC
+add_library(litephreeqc ${LPQC_SOURCE_FILES})
+target_link_libraries(litephreeqc PUBLIC IPhreeqc)
+target_include_directories(litephreeqc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
 # Set C++20 standard
-target_compile_features(IPhreeqcPOET PUBLIC cxx_std_20)
+target_compile_features(litephreeqc PUBLIC cxx_std_20)
 
 if (BUILD_TESTING AND STANDALONE_BUILD)
     enable_testing()
 
-    set(POET_TEST_SOURCE_FILES
+    set(LPQC_TEST_SOURCE_FILES
         test/testPhreeqcEngine.cpp
         test/testPhreeqcMatrix.cpp
         test/testPhreeqcRunner.cpp
@@ -41,15 +41,15 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
         test/IPhreeqcReader.cpp
     )
 
-    add_executable(poet_test ${POET_TEST_SOURCE_FILES})
+    add_executable(litephreeqc_test ${LPQC_TEST_SOURCE_FILES})
 
     target_link_libraries(
-        poet_test
-        IPhreeqcPOET
+        litephreeqc_test
+        litephreeqc
         GTest::gtest_main
     )
 
-    target_include_directories(poet_test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(litephreeqc_test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
     # read file and store in variable
     file(REAL_PATH "${PROJECT_SOURCE_DIR}/database/phreeqc.dat" POET_PHREEQCDAT_DB)
@@ -59,11 +59,11 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/test/testInput.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/testInput.hpp")
 
     include(GoogleTest)
-    gtest_discover_tests(poet_test)
+    gtest_discover_tests(litephreeqc_test)
 endif()
 
-add_executable(testGolemRunner test/testGolemRunner.cpp)
-target_link_libraries(testGolemRunner IPhreeqcPOET)
+add_executable(golemrunner test/testGolemRunner.cpp)
+target_link_libraries(golemrunner litephreeqc)
 
 add_executable(testGetters     test/testGetters.cpp)
-target_link_libraries(testGetters IPhreeqcPOET)
+target_link_libraries(testGetters litephreeqc)
