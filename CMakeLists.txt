@@ -220,7 +220,7 @@ target_sources(IPhreeqc
     src/phreeqcpp/UserPunch.cpp
     src/phreeqcpp/UserPunch.h
     src/phreeqcpp/utilities.cpp
-    src/phreeqcpp/GFZ.cpp
+    src/phreeqcpp/litephreeqc_funcs.cpp
     src/thread.h
     src/Var.c
     src/Var.h
@@ -470,7 +470,7 @@ if (STANDALONE_BUILD)
   endif()
 endif()
 
-add_subdirectory(poet)
+add_subdirectory(litephreeqc)
 
 # get_cmake_property(_variableNames VARIABLES)
 # list (SORT _variableNames)
