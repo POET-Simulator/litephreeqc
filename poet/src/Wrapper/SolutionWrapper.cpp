@@ -18,6 +18,9 @@ void SolutionWrapper::get(std::span<LDBLE> &data) const {
   data[0] = solution->Get_total_h();
   data[1] = solution->Get_total_o();
   data[2] = solution->Get_cb();
+  data[3] = solution->Get_soln_vol();
+  data[4] = solution->Get_ph();
+  data[5] = solution->Get_pe();
 
   const cxxNameDouble &totals =
       (_with_redox ? solution->Get_totals()

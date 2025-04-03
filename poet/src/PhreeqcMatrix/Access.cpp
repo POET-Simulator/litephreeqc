@@ -119,6 +119,7 @@ PhreeqcMatrix::STLExport PhreeqcMatrix::get(VectorExportType type,
     for (; column_index < result.names.size(); column_index++) {
       for (const auto &[_, elements] : _m_map) {
         double value_to_add = std::numeric_limits<double>::quiet_NaN();
+        // double value_to_add;
         for (const auto &curr_element : elements) {
           const std::string &curr_element_name = curr_element.name;
 
