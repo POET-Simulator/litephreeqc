@@ -17,7 +17,7 @@ PhreeqcMatrix PhreeqcMatrix::subset(const std::vector<int> &indices) const {
     result._m_internal_names[index] = _m_internal_names.at(index);
   }
 
-  result.remove_NaNs();
+  //  result.remove_NaNs();
 
   return result;
 }
@@ -30,7 +30,7 @@ PhreeqcMatrix PhreeqcMatrix::erase(const std::vector<int> &indices) const {
     result._m_internal_names.erase(index);
   }
 
-  result.remove_NaNs();
+  //  result.remove_NaNs();
 
   return result;
 }
