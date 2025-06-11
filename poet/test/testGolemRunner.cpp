@@ -1,4 +1,4 @@
-//  Time-stamp: "Last modified 2025-06-11 15:30:00 delucia"
+//  Time-stamp: "Last modified 2025-06-11 16:37:39 delucia"
 #include <iostream>
 #include <iomanip>
 #include <linux/limits.h>
@@ -102,11 +102,13 @@ int main(int argc, char *argv[]) {
     // golem map as input)
     //
 
-    const auto subsetted_pqc_mat1 = pqc_mat.subset({1});
+    const auto subsetted_pqc_mat1 = pqc_mat.subset({1,2,3});
     const auto subsetted_pqc_mat2 = pqc_mat.subset({2});
+    const auto subsetted_pqc_mat3 = pqc_mat.subset({3});
 
     const auto stl_mat1 = subsetted_pqc_mat1.get();
     const auto stl_mat2 = subsetted_pqc_mat2.get();
+    const auto stl_mat3 = subsetted_pqc_mat3.get();
     
     const auto matrix_values1 = stl_mat1.values;
     const auto num_columns1 = stl_mat1.names.size();
@@ -116,21 +118,36 @@ int main(int argc, char *argv[]) {
     const auto num_columns2 = stl_mat2.names.size();
     const auto spec_names2 = stl_mat2.names;
 
-    std::cout <<  "Subset 1: \n";
+    const auto matrix_values3 = stl_mat3.values;
+    const auto num_columns3 = stl_mat3.names.size();
+    const auto spec_names3 = stl_mat3.names;
+
+    std::cout <<  "Subset 1, size: " << num_columns1 << "size: " << matrix_values1.size() << " \n";
     for (std::size_t i = 0; i < num_columns1; ++i) {
-	std::cout << i << ") " << spec_names1[i] << ", ";
+	std::cout << i << ") " << spec_names1[i] << " = " << matrix_values1[i] << ", ";
     }
-
     std::cout <<  "\n";
-    std::cout <<  "Subset 2: \n";
+    for (std::size_t i = 0; i < num_columns1; ++i) {
+	std::cout << i << ") " << spec_names1[i] << " = " << matrix_values1[i+num_columns1] << ", ";
+    }
+    std::cout <<  "\n";
+    for (std::size_t i = 0; i < num_columns1; ++i) {
+	std::cout << i << ") " << spec_names1[i] << " = " << matrix_values1[i+2*num_columns1] << ", ";
+    }
+    std::cout <<  "\n";
+
+    std::cout <<  "Subset 2, size:" << num_columns2 << "size:" << matrix_values2.size() << " \n";
     for (std::size_t i = 0; i < num_columns2; ++i) {
-	std::cout << i << ") " << spec_names2[i] << ", ";
+	std::cout << i << ") " << spec_names2[i] << " = " << matrix_values2[i] << ", ";
     }
-
     std::cout <<  "\n";
 
-    // // container to pass in/out
-    // std::vector<std::vector<double>> simulationInOut;
+    std::cout <<  "Subset 3, size:" << num_columns3 << "size:" << matrix_values3.size() << " \n";
+    for (std::size_t i = 0; i < num_columns3; ++i) {
+	std::cout << i << ") " << spec_names3[i] << " = " << matrix_values3[i] << ", ";
+    }
+    std::cout <<  "\n";
+
 
     // // // grid cells
     // // const std::size_t num_cells = 10;
@@ -146,44 +163,50 @@ int main(int argc, char *argv[]) {
     // //         matrix_values.begin() + num_columns, matrix_values.end()));
     // // 	}
     // // }
+    // // container to pass in/out
+    std::vector<std::vector<double>> simulationInOut;
+    const auto stl_mat = pqc_mat.get();
+    const auto matrix_values = stl_mat.values;
+    const auto num_columns = stl_mat.names.size();
+    const auto spec_names = stl_mat.names;
 
-    // // copy the values from the matrix to the InOut vector
-    // for (std::size_t index = 0; index < 2; ++index) {
-    // 	simulationInOut.push_back(std::vector<double>(
-    //     matrix_values.begin()+ num_columns*index, matrix_values.begin() + num_columns*(index +1)));
-    // }
+    // copy the values from the matrix to the InOut vector
+    for (std::size_t index = 0; index < 4; ++index) {
+	simulationInOut.push_back(std::vector<double>(
+        matrix_values.begin()+ num_columns*index, matrix_values.begin() + num_columns*(index +1)));
+    }
 
 
-    // std::cout << "\n:: Values in the PhreeqcMatrix after initialisation: \n\n";
+    std::cout << "\n:: Values in the PhreeqcMatrix after initialisation: \n\n";
 
-    // // output the values from the matrix
-    // for (std::size_t cell_index = 0; cell_index < simulationInOut.size(); ++cell_index) {
-    // 	std::cout << "Grid element: " << cell_index << " \n";
-    // 	for (std::size_t spec = 0; spec < num_columns; ++spec) {
-    // 	    std::cout << spec_names[spec] << "=" << simulationInOut[cell_index][spec] << ", ";
-    // 	}
-    // 	std::cout << " \n";
+    // output the values from the matrix
+    for (std::size_t cell_index = 0; cell_index < simulationInOut.size(); ++cell_index) {
+	std::cout << "Grid element: " << cell_index << " \n";
+	for (std::size_t spec = 0; spec < num_columns; ++spec) {
+	    std::cout << spec_names[spec] << "=" << simulationInOut[cell_index][spec] << ", ";
+	}
+	std::cout << " \n";
 
-    // }
+    }
 
-    // // now we compute 1 timestep
-    // const double timestep = 1000.;
+    // now we compute 1 timestep
+    const double timestep = 1000.;
 
-    // // create the runner
-    // PhreeqcRunner runner(subsetted_pqc_mat);
-    // // run
-    // runner.run(simulationInOut, timestep);
+    // create the runner
+    PhreeqcRunner runner(pqc_mat);
+    // run
+    runner.run(simulationInOut, timestep);
 
-    // // output the values returned after simulation
-    // std::cout << "\n:: Values in InOut after one time step: \n\n";
-    // for (std::size_t cell_index = 0; cell_index < simulationInOut.size(); ++cell_index) {
-    // 	std::cout << "Grid element: " << cell_index << " \n";
-    // 	for (std::size_t spec = 0; spec < num_columns; ++spec) {
-    // 	    std::cout << spec_names[spec] << "=" << simulationInOut[cell_index][spec] << ", ";
-    // 	}
-    // 	std::cout << " \n";
+    // output the values returned after simulation
+    std::cout << "\n:: Values in InOut after one time step: \n\n";
+    for (std::size_t cell_index = 0; cell_index < simulationInOut.size(); ++cell_index) {
+	std::cout << "Grid element: " << cell_index << " \n";
+	for (std::size_t spec = 0; spec < num_columns; ++spec) {
+	    std::cout << spec_names[spec] << "=" << simulationInOut[cell_index][spec] << ", ";
+	}
+	std::cout << " \n";
 
-    // }
+    }
 
     
     return 0;
