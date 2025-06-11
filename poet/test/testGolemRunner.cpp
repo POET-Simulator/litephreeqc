@@ -1,4 +1,4 @@
-//  Time-stamp: "Last modified 2024-12-02 17:37:08 delucia"
+//  Time-stamp: "Last modified 2025-06-11 15:30:00 delucia"
 #include <iostream>
 #include <iomanip>
 #include <linux/limits.h>
@@ -49,7 +49,7 @@ std::ostream & operator<<(std::ostream & os, std::vector<T> vec)
 int main(int argc, char *argv[]) {
     
     if (argc < 3) {
-	std::cout << "::" << argv[0] << ": two args needed, script and database\n";
+	std::cout << "mm ::" << argv[0] << ": two args needed, script and database\n";
 	return 1;
     }
 
@@ -60,8 +60,7 @@ int main(int argc, char *argv[]) {
     auto db     = readFile(argv[2]);
 
     // Create the matrix directly from database and init script
-    PhreeqcMatrix pqc_mat(db, script);
-    
+    PhreeqcMatrix pqc_mat(db, script, false, false);
     // How many different SOLUTIONS ("CELLS") are defined in the script?
     const auto ids = pqc_mat.getIds();
     
@@ -98,59 +97,93 @@ int main(int argc, char *argv[]) {
     // Get the values as reference to modify them in place
     std::vector<double> &cell_values = exported_mat.values;
 
-    std::cout << ":: Values in the PhreeqcMatrix: \n";
-
-    // std::cout << exported_mat.names  << "\n";
-    // std::cout << cell_values << "\n";
-    // END INIT
-
-
-    
-    //// Phreeqc RUN through the new Runner class 
 
     // optional SUBSET the matrix (i.e., the unique ids defined in
     // golem map as input)
-    // const auto subsetted_pqc_mat = pqc_mat.subset({1, 2});
-    PhreeqcRunner runner(pqc_mat);
+    //
 
-    const auto stl_mat = pqc_mat.get();
-    const auto matrix_values = stl_mat.values;
-    const auto num_columns = stl_mat.names.size();
-    const auto spec_names = stl_mat.names;
+    const auto subsetted_pqc_mat1 = pqc_mat.subset({1});
+    const auto subsetted_pqc_mat2 = pqc_mat.subset({2});
 
-    // container to pass in/out
-    std::vector<std::vector<double>> simulationInOut;
+    const auto stl_mat1 = subsetted_pqc_mat1.get();
+    const auto stl_mat2 = subsetted_pqc_mat2.get();
+    
+    const auto matrix_values1 = stl_mat1.values;
+    const auto num_columns1 = stl_mat1.names.size();
+    const auto spec_names1 = stl_mat1.names;
 
-    // grid cells
-    const std::size_t num_cells = 10;
-    const std::size_t half_cells = 5;
+    const auto matrix_values2 = stl_mat2.values;
+    const auto num_columns2 = stl_mat2.names.size();
+    const auto spec_names2 = stl_mat2.names;
 
-    // copy the values to the InOut vector. We replicate cell 1 
-    for (std::size_t index = 0; index < num_cells; ++index) {
-	if (index < half_cells) {
-	    simulationInOut.push_back(std::vector<double>(
-            matrix_values.begin(), matrix_values.begin() + num_columns));
-	} else {
-	    simulationInOut.push_back(std::vector<double>(
-            matrix_values.begin() + num_columns, matrix_values.end()));
-	}
+    std::cout <<  "Subset 1: \n";
+    for (std::size_t i = 0; i < num_columns1; ++i) {
+	std::cout << i << ") " << spec_names1[i] << ", ";
     }
 
-    const double timestep = 100.;
-
-    // compute 1 timestep
-    runner.run(simulationInOut, timestep);
-
-    for (std::size_t cell_index = 0; cell_index < simulationInOut.size(); ++cell_index) {
-	const bool is_first_half = cell_index < half_cells;
-	if (is_first_half) {
-	    std::cout << "Grid element: " << cell_index << " \n";
-	    for (std::size_t spec = 0; spec < num_columns; ++spec) {
-		std::cout << ":" << spec_names[spec] << "=" << simulationInOut[cell_index][spec];
-	    }
-	    std::cout << "\n";
-	}
+    std::cout <<  "\n";
+    std::cout <<  "Subset 2: \n";
+    for (std::size_t i = 0; i < num_columns2; ++i) {
+	std::cout << i << ") " << spec_names2[i] << ", ";
     }
+
+    std::cout <<  "\n";
+
+    // // container to pass in/out
+    // std::vector<std::vector<double>> simulationInOut;
+
+    // // // grid cells
+    // // const std::size_t num_cells = 10;
+    // // const std::size_t half_cells = 5;
+
+    // // // copy the values to the InOut vector. We replicate cell 1 
+    // // for (std::size_t index = 0; index < num_cells; ++index) {
+    // // 	if (index < half_cells) {
+    // // 	    simulationInOut.push_back(std::vector<double>(
+    // //         matrix_values.begin(), matrix_values.begin() + num_columns));
+    // // 	} else {
+    // // 	    simulationInOut.push_back(std::vector<double>(
+    // //         matrix_values.begin() + num_columns, matrix_values.end()));
+    // // 	}
+    // // }
+
+    // // copy the values from the matrix to the InOut vector
+    // for (std::size_t index = 0; index < 2; ++index) {
+    // 	simulationInOut.push_back(std::vector<double>(
+    //     matrix_values.begin()+ num_columns*index, matrix_values.begin() + num_columns*(index +1)));
+    // }
+
+
+    // std::cout << "\n:: Values in the PhreeqcMatrix after initialisation: \n\n";
+
+    // // output the values from the matrix
+    // for (std::size_t cell_index = 0; cell_index < simulationInOut.size(); ++cell_index) {
+    // 	std::cout << "Grid element: " << cell_index << " \n";
+    // 	for (std::size_t spec = 0; spec < num_columns; ++spec) {
+    // 	    std::cout << spec_names[spec] << "=" << simulationInOut[cell_index][spec] << ", ";
+    // 	}
+    // 	std::cout << " \n";
+
+    // }
+
+    // // now we compute 1 timestep
+    // const double timestep = 1000.;
+
+    // // create the runner
+    // PhreeqcRunner runner(subsetted_pqc_mat);
+    // // run
+    // runner.run(simulationInOut, timestep);
+
+    // // output the values returned after simulation
+    // std::cout << "\n:: Values in InOut after one time step: \n\n";
+    // for (std::size_t cell_index = 0; cell_index < simulationInOut.size(); ++cell_index) {
+    // 	std::cout << "Grid element: " << cell_index << " \n";
+    // 	for (std::size_t spec = 0; spec < num_columns; ++spec) {
+    // 	    std::cout << spec_names[spec] << "=" << simulationInOut[cell_index][spec] << ", ";
+    // 	}
+    // 	std::cout << " \n";
+
+    // }
 
     
     return 0;
