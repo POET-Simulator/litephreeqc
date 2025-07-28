@@ -58,7 +58,7 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
     new_totals[tot_name] = value;
   }
 
-  this->solution->Update(total_h, total_o, cb,
+  this->solution->Update(total_h, total_o, cb, tc, patm,
                          _with_redox ? new_totals
                                      : new_totals.Simplify_redox());
 }
