@@ -1,0 +1,98 @@
+SOLUTION 1 
+ units   mol/kgw
+ pH    6.653
+ pe    -3.167
+ water  1
+ temp  17
+ Na   1e-15
+ Cl   1e-15 charge
+ Ca   1e-15
+ C    1e-15
+ Fe   4.386e-9
+ S    8.772e-9
+ Al   5.031e-7
+ Si   5.031e-7
+
+PURE  1
+Pyrite  0.0  2.5e-4
+
+KINETICS 1
+Kaolinite
+  -m       1.5e-4 
+  -parms   0.6 100000
+
+SOLUTION 2
+units   mol/kgw
+pH     6.921 
+pe    -1.258
+water  1
+temp  17
+Na   1e-15
+Cl   1e-15 charge
+Ca   1e-15
+C    1e-15
+Fe   1e-15
+S    1e-15
+Al   1e-15
+Si   7.963e-5
+
+PURE  2
+Pyrite  0.0  2.1e-4
+
+KINETICS  2
+Quartz
+  -m         2.2e-4
+  -parms     0.01  1
+
+SOLUTION 3
+units   mol/kgw
+pH     9.963
+pe    -6.769 
+temp 17
+Na   1e-15
+Cl   1e-15 
+Ca   1.345e-4
+C    1.345e-4
+Fe   1.433e-8
+S    2.866e-8
+Al   2.692e-5
+Si   2.692e-5
+
+PURE  3
+Pyrite         0 2e-4
+Calcite        0 1e-4
+
+KINETICS  3
+Kaolinite
+  -m          1.4e-3
+  -parms      0.6 1000
+Siderite
+  -m          1.2e-12
+  -parms      1.2 10
+
+SOLUTION  4 
+units	mol/kgw
+temp	17
+pH      5.576
+pe      4      O2(g) -1
+Cl      0.0003 charge
+Na      0.0003
+C       1e-15 CO2(g) -3.38
+Ca	1e-15
+Fe      1e-15
+S       1e-15
+Al      1e-15
+Si      1e-15
+
+SOLUTION  5
+units	mol/kgw
+temp	35
+pH      7
+pe      4 
+Cl      0.003 charge
+Na      0.003
+C(4)    2.333e-3
+
+RUN_CELLS
+ -cells 1 2 3 4 5
+END
