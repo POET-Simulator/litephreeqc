@@ -1,4 +1,4 @@
-//  Time-stamp: "Last modified 2025-07-28 19:54:57 delucia"
+//  Time-stamp: "Last modified 2025-07-28 20:14:08 delucia"
 #include <iostream>
 #include <iomanip>
 #include <linux/limits.h>
@@ -69,7 +69,6 @@ int main(int argc, char *argv[]) {
     int n = ids.size();
     
     std::cout << ":: Found " << n << " distinct PHREEQC problems \n";
-    std::cout << ids << "\n";
 
     std::cout << ":: getSolutionsNames(): the common solutes across all problems: \n";
     const auto solutes1  = pqc_mat1.getSolutionNames();
@@ -77,24 +76,26 @@ int main(int argc, char *argv[]) {
 
     // auto expmat = pqc_mat1.get();
     auto allvars = pqc_mat1.get().names;
-    std::cout << ":: pqc_mat1.get().names: \n";
-    std::cout << allvars << "\n";
+    std::cout << ":: pqc_mat1.get().names (all names in the PhreeqcMatrix): \n";
+    std::cout << allvars << "\n\n";
+
+    std::cout << "\n-- Now the new getMatrix*() --\n\n";
+    
+    auto transported = pqc_mat1.getMatrixTransported(); 
+    std::cout << ":: pqc_mat1.getMatrixTransported(): \n";
+    std::cout << transported << "\n\n";
 
     auto MatNamesKin = pqc_mat1.getMatrixKinetics(); 
     std::cout << ":: pqc_mat1.getMatrixKinetics(): \n";
-    std::cout << MatNamesKin << "\n";
+    std::cout << MatNamesKin << "\n\n";
     
     auto MatNamesEqui = pqc_mat1.getMatrixEquilibrium(); 
     std::cout << ":: pqc_mat1.getMatrixEquilibrium(): \n";
-    std::cout << MatNamesEqui << "\n";
-
-    auto transported = pqc_mat1.getMatrixMustTransport(); 
-    std::cout << ":: pqc_mat1.getMatrixMustTransport(): \n";
-    std::cout << transported << "\n";
+    std::cout << MatNamesEqui << "\n\n";
 
     auto outonly = pqc_mat1.getMatrixOutOnly(); 
     std::cout << ":: pqc_mat1.getMatrixOutOnly(): \n";
-    std::cout << outonly << "\n";
+    std::cout << outonly << "\n\n";
     return 0;
 }
 

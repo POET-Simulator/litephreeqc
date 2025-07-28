@@ -343,7 +343,7 @@ public:
    @return std::vector<std::string> vector of names
 
    */
-   std::vector<std::string> getMatrixMustTransport() const;
+   std::vector<std::string> getMatrixTransported() const;
 
    /*
 

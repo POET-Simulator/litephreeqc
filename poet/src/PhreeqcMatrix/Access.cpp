@@ -252,19 +252,19 @@ std::vector<std::string> PhreeqcMatrix::getMatrixKinetics() const {
 	for (auto nam : pqc_kinnames ) {
 	    for (auto mat_name : this->get().names){
 		if (mat_name.starts_with(nam)) {
-		    names.push_back(mat_name);
+		    // check if we already have this mat_name
+		    if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
+			names.push_back(mat_name);
+		    }
 		}
 	    }
 	}
     }
-    std::sort(names.begin(), names.end());
-    std::vector<std::string>::iterator it;
-    it = std::unique(names.begin(), names.end());
-    names.resize(std::distance(names.begin(),it) );
     return names;
 }
 
 
+// MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixEquilibrium() const {
 
     std::vector<std::string> names;
@@ -275,6 +275,7 @@ std::vector<std::string> PhreeqcMatrix::getMatrixEquilibrium() const {
 	for (auto nam : pqc_eqnames ) {
 	    for (auto mat_name : mat_names){
 		if (mat_name.starts_with(nam)) {
+		    // check if we already have this mat_name
 		    if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
 			names.push_back(mat_name);
 		    }
@@ -282,14 +283,11 @@ std::vector<std::string> PhreeqcMatrix::getMatrixEquilibrium() const {
 	    }
 	}
     }
-    // std::sort(names.begin(), names.end());
-    // std::vector<std::string>::iterator it;
-    // it = std::unique(names.begin(), names.end());
-    // names.resize(std::distance(names.begin(),it) );
     return names;
 }
 
-std::vector<std::string> PhreeqcMatrix::getMatrixMustTransport() const {
+// MDL
+std::vector<std::string> PhreeqcMatrix::getMatrixTransported() const {
     std::vector<std::string> names;
     
     const std::vector<std::string> to_remove = {
@@ -307,6 +305,7 @@ std::vector<std::string> PhreeqcMatrix::getMatrixMustTransport() const {
     return names;
 }
 
+// MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixOutOnly() const {
     // MDL we must append here selected_output / user_punch
     std::vector<std::string> defaultnames = {
@@ -318,21 +317,3 @@ std::vector<std::string> PhreeqcMatrix::getMatrixOutOnly() const {
     }
     return ret;
 }
-
-// std::vector<std::string> PhreeqcMatrix::getTransported() const {
-//   std::vector<std::string> names;
-
-//   const auto &first_element = _m_map.begin()->second;
-
-//   for (const auto &element : _m_map.begin()->second) {
-//     // assuming the element vector always starts with the solution components
-//     if (element.type != PhreeqcComponent::SOLUTION) {
-//       break;
-//     }
-
-//     names.push_back(element.name);
-//   }
-
-//   return names;
-// }
-
