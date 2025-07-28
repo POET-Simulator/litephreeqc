@@ -130,6 +130,12 @@ void PhreeqcEngine::Impl::run(double time_step) {
   const std::string runs_string =
       "RUN_CELLS\n -cells 1\n -time_step " + time_ss.str() + "\nEND\n";
   this->RunString(runs_string.c_str());
+
+  if (this->GetErrorStringLineCount() > 0) {
+    std::cerr << ":: Error in Phreeqc script: " << this->GetErrorString()
+              << "\n";
+    throw std::runtime_error("Phreeqc script error");
+  }
 }
 
 void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {
