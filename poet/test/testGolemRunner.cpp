@@ -1,4 +1,4 @@
-//  Time-stamp: "Last modified 2025-07-28 12:23:47 delucia"
+//  Time-stamp: "Last modified 2025-07-28 13:03:01 delucia"
 #include <iostream>
 #include <iomanip>
 #include <linux/limits.h>
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     auto db     = readFile(argv[2]);
 
     // Create the matrix directly from database and init script
-    PhreeqcMatrix pqc_mat(db, script);
+    PhreeqcMatrix pqc_mat(db, script, true, true);
     
     // How many different SOLUTIONS ("CELLS") are defined in the script?
     const auto ids = pqc_mat.getIds();

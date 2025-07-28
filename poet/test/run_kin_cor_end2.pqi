@@ -1,25 +1,12 @@
-SOLUTION 1 
- units   mol/kgw
- pH    6.653
- pe    -3.167
- water  1
- temp  17
- Na   1e-15
- Cl   1e-15 charge
- Ca   1e-15
- C    1e-15
- Fe   4.386e-9
- S    8.772e-9
- Al   5.031e-7
- Si   5.031e-7
-
+SOLUTION  1
+units	mol/kgw
+temp	35
+pH      7
+pe      4 
+Cl      0.003 charge
+Na      0.003
 PURE  1
-Pyrite  0.0  2.5e-4
-
-KINETICS 1
-Kaolinite
-  -m       1.5e-4 
-  -parms   0.6 100000
+Calcite 0.0  10
 
 SOLUTION 2
 units   mol/kgw
@@ -84,15 +71,40 @@ S       1e-15
 Al      1e-15
 Si      1e-15
 
-SOLUTION  5
+
+SOLUTION 5 
+ units   mol/kgw
+ pH    6.653
+ pe    -3.167
+ water  1
+ temp  17
+ Na   1e-15
+ Cl   1e-15 charge
+ Ca   1e-15
+ C    1e-15
+ Fe   4.386e-9
+ S    8.772e-9
+ Al   5.031e-7
+ Si   5.031e-7
+
+PURE  5
+Pyrite  0.0  2.5e-4
+
+KINETICS 5
+Kaolinite
+  -m       1.5e-4 
+  -parms   0.6 100000
+
+SOLUTION  6
 units	mol/kgw
 temp	35
 pH      7
 pe      4 
 Cl      0.003 charge
 Na      0.003
-C(4)    2.333e-3
+PURE  6
+Calcite 0.0  10
 
 RUN_CELLS
- -cells 1 2 3 4 5
+ -cells 1 2 3 4 5 6
 END
