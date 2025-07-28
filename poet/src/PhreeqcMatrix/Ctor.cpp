@@ -18,6 +18,12 @@ PhreeqcMatrix::PhreeqcMatrix(const std::string &database,
   this->_m_pqc->LoadDatabaseString(database.c_str());
   this->_m_pqc->RunString(input_script.c_str());
 
+  if (this->_m_pqc->GetErrorStringLineCount() > 0) {
+    std::cerr << ":: Error in Phreeqc script: "
+              << this->_m_pqc->GetErrorString() << "\n";
+    throw std::runtime_error("Phreeqc script error");
+  }
+
   this->_m_knobs =
       std::make_shared<PhreeqcKnobs>(this->_m_pqc.get()->GetPhreeqcPtr());
 
