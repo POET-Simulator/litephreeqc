@@ -240,3 +240,99 @@ double PhreeqcMatrix::operator()(int cell_id, const std::string &name) const {
 
   return it->value;
 }
+
+
+// MDL
+std::vector<std::string> PhreeqcMatrix::getMatrixKinetics() const {
+    std::vector<std::string> names;
+    
+    auto n = this->getIds().size();
+    for (auto i = 0; i<n; ++i) {
+	auto pqc_kinnames = this->getKineticsNames(i);
+	for (auto nam : pqc_kinnames ) {
+	    for (auto mat_name : this->get().names){
+		if (mat_name.starts_with(nam)) {
+		    names.push_back(mat_name);
+		}
+	    }
+	}
+    }
+    std::sort(names.begin(), names.end());
+    std::vector<std::string>::iterator it;
+    it = std::unique(names.begin(), names.end());
+    names.resize(std::distance(names.begin(),it) );
+    return names;
+}
+
+
+std::vector<std::string> PhreeqcMatrix::getMatrixEquilibrium() const {
+
+    std::vector<std::string> names;
+    std::vector<std::string> mat_names = this->get().names;
+    auto n = this->getIds().size();
+    for (auto i = 0; i<n; ++i) {
+	auto pqc_eqnames = this->getEquilibriumNames(i);
+	for (auto nam : pqc_eqnames ) {
+	    for (auto mat_name : mat_names){
+		if (mat_name.starts_with(nam)) {
+		    if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
+			names.push_back(mat_name);
+		    }
+		}
+	    }
+	}
+    }
+    // std::sort(names.begin(), names.end());
+    // std::vector<std::string>::iterator it;
+    // it = std::unique(names.begin(), names.end());
+    // names.resize(std::distance(names.begin(),it) );
+    return names;
+}
+
+std::vector<std::string> PhreeqcMatrix::getMatrixMustTransport() const {
+    std::vector<std::string> names;
+    
+    const std::vector<std::string> to_remove = {
+	"tc", "patm", "SolVol", "pH", "pe"
+    };
+
+    // sols contains all solutes; we must remove { tc, patm, SolVol, pH, pe }
+    auto sols = this->getSolutionNames();
+    for (auto name : sols) {
+	if (std::find(to_remove.begin(), to_remove.end(), name) == to_remove.end()) {
+	    names.push_back(name);
+	}
+    }
+    
+    return names;
+}
+
+std::vector<std::string> PhreeqcMatrix::getMatrixOutOnly() const {
+    // MDL we must append here selected_output / user_punch
+    std::vector<std::string> defaultnames = {
+	"tc", "patm", "SolVol", "pH", "pe"
+    };
+    std::vector<std::string> ret;
+    for (auto nm : defaultnames) {
+	ret.push_back(nm);
+    }
+    return ret;
+}
+
+// std::vector<std::string> PhreeqcMatrix::getTransported() const {
+//   std::vector<std::string> names;
+
+//   const auto &first_element = _m_map.begin()->second;
+
+//   for (const auto &element : _m_map.begin()->second) {
+//     // assuming the element vector always starts with the solution components
+//     if (element.type != PhreeqcComponent::SOLUTION) {
+//       break;
+//     }
+
+//     names.push_back(element.name);
+//   }
+
+//   return names;
+// }
+
