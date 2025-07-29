@@ -38,6 +38,7 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
         test/testPhreeqcRunner.cpp
         test/testPhreeqcKnobs.cpp
         test/utils.cpp
+        test/IPhreeqcReader.cpp
     )
 
     add_executable(poet_test ${POET_TEST_SOURCE_FILES})
