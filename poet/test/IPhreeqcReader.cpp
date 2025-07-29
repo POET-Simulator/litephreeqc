@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <regex>
@@ -21,11 +22,12 @@ IPhreeqcReader::IPhreeqcReader(const std::string &database,
               << "\n";
     throw std::runtime_error("Phreeqc script error");
   }
-
-  _m_pqc->SetDumpStringOn(true);
 }
 
 void IPhreeqcReader::setOutputID(std::uint32_t cell_id) {
+
+  _m_pqc->SetDumpStringOn(true);
+
   const std::string call_string =
       "DUMP\n -cells " + std::to_string(cell_id) + "\nEND\n";
 
@@ -39,6 +41,8 @@ void IPhreeqcReader::setOutputID(std::uint32_t cell_id) {
   }
 
   _m_raw_output = _m_pqc->GetDumpString();
+
+  _m_pqc->SetDumpStringOn(false);
 }
 
 double IPhreeqcReader::operator[](const std::string &name) const {
@@ -48,7 +52,6 @@ double IPhreeqcReader::operator[](const std::string &name) const {
 
   std::size_t pos;
 
-  // First, check if the name is in the rename map
   auto it = _m_rename_map.find(name);
 
   if (it != _m_rename_map.end()) {
@@ -59,6 +62,23 @@ double IPhreeqcReader::operator[](const std::string &name) const {
                                it->second);
     }
 
+  } else if (name.ends_with("_eq") || name.ends_with("_si")) {
+    // remove the suffix and check for the base name
+    std::string base_name(name, 0, name.size() - 3); // remove "_eq"
+
+    pos = _m_raw_output.find(base_name);
+
+    if (pos == std::string::npos) {
+      return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    if (name.ends_with("_eq")) {
+      // if it ends with '_eq', we need to find '-moles'
+      pos = _m_raw_output.find("-moles", pos);
+    } else {
+      // if it ends with '_si', we need to find '-si'
+      pos = _m_raw_output.find("-si", pos);
+    }
   } else {
     // if not, we first need to find '-totals'
     pos = _m_raw_output.find("-totals");
@@ -72,7 +92,7 @@ double IPhreeqcReader::operator[](const std::string &name) const {
     pos = _m_raw_output.find(name, pos);
 
     if (pos >= next_field_pos) {
-      return 0.0;
+      return 0;
     }
   }
 
@@ -83,11 +103,11 @@ double IPhreeqcReader::operator[](const std::string &name) const {
                              name);
   }
 
-  std::string line_to_parse = _m_raw_output.substr(pos, end_pos - pos);
-
   std::regex fp_regex(
-      R"(([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?)");
+      R"( +([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?)");
   std::smatch match;
+
+  const std::string line_to_parse = _m_raw_output.substr(pos, end_pos - pos);
 
   if (!std::regex_search(line_to_parse, match, fp_regex)) {
     throw std::runtime_error("No floating point number found in line: " +
