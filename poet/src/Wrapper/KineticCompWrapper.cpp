@@ -30,7 +30,7 @@ KineticWrapper::KineticCompWrapper::names(const cxxKineticsComp &comp) {
   std::vector<std::string> names;
 
   const std::string &comp_name = comp.Get_rate_name();
-  names.push_back(comp_name);
+  names.push_back(comp_name + "_kin");
 
   for (std::size_t i = 0; i < comp.Get_d_params().size(); i++) {
     names.push_back(comp_name + "_p" + std::to_string(i + 1));

@@ -24,26 +24,10 @@ RUN_CELLS
 END)";
 
 const std::vector<std::string> expected_names = {
-    "ID", "H",  "O",  "Charge",     "C(-4)",      "C(4)",        "Ca",
-    "Cl", "Mg", "Na", "Calcite_eq", "Calcite_si", "Dolomite_eq", "Dolomite_si"};
-
-const std::vector<double> expected_values = {1,
-                                             111.01243522078478,
-                                             55.506323405120348,
-                                             -4.7919630342304069e-13,
-                                             0,
-                                             3.500625006800175e-05,
-                                             0.12131244646561848,
-                                             0.49999844804496646,
-                                             0.078722559784449683,
-                                             0.099999999999999978,
-                                             0.95741011331883141,
-                                             0,
-                                             0.021277440215550378,
-                                             0};
-
-const std::vector<double> expected_errors = {
-    0, 1e-3, 1e-3, 1e-15, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 0, 1e-5, 0};
+    "ID",         "H",          "O",           "Charge",     "tc",
+    "patm",       "SolVol",     "pH",          "pe",         "C(-4)",
+    "C(4)",       "Ca",         "Cl",          "Mg",         "Na",
+    "Calcite_eq", "Calcite_si", "Dolomite_eq", "Dolomite_si"};
 
 const std::string phreeqc_database = R"database(@POET_PHREEQCDAT_DB@)database";
 } // namespace base_test
@@ -56,59 +40,45 @@ const std::vector<std::string> expected_names = {"ID",
                                                  "H",
                                                  "O",
                                                  "Charge",
+                                                 "tc",
+                                                 "patm",
+                                                 "SolVol",
+                                                 "pH",
+                                                 "pe",
                                                  "Ba",
                                                  "Cl",
                                                  "S(-2)",
                                                  "S(6)",
                                                  "Sr",
-                                                 "Barite",
+                                                 "Barite_kin",
                                                  "Barite_p1",
-                                                 "Celestite",
+                                                 "Celestite_kin",
                                                  "Celestite_p1",
                                                  "Celestite_eq",
                                                  "Celestite_si"};
 
-const std::vector<double> expected_values_line_one = {
-    1,
-    111.01243359383071,
-    55.508698688362124,
-    -1.2153078399577636e-09,
-    1.0000001848805677e-12,
-    1.0000000116187218e-12,
-    0,
-    0.00062047270964839664,
-    0.00062047270964840271,
-    std::numeric_limits<double>::quiet_NaN(),
-    std::numeric_limits<double>::quiet_NaN(),
-    std::numeric_limits<double>::quiet_NaN(),
-    std::numeric_limits<double>::quiet_NaN(),
-    0.99937952729135193,
-    0};
-
-const std::vector<double> expected_errors = {
-    0,
-    1e-3,
-    1e-3,
-    1e-15,
-    1e-5,
-    1e-5,
-    1e-5,
-    1e-5,
-    1e-5,
-    std::numeric_limits<double>::quiet_NaN(),
-    std::numeric_limits<double>::quiet_NaN(),
-    std::numeric_limits<double>::quiet_NaN(),
-    std::numeric_limits<double>::quiet_NaN(),
-    1e-5,
-    0};
-
-const std::vector<std::string> expected_names_erased = {
-    "ID",   "H",  "O",      "Charge",    "Ba",        "Cl",          "S(-2)",
-    "S(6)", "Sr", "Barite", "Barite_p1", "Celestite", "Celestite_p1"};
+const std::vector<std::string> expected_names_erased = {"ID",
+                                                        "H",
+                                                        "O",
+                                                        "Charge",
+                                                        "tc",
+                                                        "patm",
+                                                        "SolVol",
+                                                        "pH",
+                                                        "pe",
+                                                        "Ba",
+                                                        "Cl",
+                                                        "S(-2)",
+                                                        "S(6)",
+                                                        "Sr",
+                                                        "Barite_kin",
+                                                        "Barite_p1",
+                                                        "Celestite_kin",
+                                                        "Celestite_p1"};
 
 const std::vector<std::string> expected_names_subset = {
-    "ID",    "H",    "O",  "Charge",       "Ba",          "Cl",
-    "S(-2)", "S(6)", "Sr", "Celestite_eq", "Celestite_si"};
+    "ID", "H",  "O",  "Charge", "tc",   "patm", "SolVol",       "pH",
+    "pe", "Ba", "Cl", "S(-2)",  "S(6)", "Sr",   "Celestite_eq", "Celestite_si"};
 } // namespace barite_test
 
 namespace test_engine {

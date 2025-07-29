@@ -1,4 +1,4 @@
-//  Time-stamp: "Last modified 2024-12-02 17:37:08 delucia"
+//  Time-stamp: "Last modified 2025-07-28 13:03:01 delucia"
 #include <iostream>
 #include <iomanip>
 #include <linux/limits.h>
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     auto db     = readFile(argv[2]);
 
     // Create the matrix directly from database and init script
-    PhreeqcMatrix pqc_mat(db, script);
+    PhreeqcMatrix pqc_mat(db, script, true, true);
     
     // How many different SOLUTIONS ("CELLS") are defined in the script?
     const auto ids = pqc_mat.getIds();
@@ -99,12 +99,6 @@ int main(int argc, char *argv[]) {
     std::vector<double> &cell_values = exported_mat.values;
 
     std::cout << ":: Values in the PhreeqcMatrix: \n";
-
-    // std::cout << exported_mat.names  << "\n";
-    // std::cout << cell_values << "\n";
-    // END INIT
-
-
     
     //// Phreeqc RUN through the new Runner class 
 
@@ -117,39 +111,28 @@ int main(int argc, char *argv[]) {
     const auto matrix_values = stl_mat.values;
     const auto num_columns = stl_mat.names.size();
     const auto spec_names = stl_mat.names;
-
+    
     // container to pass in/out
     std::vector<std::vector<double>> simulationInOut;
 
-    // grid cells
-    const std::size_t num_cells = 10;
-    const std::size_t half_cells = 5;
-
     // copy the values to the InOut vector. We replicate cell 1 
-    for (std::size_t index = 0; index < num_cells; ++index) {
-	if (index < half_cells) {
-	    simulationInOut.push_back(std::vector<double>(
-            matrix_values.begin(), matrix_values.begin() + num_columns));
-	} else {
-	    simulationInOut.push_back(std::vector<double>(
-            matrix_values.begin() + num_columns, matrix_values.end()));
-	}
+    for (std::size_t index = 0; index < n; ++index) {
+	simulationInOut.push_back(std::vector<double>(
+        matrix_values.begin() + num_columns*index, matrix_values.begin() + num_columns*(index +1)));
     }
 
     const double timestep = 100.;
 
     // compute 1 timestep
     runner.run(simulationInOut, timestep);
-
+    
     for (std::size_t cell_index = 0; cell_index < simulationInOut.size(); ++cell_index) {
-	const bool is_first_half = cell_index < half_cells;
-	if (is_first_half) {
-	    std::cout << "Grid element: " << cell_index << " \n";
-	    for (std::size_t spec = 0; spec < num_columns; ++spec) {
-		std::cout << ":" << spec_names[spec] << "=" << simulationInOut[cell_index][spec];
-	    }
-	    std::cout << "\n";
+	
+	std::cout << "Grid element: " << cell_index << " \n";
+	for (std::size_t spec = 0; spec < num_columns; ++spec) {
+	    std::cout << ":" << spec_names[spec] << "=" << simulationInOut[cell_index][spec];
 	}
+	std::cout << "\n";
     }
 
     

@@ -313,6 +313,48 @@ public:
    */
   bool withRedox() const { return _m_with_redox; }
 
+  // MDL
+  /**
+   * @brief Returns all column names of the Matrix pertaining to KINETICS
+   *
+   * This function returns a string vector.
+   *
+   * @return std::vector<std::string> Whole vector of names. Empty if no KINETICS
+   * is defined
+   */
+   std::vector<std::string> getMatrixKinetics() const;
+   
+  /**
+   * @brief Returns all column names of the Matrix pertaining to EQUILIBRIUM
+   *
+   * This function returns a string vector.
+   *
+   * @return std::vector<std::string> Whole vector of names. Empty if no EQUILIBRIUM
+   * is defined
+   */
+   std::vector<std::string> getMatrixEquilibrium() const;
+
+      
+   /*
+   
+   @brief Returns all column names of the Matrix pertaining to
+   quantities that must be transported
+   
+   @return std::vector<std::string> vector of names
+
+   */
+   std::vector<std::string> getMatrixTransported() const;
+
+   /*
+
+   @brief Returns all column names of the Matrix pertaining to
+   quantities that must NOT be transported but have to be included in
+   the output
+   
+   @return std::vector<std::string> vector of names
+   */
+   std::vector<std::string> getMatrixOutOnly() const;
+
 private:
   std::map<int, std::vector<element>> _m_map;
   std::map<int, std::vector<base_names>> _m_internal_names;

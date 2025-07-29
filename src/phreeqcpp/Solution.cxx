@@ -1061,26 +1061,26 @@ void cxxSolution::read_raw(CParser &parser, bool check) {
   return;
 }
 
-void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge,
+void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc, LDBLE patm,
                          const cxxNameDouble &const_nd) {
   this->new_def = false;
-  this->patm = 1.0;
-  this->potV = 0.0;
-  this->tc = 25.0;
-  this->ph = 7.0;
-  this->pe = 4.0;
-  this->mu = 1e-7;
-  this->ah2o = 1.0;
+  this->patm = patm;
+  // this->potV = 0.0;
+  this->tc = tc;
+  // this->ph = 7.0;
+  // this->pe = 4.0;
+  // this->mu = 1e-7;
+  // this->ah2o = 1.0;
   // H, O, charge, totals, and activities of solution are updated
   this->total_h = h_tot;
   this->total_o = o_tot;
   this->cb = charge;
   this->mass_water = o_tot / 55.55;
 
-  this->density = 1.0;
-  this->viscosity = 1.0;
-  this->soln_vol = 1.0;
-  this->total_alkalinity = 0.0;
+  // this->density = 1.0;
+  // this->viscosity = 1.0;
+  // this->soln_vol = 1.0;
+  // this->total_alkalinity = 0.0;
 
   this->master_activity.clear();
   this->species_gamma.clear();

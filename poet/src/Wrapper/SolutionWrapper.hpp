@@ -27,8 +27,10 @@ private:
   cxxSolution *solution;
   const std::vector<std::string> solution_order;
 
-  static constexpr std::array<const char *, 3> ESSENTIALS = {"H", "O",
-                                                             "Charge"};
+  static constexpr std::array<const char *, 8> ESSENTIALS = {
+      "H",      "O",  "Charge", "tc", "patm",
+
+      "SolVol", "pH", "pe"}; // MDL; ML: only output
 
   static constexpr std::size_t NUM_ESSENTIALS = ESSENTIALS.size();
 

@@ -38,6 +38,7 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
         test/testPhreeqcRunner.cpp
         test/testPhreeqcKnobs.cpp
         test/utils.cpp
+        test/IPhreeqcReader.cpp
     )
 
     add_executable(poet_test ${POET_TEST_SOURCE_FILES})
@@ -61,5 +62,8 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
     gtest_discover_tests(poet_test)
 endif()
 
-add_executable(golemrunner test/testGolemRunner.cpp)
-target_link_libraries(golemrunner IPhreeqcPOET)
+add_executable(testGolemRunner test/testGolemRunner.cpp)
+target_link_libraries(testGolemRunner IPhreeqcPOET)
+
+add_executable(testGetters     test/testGetters.cpp)
+target_link_libraries(testGetters IPhreeqcPOET)

@@ -119,6 +119,7 @@ PhreeqcMatrix::STLExport PhreeqcMatrix::get(VectorExportType type,
     for (; column_index < result.names.size(); column_index++) {
       for (const auto &[_, elements] : _m_map) {
         double value_to_add = std::numeric_limits<double>::quiet_NaN();
+        // double value_to_add;
         for (const auto &curr_element : elements) {
           const std::string &curr_element_name = curr_element.name;
 
@@ -238,4 +239,81 @@ double PhreeqcMatrix::operator()(int cell_id, const std::string &name) const {
   }
 
   return it->value;
+}
+
+
+// MDL
+std::vector<std::string> PhreeqcMatrix::getMatrixKinetics() const {
+    std::vector<std::string> names;
+    
+    auto n = this->getIds().size();
+    for (auto i = 0; i<n; ++i) {
+	auto pqc_kinnames = this->getKineticsNames(i);
+	for (auto nam : pqc_kinnames ) {
+	    for (auto mat_name : this->get().names){
+		if (mat_name.starts_with(nam)) {
+		    // check if we already have this mat_name
+		    if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
+			names.push_back(mat_name);
+		    }
+		}
+	    }
+	}
+    }
+    return names;
+}
+
+
+// MDL
+std::vector<std::string> PhreeqcMatrix::getMatrixEquilibrium() const {
+
+    std::vector<std::string> names;
+    std::vector<std::string> mat_names = this->get().names;
+    auto n = this->getIds().size();
+    for (auto i = 0; i<n; ++i) {
+	auto pqc_eqnames = this->getEquilibriumNames(i);
+	for (auto nam : pqc_eqnames ) {
+	    for (auto mat_name : mat_names){
+		if (mat_name.starts_with(nam)) {
+		    // check if we already have this mat_name
+		    if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
+			names.push_back(mat_name);
+		    }
+		}
+	    }
+	}
+    }
+    return names;
+}
+
+// MDL
+std::vector<std::string> PhreeqcMatrix::getMatrixTransported() const {
+    std::vector<std::string> names;
+    
+    const std::vector<std::string> to_remove = {
+	"tc", "patm", "SolVol", "pH", "pe"
+    };
+
+    // sols contains all solutes; we must remove { tc, patm, SolVol, pH, pe }
+    auto sols = this->getSolutionNames();
+    for (auto name : sols) {
+	if (std::find(to_remove.begin(), to_remove.end(), name) == to_remove.end()) {
+	    names.push_back(name);
+	}
+    }
+    
+    return names;
+}
+
+// MDL
+std::vector<std::string> PhreeqcMatrix::getMatrixOutOnly() const {
+    // MDL we must append here selected_output / user_punch
+    std::vector<std::string> defaultnames = {
+	"tc", "patm", "SolVol", "pH", "pe"
+    };
+    std::vector<std::string> ret;
+    for (auto nm : defaultnames) {
+	ret.push_back(nm);
+    }
+    return ret;
 }

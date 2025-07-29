@@ -5,6 +5,7 @@
 
 #include <testInput.hpp>
 
+#include "IPhreeqcReader.hpp"
 #include "PhreeqcMatrix.hpp"
 #include "utils.hpp"
 
@@ -25,12 +26,18 @@ POET_TEST(PhreeqcMatrixOneSolution) {
 
   PhreeqcMatrix::STLExport exported_init = pqc_mat.get();
   // ID + H,O,Charge + 6 Solutions + 4 Equil incl. params
-  EXPECT_EQ(exported_init.names.size(), 14);
+  EXPECT_EQ(exported_init.names.size(), 19);
+
+  IPhreeqcReader pqc_compare(base_db, base_test::script);
+  pqc_compare.setOutputID(1);
 
   EXPECT_EQ(exported_init.names, base_test::expected_names);
-  for (std::size_t i = 0; i < exported_init.values.size(); ++i) {
-    EXPECT_NEAR(exported_init.values[i], base_test::expected_values[i],
-                base_test::expected_errors[i]);
+  EXPECT_EQ(exported_init.values[0], 1);
+  for (std::size_t i = 1; i < exported_init.values.size(); ++i) {
+    EXPECT_NEAR(exported_init.values[i], pqc_compare[exported_init.names[i]],
+                1e-7);
+    // EXPECT_NEAR(exported_init.values[i], base_test::expected_values[i],
+    //             base_test::expected_errors[i]);
   }
 
   auto dumps = pqc_mat.getDumpStringsPQI();
@@ -50,9 +57,12 @@ POET_TEST(PhreeqcMatrixOneSolution) {
 
 POET_TEST(PhreeqcMatrixBracketOperator) {
   PhreeqcMatrix pqc_mat(base_db, base_test::script);
+  IPhreeqcReader pqc_compare(base_db, base_test::script);
+
+  pqc_compare.setOutputID(1);
 
   EXPECT_NO_THROW(pqc_mat(1, "H"));
-  EXPECT_NEAR(pqc_mat(1, "H"), base_test::expected_values[1], 1e-5);
+  EXPECT_NEAR(pqc_mat(1, "H"), pqc_compare["H"], 1e-7);
   EXPECT_ANY_THROW(pqc_mat(1, "J"));
   EXPECT_ANY_THROW(pqc_mat(2, "H"));
 }
@@ -62,6 +72,8 @@ const std::string barite_script = readFile(barite_test::script);
 
 POET_TEST(PhreeqcMatrixMultiSolution) {
   PhreeqcMatrix pqc_mat(barite_db, barite_script);
+
+  IPhreeqcReader pqc_compare(barite_db, barite_script);
 
   const auto ids = pqc_mat.getIds();
   EXPECT_EQ(ids.size(), 4);
@@ -73,13 +85,17 @@ POET_TEST(PhreeqcMatrixMultiSolution) {
   PhreeqcMatrix::STLExport exported = pqc_mat.get();
 
   EXPECT_EQ(exported.names, barite_test::expected_names);
-  for (std::size_t i = 0; i < exported.names.size(); i++) {
-    if (i > 8 && i < 13) {
+
+  pqc_compare.setOutputID(1);
+
+  for (std::size_t i = 1; i < exported.names.size(); i++) {
+    if (i > 13 && i < 18) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }
-    EXPECT_NEAR(exported.values[i], barite_test::expected_values_line_one[i],
-                barite_test::expected_errors[i]);
+    EXPECT_NEAR(exported.values[i], pqc_compare[exported.names[i]], 1e-7);
+    // EXPECT_NEAR(exported.values[i], barite_test::expected_values_line_one[i],
+    //             barite_test::expected_errors[i]);
   }
 
   auto dumps = pqc_mat.getDumpStringsPQI();
@@ -114,6 +130,8 @@ POET_TEST(PhreeqcMatrixCtor) {
   PhreeqcMatrix pqc_mat_copy(pqc_mat);
   PhreeqcMatrix pqc_mat_move(std::move(pqc_mat_copy));
 
+  IPhreeqcReader pqc_compare(barite_db, barite_script);
+
   const auto ids = pqc_mat_move.getIds();
   EXPECT_EQ(ids.size(), 4);
   EXPECT_EQ(ids[0], 1);
@@ -124,19 +142,25 @@ POET_TEST(PhreeqcMatrixCtor) {
   PhreeqcMatrix::STLExport exported = pqc_mat_move.get();
 
   EXPECT_EQ(exported.names, barite_test::expected_names);
-  for (std::size_t i = 0; i < exported.names.size(); i++) {
-    if (i > 8 && i < 13) {
+
+  pqc_compare.setOutputID(1);
+
+  for (std::size_t i = 1; i < exported.names.size(); i++) {
+    if (i > 13 && i < 18) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }
-    EXPECT_NEAR(exported.values[i], barite_test::expected_values_line_one[i],
-                barite_test::expected_errors[i]);
+    EXPECT_NEAR(exported.values[i], pqc_compare[exported.names[i]], 1e-7);
+    // EXPECT_NEAR(exported.values[i], barite_test::expected_values_line_one[i],
+    //             barite_test::expected_errors[i]);
   }
 }
 
 POET_TEST(PhreeqcMatrixOperator) {
   PhreeqcMatrix pqc_mat(barite_db, barite_script);
   PhreeqcMatrix pqc_mat_copy = pqc_mat;
+
+  IPhreeqcReader pqc_compare(barite_db, barite_script);
 
   const auto ids = pqc_mat_copy.getIds();
 
@@ -149,13 +173,17 @@ POET_TEST(PhreeqcMatrixOperator) {
   PhreeqcMatrix::STLExport exported = pqc_mat_copy.get();
 
   EXPECT_EQ(exported.names, barite_test::expected_names);
-  for (std::size_t i = 0; i < exported.names.size(); i++) {
-    if (i > 8 && i < 13) {
+
+  pqc_compare.setOutputID(1);
+
+  for (std::size_t i = 1; i < exported.names.size(); i++) {
+    if (i > 13 && i < 18) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }
-    EXPECT_NEAR(exported.values[i], barite_test::expected_values_line_one[i],
-                barite_test::expected_errors[i]);
+    EXPECT_NEAR(exported.values[i], pqc_compare[exported.names[i]], 1e-7);
+    // EXPECT_NEAR(exported.values[i], barite_test::expected_values_line_one[i],
+    //             barite_test::expected_errors[i]);
   }
 }
 
@@ -214,7 +242,8 @@ POET_TEST(PhreeqcMatrixWithoutRedoxAndH0O0) {
   PhreeqcMatrix pqc_mat(barite_db, barite_script, false, false);
 
   const std::vector<std::string> expected_names_without_redox = {
-      "H", "O", "Charge", "Ba", "Cl", "S", "Sr",
+      "H",  "O",  "Charge", "tc", "patm", "SolVol",
+      "pH", "pe", "Ba",     "Cl", "S",    "Sr",
   };
 
   EXPECT_EQ(expected_names_without_redox, pqc_mat.getSolutionNames());
