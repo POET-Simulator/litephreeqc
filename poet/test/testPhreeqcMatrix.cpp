@@ -57,9 +57,12 @@ POET_TEST(PhreeqcMatrixOneSolution) {
 
 POET_TEST(PhreeqcMatrixBracketOperator) {
   PhreeqcMatrix pqc_mat(base_db, base_test::script);
+  IPhreeqcReader pqc_compare(base_db, base_test::script);
+
+  pqc_compare.setOutputID(1);
 
   EXPECT_NO_THROW(pqc_mat(1, "H"));
-  EXPECT_NEAR(pqc_mat(1, "H"), base_test::expected_values[1], 1e-5);
+  EXPECT_NEAR(pqc_mat(1, "H"), pqc_compare["H"], 1e-7);
   EXPECT_ANY_THROW(pqc_mat(1, "J"));
   EXPECT_ANY_THROW(pqc_mat(2, "H"));
 }
