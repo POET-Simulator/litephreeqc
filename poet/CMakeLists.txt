@@ -2,6 +2,7 @@ set(POET_SOURCE_FILES
     src/Engine.cpp
     src/Runner.cpp 
     src/Knobs.cpp
+    src/SelectedOutputParser.cpp
     #Wrappers
     src/Wrapper/EquilibriumWrapper.cpp
     src/Wrapper/EquilibriumCompWrapper.cpp

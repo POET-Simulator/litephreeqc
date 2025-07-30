@@ -224,9 +224,25 @@ void PhreeqcMatrix::initialize() {
     if (id < 0) {
       continue;
     }
-    const auto &[elements, base_names] = create_vector_from_phreeqc(
+    auto [elements, base_names] = create_vector_from_phreeqc(
         phreeqc, id, solutions, this->_m_surface_primaries);
 
+    if (this->_m_selected_output_parser->hasSelectedOutput()) {
+      // Add selected output elements
+      std::vector<double> selected_output_values =
+          this->_m_selected_output_parser->getValues(id);
+
+      const auto &headers = this->_m_selected_output_parser->getHeader();
+
+      for (std::size_t i = 0; i < selected_output_values.size(); i++) {
+        elements.push_back({headers[i],
+                            PhreeqcMatrix::PhreeqcComponent::SELECTED_OUTPUT,
+                            selected_output_values[i]});
+        base_names.push_back(
+            {PhreeqcMatrix::base_names::Components::SELECTED_OUTPUT,
+             headers[i]});
+      }
+    }
     _m_map[id] = elements;
     _m_internal_names[id] = base_names;
   }

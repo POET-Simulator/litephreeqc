@@ -4,7 +4,6 @@
 
 #include <Phreeqc.h>
 #include <Solution.h>
-#include <cmath>
 #include <memory>
 #include <string>
 
@@ -16,6 +15,9 @@ PhreeqcMatrix::PhreeqcMatrix(const std::string &database,
   this->_m_pqc = std::make_shared<IPhreeqc>();
 
   this->_m_pqc->LoadDatabaseString(database.c_str());
+
+  this->_m_pqc->SetSelectedOutputStringOn(true);
+
   this->_m_pqc->RunString(input_script.c_str());
 
   if (this->_m_pqc->GetErrorStringLineCount() > 0) {
@@ -24,38 +26,12 @@ PhreeqcMatrix::PhreeqcMatrix(const std::string &database,
     throw std::runtime_error("Phreeqc script error");
   }
 
+  this->_m_selected_output_parser =
+      std::make_shared<PhreeqcSelectedOutputParser>(this->_m_pqc.get(),
+                                                    input_script);
+
   this->_m_knobs =
       std::make_shared<PhreeqcKnobs>(this->_m_pqc.get()->GetPhreeqcPtr());
 
   this->initialize();
 }
-
-// PhreeqcMatrix::PhreeqcMatrix(const PhreeqcMatrix &other)
-//     : _m_map(other._m_map), _m_internal_names(other._m_internal_names),
-//       _m_surface_primaries(other._m_surface_primaries), _m_pqc(other._m_pqc),
-//       _m_database(other._m_database) {}
-
-// PhreeqcMatrix::PhreeqcMatrix(PhreeqcMatrix &&other)
-//     : _m_map(other._m_map), _m_internal_names(other._m_internal_names),
-//       _m_surface_primaries(other._m_surface_primaries), _m_pqc(other._m_pqc),
-//       _m_database(other._m_database) {}
-
-// PhreeqcMatrix &PhreeqcMatrix::operator=(const PhreeqcMatrix &other) {
-//   _m_map = other._m_map;
-//   _m_internal_names = other._m_internal_names;
-//   _m_surface_primaries = other._m_surface_primaries;
-//   _m_pqc = other._m_pqc;
-//   _m_database = other._m_database;
-
-//   return *this;
-// }
-
-// PhreeqcMatrix &PhreeqcMatrix::operator=(PhreeqcMatrix &&other) {
-//   _m_map = other._m_map;
-//   _m_internal_names = other._m_internal_names;
-//   _m_surface_primaries = other._m_surface_primaries;
-//   _m_pqc = other._m_pqc;
-//   _m_database = other._m_database;
-
-//   return *this;
-// }

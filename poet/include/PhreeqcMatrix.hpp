@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "PhreeqcKnobs.hpp"
+#include "PhreeqcSelectedOutputParser.hpp"
 
 class IPhreeqc;
 
@@ -170,7 +171,8 @@ public:
     EXCHANGE,
     KINETIC,
     EQUILIBRIUM,
-    SURFACE_COMPS
+    SURFACE_COMPS,
+    SELECTED_OUTPUT
   };
 
   struct element {
@@ -185,11 +187,16 @@ public:
       KINETICS,
       EQUILIBRIUM,
       SURACE_COMP,
-      SURFACE_CHARGE
+      SURFACE_CHARGE,
+      SELECTED_OUTPUT
     } type;
 
     std::string name;
   };
+
+  const PhreeqcSelectedOutputParser &getSelectedOutput() const {
+    return *_m_selected_output_parser;
+  }
 
   /**
    * @brief Get all found solution names.
@@ -319,41 +326,51 @@ public:
    *
    * This function returns a string vector.
    *
-   * @return std::vector<std::string> Whole vector of names. Empty if no KINETICS
-   * is defined
+   * @return std::vector<std::string> Whole vector of names. Empty if no
+   * KINETICS is defined
    */
-   std::vector<std::string> getMatrixKinetics() const;
-   
+  std::vector<std::string> getMatrixKinetics() const;
+
   /**
    * @brief Returns all column names of the Matrix pertaining to EQUILIBRIUM
    *
    * This function returns a string vector.
    *
-   * @return std::vector<std::string> Whole vector of names. Empty if no EQUILIBRIUM
-   * is defined
+   * @return std::vector<std::string> Whole vector of names. Empty if no
+   * EQUILIBRIUM is defined
    */
-   std::vector<std::string> getMatrixEquilibrium() const;
+  std::vector<std::string> getMatrixEquilibrium() const;
 
-      
-   /*
-   
-   @brief Returns all column names of the Matrix pertaining to
-   quantities that must be transported
-   
-   @return std::vector<std::string> vector of names
+  /*
 
+  @brief Returns all column names of the Matrix pertaining to
+  quantities that must be transported
+
+  @return std::vector<std::string> vector of names
+
+  */
+  std::vector<std::string> getMatrixTransported() const;
+
+  /*
+
+  @brief Returns all column names of the Matrix pertaining to
+  quantities that must NOT be transported but have to be included in
+  the output
+
+  @return std::vector<std::string> vector of names
+  */
+  std::vector<std::string> getMatrixOutOnly() const;
+
+  /**
+   * @brief Returns all column names of the Matrix pertaining to
+   * quantities that are user defined in the SELECTED_OUTPUT or USER_PUNCH
+   * blocks of the Phreeqc input script.
+   *
+   * @return std::vector<std::string> vector of names
    */
-   std::vector<std::string> getMatrixTransported() const;
-
-   /*
-
-   @brief Returns all column names of the Matrix pertaining to
-   quantities that must NOT be transported but have to be included in
-   the output
-   
-   @return std::vector<std::string> vector of names
-   */
-   std::vector<std::string> getMatrixOutOnly() const;
+  std::vector<std::string> getSelectedOutputNames() const {
+    return this->_m_selected_output_parser->getHeader();
+  }
 
 private:
   std::map<int, std::vector<element>> _m_map;
@@ -367,6 +384,7 @@ private:
 
   std::shared_ptr<IPhreeqc> _m_pqc;
   std::shared_ptr<PhreeqcKnobs> _m_knobs;
+  std::shared_ptr<PhreeqcSelectedOutputParser> _m_selected_output_parser;
 
   std::string _m_database;
 
