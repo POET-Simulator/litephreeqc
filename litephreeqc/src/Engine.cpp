@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2024-2026 Max Luebke (University of Potsdam)
- *                       Marco De Lucia (GFZ German Research Centre for Geosciences)
+ *                       Marco De Lucia (GFZ German Research Centre for
+ * Geosciences)
  *
  * SPDX-License-Identifier: EUPL-1.2
  *
@@ -58,11 +59,14 @@ public:
   std::unique_ptr<KineticWrapper> kineticsWrapperPtr;
   std::unique_ptr<EquilibriumWrapper> equilibriumWrapperPtr;
   std::unique_ptr<SurfaceWrapper> surfaceWrapperPtr;
+  std::unique_ptr<PhreeqcSelectedOutputParser> _m_selected_output_parser;
 
   bool has_exchange = false;
   bool has_kinetics = false;
   bool has_equilibrium = false;
   bool has_surface = false;
+  bool has_selected_output = false;
+
   struct InitCell {
     std::vector<std::string> solutions;
     bool with_redox;
@@ -99,6 +103,10 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
 
   const std::string pqc_string =
       replaceRawKeywordID(pqc_mat.getDumpStringsPQI(cell_id));
+
+  this->_m_selected_output_parser =
+      std::make_unique<PhreeqcSelectedOutputParser>(
+          this, pqc_mat.getSelectedOutput());
 
   this->RunString(pqc_string.c_str());
 
@@ -174,6 +182,9 @@ void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {
 
     this->has_surface = true;
   }
+
+  this->has_selected_output =
+      this->_m_selected_output_parser->hasSelectedOutput();
 }
 
 void PhreeqcEngine::Impl::get_essential_values(std::span<double> &data) {
@@ -210,6 +221,20 @@ void PhreeqcEngine::Impl::get_essential_values(std::span<double> &data) {
     std::span<double> surf_span{
         data.subspan(offset, this->surfaceWrapperPtr->size())};
     this->surfaceWrapperPtr->get(surf_span);
+
+    offset += this->surfaceWrapperPtr->size();
+  }
+
+  if (this->has_selected_output) {
+    std::vector<double> selected_output_values =
+        this->_m_selected_output_parser->getValues(1);
+
+    std::span<double> sel_out_span{
+        data.subspan(offset, selected_output_values.size())};
+    std::copy(selected_output_values.begin(), selected_output_values.end(),
+              sel_out_span.begin());
+
+    offset += selected_output_values.size();
   }
 }
 
