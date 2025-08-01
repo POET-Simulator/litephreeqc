@@ -15,6 +15,11 @@ PhreeqcSelectedOutputParser::PhreeqcSelectedOutputParser(
 
   if (this->_m_has_selected_output) {
     parseHeader();
+    if (this->_m_headings.size() != this->getValues(1).size()) {
+      throw std::runtime_error(
+          "Number of headings does not match number of values in selected "
+          "output.");
+    }
   }
 }
 
