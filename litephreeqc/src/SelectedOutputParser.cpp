@@ -132,7 +132,7 @@ PhreeqcSelectedOutputParser::getValues(std::uint32_t cell_id) const {
   if (!this->hasSelectedOutput()) {
     return {}; // No selected output defined
   }
-  // this->_m_pqc_instance->SetCurrentSelectedOutputUserNumber(cell_id);
+  this->_m_pqc_instance->SetCurrentSelectedOutputUserNumber(cell_id);
 
   const std::string selected_output_string =
       _m_pqc_instance->GetSelectedOutputString();
