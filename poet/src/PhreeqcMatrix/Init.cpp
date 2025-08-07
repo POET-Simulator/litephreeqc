@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstddef>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <set>
 #include <string>
@@ -234,13 +235,11 @@ void PhreeqcMatrix::initialize() {
 
       const auto &headers = this->_m_selected_output_parser->getHeader();
 
-      for (std::size_t i = 0; i < selected_output_values.size(); i++) {
-        elements.push_back({headers[i],
-                            PhreeqcMatrix::PhreeqcComponent::SELECTED_OUTPUT,
-                            selected_output_values[i]});
+      for (const auto &hdr_str : headers) {
+        elements.push_back(
+            {hdr_str, PhreeqcMatrix::PhreeqcComponent::SELECTED_OUTPUT, 0});
         base_names.push_back(
-            {PhreeqcMatrix::base_names::Components::SELECTED_OUTPUT,
-             headers[i]});
+            {PhreeqcMatrix::base_names::Components::SELECTED_OUTPUT, hdr_str});
       }
     }
     _m_map[id] = elements;
