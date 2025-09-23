@@ -8,6 +8,9 @@ ExchangeWrapper::ExchangeCompWrapper::ExchangeCompWrapper(cxxExchComp &comp)
 
 void ExchangeWrapper::ExchangeCompWrapper::get(
     std::span<LDBLE> &exchange) const {
+
+  std::size_t exch_index = this->NUM_NOT_TOTALS;
+
   exchange[0] = exch_comp.Get_totals().find(exch_comp.Get_formula())->second;
   exchange[1] = exch_comp.Get_charge_balance();
   exchange[2] = exch_comp.Get_la();
@@ -16,15 +19,16 @@ void ExchangeWrapper::ExchangeCompWrapper::get(
 
   for (const auto &[name, value] : exch_comp.Get_totals()) {
     if (name != exch_comp.Get_formula()) {
-      exchange[NUM_NOT_TOTALS +
-               std::distance(exch_comp.Get_totals().begin(),
-                             exch_comp.Get_totals().find(name))] = value;
+      exchange[exch_index++] = value;
     }
   }
 }
 
 void ExchangeWrapper::ExchangeCompWrapper::set(
     const std::span<LDBLE> &exchange) {
+
+  std::size_t exch_index = this->NUM_NOT_TOTALS;
+
   exch_comp.Get_totals().find(exch_comp.Get_formula())->second = exchange[0];
   exch_comp.Set_charge_balance(exchange[1]);
   exch_comp.Set_la(exchange[2]);
@@ -33,9 +37,7 @@ void ExchangeWrapper::ExchangeCompWrapper::set(
 
   for (auto &[name, value] : exch_comp.Get_totals()) {
     if (name != exch_comp.Get_formula()) {
-      value = exchange[NUM_NOT_TOTALS +
-                       std::distance(exch_comp.Get_totals().begin(),
-                                     exch_comp.Get_totals().find(name))];
+      value = exchange[exch_index++];
     }
   }
 }
