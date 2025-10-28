@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 
-#define POET_TEST(name) TEST(TestPOET, name)
+#define POET_TEST(name) TEST(litephreeqc, name)
 
 namespace base_test {
 const std::string script = R"(SOLUTION 1
