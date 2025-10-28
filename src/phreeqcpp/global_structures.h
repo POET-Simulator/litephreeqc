@@ -1538,68 +1538,54 @@ public:
   LDBLE tot1, tot2, tot_stag, charge;
 };
 // Pitzer definitions
-typedef enum {
-  TYPE_B0,
-  TYPE_B1,
-  TYPE_B2,
-  TYPE_C0,
-  TYPE_THETA,
-  TYPE_LAMBDA,
-  TYPE_ZETA,
-  TYPE_PSI,
-  TYPE_ETHETA,
-  TYPE_ALPHAS,
-  TYPE_MU,
-  TYPE_ETA,
-  TYPE_Other,
-  TYPE_SIT_EPSILON,
-  TYPE_SIT_EPSILON_MU,
-  TYPE_APHI
+typedef enum
+{ TYPE_B0, TYPE_B1, TYPE_B2, TYPE_C0, TYPE_THETA, TYPE_LAMBDA, TYPE_ZETA,
+  TYPE_PSI, TYPE_ETHETA, TYPE_ALPHAS, TYPE_MU, TYPE_ETA, TYPE_Other,
+  TYPE_SIT_EPSILON, TYPE_SIT_EPSILON_MU, TYPE_APHI, TYPE_SIT_EPSILON2
 } pitz_param_type;
 class pitz_param {
 public:
-  ~pitz_param(){};
-  pitz_param() {
-    for (size_t i = 0; i < 3; i++)
-      species[i] = NULL;
-    for (size_t i = 0; i < 3; i++)
-      ispec[i] = -1;
-    type = TYPE_Other;
-    p = 0;
-    U.b0 = 0;
-    for (size_t i = 0; i < 6; i++)
-      a[i] = 0;
-    alpha = 0;
-    os_coef = 0;
-    for (size_t i = 0; i < 3; i++)
-      ln_coef[i] = 0;
-    thetas = NULL;
-  }
-  const char *species[3];
-  int ispec[3];
-  pitz_param_type type;
-  LDBLE p;
-  union {
-    LDBLE b0;
-    LDBLE b1;
-    LDBLE b2;
-    LDBLE c0;
-    LDBLE theta;
-    LDBLE lambda;
-    LDBLE zeta;
-    LDBLE psi;
-    LDBLE alphas;
-    LDBLE mu;
-    LDBLE eta;
-    LDBLE eps;
-    LDBLE eps1;
-    LDBLE aphi;
-  } U;
-  LDBLE a[6];
-  LDBLE alpha;
-  LDBLE os_coef;
-  LDBLE ln_coef[3];
-  class theta_param *thetas;
+	~pitz_param() {};
+	pitz_param()
+	{
+		for(size_t i = 0; i < 3; i++) species[i] = NULL;
+		for (size_t i = 0; i < 3; i++) ispec[i] = -1;
+		type = TYPE_Other;
+		p = 0;
+		U.b0 = 0;
+		for (size_t i = 0; i < 6; i++) a[i] = 0;
+		alpha = 0;
+		os_coef = 0;
+		for (size_t i = 0; i < 3; i++) ln_coef[i] = 0;
+		thetas = NULL;
+	}
+	const char* species[3];
+	int ispec[3];
+	pitz_param_type type;
+	LDBLE p;
+	union
+	{
+		LDBLE b0;
+		LDBLE b1;
+		LDBLE b2;
+		LDBLE c0;
+		LDBLE theta;
+		LDBLE lambda;
+		LDBLE zeta;
+		LDBLE psi;
+		LDBLE alphas;
+		LDBLE mu;
+		LDBLE eta;
+		LDBLE eps;
+		LDBLE eps1;
+		LDBLE aphi;
+		LDBLE eps2;
+	} U;
+	LDBLE a[6];
+	LDBLE alpha;
+	LDBLE os_coef;
+	LDBLE ln_coef[3];
+	class theta_param* thetas;
 };
 class theta_param {
 public:

@@ -125,183 +125,219 @@ int Phreeqc::set_use(void)
   use.Set_gas_phase_ptr(NULL);
   use.Set_ss_assemblage_ptr(NULL);
 
-  if (state < REACTION) {
-    return (OK);
-  }
-  /*
-   *   Reaction case
-   */
-  if (use.Get_pp_assemblage_in() == FALSE && use.Get_reaction_in() == FALSE &&
-      use.Get_mix_in() == FALSE && use.Get_exchange_in() == FALSE &&
-      use.Get_kinetics_in() == FALSE && use.Get_surface_in() == FALSE &&
-      use.Get_temperature_in() == FALSE && use.Get_pressure_in() == FALSE &&
-      use.Get_gas_phase_in() == FALSE && use.Get_ss_assemblage_in() == FALSE) {
-    return (FALSE);
-  }
-  if (use.Get_solution_in() == FALSE && use.Get_mix_in() == FALSE)
-    return (FALSE);
-  /*
-   *   Find solution
-   */
-  if (use.Get_solution_in()) {
-    use.Set_solution_ptr(
-        Utilities::Rxn_find(Rxn_solution_map, use.Get_n_solution_user()));
-    if (use.Get_solution_ptr() == NULL) {
-      error_string =
-          sformatf("Solution %d not found.", use.Get_n_solution_user());
-      error_msg(error_string, STOP);
-    }
-  }
-  /*
-   *   Find mixture
-   */
-  if (use.Get_mix_in() == TRUE) {
-    use.Set_mix_ptr(Utilities::Rxn_find(Rxn_mix_map, use.Get_n_mix_user()));
-    use.Set_n_mix_user_orig(use.Get_n_mix_user());
-    if (use.Get_mix_ptr() == NULL) {
-      error_string = sformatf("Mix %d not found.", use.Get_n_mix_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_mix_ptr(NULL);
-  }
-  /*
-   *   Find pure phase assemblage
-   */
-  if (use.Get_pp_assemblage_in() == TRUE) {
-    use.Set_pp_assemblage_ptr(Utilities::Rxn_find(
-        Rxn_pp_assemblage_map, use.Get_n_pp_assemblage_user()));
-    if (use.Get_pp_assemblage_ptr() == NULL) {
-      error_string = sformatf("Pure phase assemblage %d not found.",
-                              use.Get_n_pp_assemblage_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_pp_assemblage_ptr(NULL);
-  }
-  /*
-   *   Find irrev reaction
-   */
-  if (use.Get_reaction_in() == TRUE) {
-    use.Set_reaction_ptr(
-        Utilities::Rxn_find(Rxn_reaction_map, use.Get_n_reaction_user()));
-    if (use.Get_reaction_ptr() == NULL) {
-      error_string =
-          sformatf("Reaction %d not found.", use.Get_n_reaction_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_reaction_ptr(NULL);
-  }
-  /*
-   *   Find exchange
-   */
-  if (use.Get_exchange_in() == TRUE) {
-    use.Set_exchange_ptr(
-        Utilities::Rxn_find(Rxn_exchange_map, use.Get_n_exchange_user()));
-    if (use.Get_exchange_ptr() == NULL) {
-      error_string =
-          sformatf("Exchange %d not found.", use.Get_n_exchange_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_exchange_ptr(NULL);
-  }
-  /*
-   *   Find kinetics
-   */
-  if (use.Get_kinetics_in() == TRUE) {
-    use.Set_kinetics_ptr(
-        Utilities::Rxn_find(Rxn_kinetics_map, use.Get_n_kinetics_user()));
-    if (use.Get_kinetics_ptr() == NULL) {
-      error_string =
-          sformatf("Kinetics %d not found.", use.Get_n_kinetics_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_kinetics_ptr(NULL);
-  }
-  /*
-   *   Find surface
-   */
-  dl_type_x = cxxSurface::NO_DL;
-  if (use.Get_surface_in() == TRUE) {
-    use.Set_surface_ptr(
-        Utilities::Rxn_find(Rxn_surface_map, use.Get_n_surface_user()));
-    if (use.Get_surface_ptr() == NULL) {
-      error_string =
-          sformatf("Surface %d not found.", use.Get_n_surface_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_surface_ptr(NULL);
-  }
-  /*
-   *   Find temperature
-   */
-  if (use.Get_temperature_in() == TRUE) {
-    use.Set_temperature_ptr(
-        Utilities::Rxn_find(Rxn_temperature_map, use.Get_n_temperature_user()));
-    if (use.Get_temperature_ptr() == NULL) {
-      error_string =
-          sformatf("Temperature %d not found.", use.Get_n_temperature_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_temperature_ptr(NULL);
-  }
-  /*
-   *   Find pressure
-   */
-  if (use.Get_pressure_in() == TRUE) {
-    use.Set_pressure_ptr(
-        Utilities::Rxn_find(Rxn_pressure_map, use.Get_n_pressure_user()));
-    if (use.Get_pressure_ptr() == NULL) {
-      error_string =
-          sformatf("Pressure %d not found.", use.Get_n_pressure_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_pressure_ptr(NULL);
-  }
-  /*
-   *   Find gas
-   */
-  if (use.Get_gas_phase_in() == TRUE) {
-    use.Set_gas_phase_ptr(
-        Utilities::Rxn_find(Rxn_gas_phase_map, use.Get_n_gas_phase_user()));
-    if (use.Get_gas_phase_ptr() == NULL) {
-      error_string =
-          sformatf("Gas_phase %d not found.", use.Get_n_gas_phase_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_gas_phase_ptr(NULL);
-  }
-  /*
-   *   Find ss_assemblage
-   */
-  if (use.Get_ss_assemblage_in() == TRUE) {
-    use.Set_ss_assemblage_ptr(Utilities::Rxn_find(
-        Rxn_ss_assemblage_map, use.Get_n_ss_assemblage_user()));
-    if (use.Get_ss_assemblage_ptr() == NULL) {
-      error_string = sformatf("ss_assemblage %d not found.",
-                              use.Get_n_ss_assemblage_user());
-      error_msg(error_string, STOP);
-    }
-  } else {
-    use.Set_ss_assemblage_ptr(NULL);
-  }
-  /*
-  if (use.irrev_ptr != NULL && use.Get_kinetics_ptr() != NULL)
-  {
-          warning_msg("Should not use REACTION in same simulation with
-  KINETICS.");
-  }
-  */
-  return (OK);
+	if (state < REACTION)
+	{
+		return (OK);
+	}
+/*
+ *   Reaction case
+ */
+	if (use.Get_pp_assemblage_in() == FALSE &&
+		use.Get_reaction_in() == FALSE &&
+		use.Get_mix_in() == FALSE &&
+		use.Get_exchange_in() == FALSE &&
+		use.Get_kinetics_in() == FALSE &&
+		use.Get_surface_in() == FALSE &&
+		use.Get_temperature_in() == FALSE &&
+		use.Get_pressure_in() == FALSE &&
+		use.Get_gas_phase_in() == FALSE && use.Get_ss_assemblage_in() == FALSE)
+	{
+		return (FALSE);
+	}
+	if (use.Get_solution_in() == FALSE && use.Get_mix_in() == FALSE)
+		return (FALSE);
+/*
+ *   Find solution
+ */
+	if (use.Get_solution_in())
+	{
+		use.Set_solution_ptr(Utilities::Rxn_find(Rxn_solution_map, use.Get_n_solution_user()));
+		if (use.Get_solution_ptr() == NULL)
+		{
+			error_string = sformatf( "Solution %d not found.",
+					use.Get_n_solution_user());
+			error_msg(error_string, STOP);
+		}
+	}
+/*
+ *   Find mixture
+ */
+	if (use.Get_mix_in() == TRUE)
+	{
+		use.Set_mix_ptr(Utilities::Rxn_find(Rxn_mix_map, use.Get_n_mix_user()));
+		use.Set_n_mix_user_orig(use.Get_n_mix_user());
+		if (use.Get_mix_ptr() == NULL)
+		{
+			error_string = sformatf( "Mix %d not found.",
+					use.Get_n_mix_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_mix_ptr(NULL);
+	}
+/*
+ *   Find pure phase assemblage
+ */
+	if (use.Get_pp_assemblage_in() == TRUE)
+	{
+		use.Set_pp_assemblage_ptr(Utilities::Rxn_find(Rxn_pp_assemblage_map, use.Get_n_pp_assemblage_user()));
+		if (use.Get_pp_assemblage_ptr() == NULL)
+		{
+			error_string = sformatf( "Pure phase assemblage %d not found.",
+					use.Get_n_pp_assemblage_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_pp_assemblage_ptr(NULL);
+	}
+/*
+ *   Find irrev reaction
+ */
+	if (use.Get_reaction_in() == TRUE)
+	{
+		use.Set_reaction_ptr(Utilities::Rxn_find(Rxn_reaction_map, use.Get_n_reaction_user()));
+		if (use.Get_reaction_ptr() == NULL)
+		{
+			error_string = sformatf( "Reaction %d not found.",
+					use.Get_n_reaction_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_reaction_ptr(NULL);
+	}
+/*
+ *   Find exchange
+ */
+	if (use.Get_exchange_in() == TRUE)
+	{
+		use.Set_exchange_ptr(Utilities::Rxn_find(Rxn_exchange_map, use.Get_n_exchange_user()));
+		if (use.Get_exchange_ptr() == NULL)
+		{
+			error_string = sformatf( "Exchange %d not found.",
+					use.Get_n_exchange_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_exchange_ptr(NULL);
+	}
+/*
+ *   Find kinetics
+ */
+	if (use.Get_kinetics_in() == TRUE)
+	{
+		use.Set_kinetics_ptr(Utilities::Rxn_find(Rxn_kinetics_map, use.Get_n_kinetics_user()));
+		if (use.Get_kinetics_ptr() == NULL)
+		{
+			error_string = sformatf( "Kinetics %d not found.",
+					use.Get_n_kinetics_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_kinetics_ptr(NULL);
+	}
+/*
+ *   Find surface
+ */
+	dl_type_x = cxxSurface::NO_DL;
+	if (use.Get_surface_in() == TRUE)
+	{
+		use.Set_surface_ptr(Utilities::Rxn_find(Rxn_surface_map, use.Get_n_surface_user()));
+		if (use.Get_surface_ptr() == NULL)
+		{
+			error_string = sformatf( "Surface %d not found.",
+					use.Get_n_surface_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_surface_ptr(NULL);
+	}
+/*
+ *   Find temperature
+ */
+	if (use.Get_temperature_in() == TRUE)
+	{
+		use.Set_temperature_ptr(Utilities::Rxn_find(Rxn_temperature_map, use.Get_n_temperature_user()));
+		if (use.Get_temperature_ptr() == NULL)
+		{
+			error_string = sformatf( "Temperature %d not found.",
+					use.Get_n_temperature_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_temperature_ptr(NULL);
+	}
+/*
+ *   Find pressure
+ */
+	if (use.Get_pressure_in() == TRUE)
+	{
+		use.Set_pressure_ptr(Utilities::Rxn_find(Rxn_pressure_map, use.Get_n_pressure_user()));
+		if (use.Get_pressure_ptr() == NULL)
+		{
+			error_string = sformatf( "Pressure %d not found.",	use.Get_n_pressure_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_pressure_ptr(NULL);
+	}
+/*
+ *   Find gas
+ */
+	if (use.Get_gas_phase_in() == TRUE)
+	{
+		use.Set_gas_phase_ptr(Utilities::Rxn_find(Rxn_gas_phase_map, use.Get_n_gas_phase_user()));
+		if (use.Get_gas_phase_ptr() == NULL)
+		{
+			error_string = sformatf( "Gas_phase %d not found.",
+					use.Get_n_gas_phase_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_gas_phase_ptr(NULL);
+	}
+/*
+ *   Find ss_assemblage
+ */
+	if (use.Get_ss_assemblage_in() == TRUE)
+	{
+		use.Set_ss_assemblage_ptr(Utilities::Rxn_find(Rxn_ss_assemblage_map, use.Get_n_ss_assemblage_user()));
+		if (use.Get_ss_assemblage_ptr() == NULL)
+		{
+			error_string = sformatf( "ss_assemblage %d not found.",
+					use.Get_n_ss_assemblage_user());
+			error_msg(error_string, STOP);
+		}
+	}
+	else
+	{
+		use.Set_ss_assemblage_ptr(NULL);
+	}
+	/*
+	if (use.irrev_ptr != NULL && use.Get_kinetics_ptr() != NULL)
+	{
+		warning_msg("Should not use REACTION in same simulation with KINETICS.");
+	}
+	*/
+	return (OK);
 }
-
 /* ---------------------------------------------------------------------- */
 int Phreeqc::initial_solutions(int print)
 /* ---------------------------------------------------------------------- */

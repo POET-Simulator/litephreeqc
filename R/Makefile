@@ -42,6 +42,7 @@ DBS = \
 	phreeqc.ascii \
 	pitzer.ascii \
 	sit.ascii \
+	stimela.ascii \
 	Tipping_Hurley.ascii \
 	wateq4f.ascii
 
@@ -885,7 +886,7 @@ $(IDEST):
 $(DEST):
 	mkdir $(DEST)
 
-# Force directory creation everytime make is executed
+# Force directory creation every time make is executed
 # see https://www.cmcrossroads.com/article/making-directories-gnu-make
 
 $(shell mkdir -p $(TOPDIR)/R)

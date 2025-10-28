@@ -2,8 +2,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 #ifdef _DEBUG
-#pragma warning(                                                               \
-    disable : 4786) // disable truncation warning (Only used by debugger)
+#pragma warning(disable                                                        \
+                : 4786) // disable truncation warning (Only used by debugger)
 #endif
 
 #include "Solution.h"
@@ -27,7 +27,6 @@ static char THIS_FILE[] = __FILE__;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
-
 cxxSolution::cxxSolution(PHRQ_io *io)
     //
     // default constructor for cxxSolution
@@ -123,22 +122,31 @@ cxxSolution::cxxSolution(std::map<int, cxxSolution> &solutions, cxxMix &mix,
       this->potV = cxxsoln_ptr1->potV;
   }
   //
+  // Sort to enable positive mixes first
+  const std::map<int, LDBLE> &mixcomps = mix.Get_mixComps();
+  std::set<std::pair<LDBLE, int>> s;
+  for (std::map<int, LDBLE>::const_iterator it = mixcomps.begin();
+       it != mixcomps.end(); it++) {
+    std::pair<LDBLE, int> p(it->second, it->first);
+    s.insert(p);
+  }
+  //
   //   Mix solutions
   //
-  const std::map<int, LDBLE> &mixcomps = mix.Get_mixComps();
-  std::map<int, LDBLE>::const_iterator it;
-  for (it = mixcomps.begin(); it != mixcomps.end(); it++) {
-    sol = solutions.find(it->first);
+  std::set<std::pair<LDBLE, int>>::const_reverse_iterator rit = s.rbegin();
+  for (rit = s.rbegin(); rit != s.rend(); rit++) {
+    sol = solutions.find(rit->second);
     if (sol == solutions.end()) {
       std::ostringstream msg;
-      msg << "Solution " << it->first << " not found in mix_cxxSolutions.";
+      msg << "Solution " << rit->second << " not found in mix_cxxSolutions.";
       error_msg(msg.str(), CONTINUE);
     } else {
       cxxsoln_ptr1 = &(sol->second);
-      this->add(*cxxsoln_ptr1, it->second);
+      this->add(*cxxsoln_ptr1, rit->first);
     }
   }
 }
+
 cxxSolution::~cxxSolution() { delete this->initial_data; }
 
 void cxxSolution::dump_xml(std::ostream &s_oss, unsigned int indent) const {
@@ -1061,8 +1069,8 @@ void cxxSolution::read_raw(CParser &parser, bool check) {
   return;
 }
 
-void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc, LDBLE patm,
-                         const cxxNameDouble &const_nd) {
+void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc,
+                         LDBLE patm, const cxxNameDouble &const_nd) {
   this->new_def = false;
   this->patm = patm;
   // this->potV = 0.0;
@@ -1257,8 +1265,21 @@ void cxxSolution::add(const cxxSolution &addee, LDBLE extensive)
     return;
   LDBLE ext1 = this->mass_water;
   LDBLE ext2 = addee.mass_water * extensive;
-  LDBLE f1 = ext1 / (ext1 + ext2);
-  LDBLE f2 = ext2 / (ext1 + ext2);
+  this->mass_water += addee.mass_water * extensive;
+  if (this->mass_water <= 0.0) {
+    std::ostringstream msg;
+    msg << "Negative mass of water when mixing solutions.";
+    error_msg(msg.str(), STOP);
+  }
+  LDBLE fconc = 0.0, f1 = 0.0, f2 = 0.0;
+  if (extensive > 0.0) {
+
+    f1 = ext1 / (ext1 + ext2);
+    f2 = ext2 / (ext1 + ext2);
+  } else {
+    f1 = 1.0;
+    f2 = 0.0;
+  }
   this->tc = f1 * this->tc + f2 * addee.tc;
   this->ph = f1 * this->ph + f2 * addee.ph;
   this->pe = f1 * this->pe + f2 * addee.pe;
@@ -1272,7 +1293,6 @@ void cxxSolution::add(const cxxSolution &addee, LDBLE extensive)
   this->viscos_0 = f1 * this->viscos_0 + f2 * addee.viscos_0;
   this->patm = f1 * this->patm + f2 * addee.patm;
   // this->potV = f1 * this->potV + f2 * addee.potV; // appt
-  this->mass_water += addee.mass_water * extensive;
   this->soln_vol += addee.soln_vol * extensive;
   this->total_alkalinity += addee.total_alkalinity * extensive;
   this->totals.add_extensive(addee.totals, extensive);
