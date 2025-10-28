@@ -7,43 +7,22 @@ project (
   LANGUAGES CXX C
   )
 
-# check if this is the root project
-if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-  set(STANDALONE_BUILD 1)
-else()
-  set(STANDALONE_BUILD 0)
-endif()
-
-if (STANDALONE_BUILD)
-  # Set a default build type if none was specified
-  set(default_build_type "Release")
-  if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
-      STRING "Choose the type of build." FORCE)
-    # Set the possible values of build type for cmake-gui
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-      "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-  endif()
 if (WIN32) 
     message(FATAL_ERROR "litephreeqc cannot be built on Windows systems.")
 endif()
 
-# overide docdir on windows
-if (WIN32 AND NOT CMAKE_INSTALL_DOCDIR)
-  set(CMAKE_INSTALL_DOCDIR "" CACHE PATH "documentation root (doc)")
-  set(CMAKE_INSTALL_DOCDIR "doc")
+# Set a default build type if none was specified
+set(default_build_type "Release")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+    STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
 # set standard directory locations
 include(GNUInstallDirs)
-
-if (STANDALONE_BUILD AND MSVC)
-  option (IPHREEQC_STATIC_RUNTIME "Build with a static runtime" OFF)
-  if (IPHREEQC_STATIC_RUNTIME)
-    # compile with static runtime
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  endif()
-endif()
 
 # Fortran
 option (IPHREEQC_ENABLE_MODULE "Enable Fortran module" ON)
@@ -62,22 +41,7 @@ endif()
 # compile Var.c as c++
 set_source_files_properties(src/Var.c PROPERTIES LANGUAGE CXX)
 
-if (STANDALONE_BUILD)
-  option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-  set(LIB_TYPE STATIC)
-endif()
-
-if (STANDALONE_BUILD)
-  if (MSVC)
-    option(BUILD_CLR_LIBS "Build CLR Libraries" OFF)
-  endif()
-endif()
-
-if (BUILD_SHARED_LIBS)
-  set(LIB_TYPE SHARED)
-endif()
-
-add_library(IPhreeqc ${LIB_TYPE} src/IPhreeqc.cpp)
+add_library(IPhreeqc STATIC src/IPhreeqc.cpp)
 
 target_sources(IPhreeqc
   PRIVATE
@@ -262,37 +226,6 @@ if (NOT IPHREEQC_ENABLE_MODULE)
   )
 endif()
 
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
-  target_compile_options(IPhreeqc PRIVATE /wd4251 /wd4275 /wd4793)
-endif()
-
-# Disable deprecation warnings for standard C and STL functions in VS2005
-# and later
-if (MSVC_VERSION EQUAL 1400 OR MSVC_VERSION GREATER 1400)
-  target_compile_definitions(IPhreeqc PUBLIC _CRT_SECURE_NO_DEPRECATE)
-  target_compile_definitions(IPhreeqc PUBLIC _SCL_SECURE_NO_WARNINGS)
-endif()
-
-if (WIN32 AND BUILD_SHARED_LIBS)
-  # Required to build IMPLIB
-  # (Seems to be automatically set when using Visual Studio as the generator)
-  target_compile_definitions(IPhreeqc PRIVATE _WINDLL)
-endif()
-
-# Allow user to override POSTFIX properties (but mandate them so that
-# all builds can be installed to the same directory)
-if (NOT CMAKE_DEBUG_POSTFIX)
-  set_target_properties(IPhreeqc PROPERTIES DEBUG_POSTFIX "d")
-endif()
-
-if (NOT CMAKE_MINSIZEREL_POSTFIX)
-  set_target_properties(IPhreeqc PROPERTIES MINSIZEREL_POSTFIX "msr")
-endif()
-
-if (NOT CMAKE_RELWITHDEBINFO_POSTFIX)
-  set_target_properties(IPhreeqc PROPERTIES RELWITHDEBINFO_POSTFIX "rwd")
-endif()
-
 set(IPhreeqc_Headers
   ${PROJECT_SOURCE_DIR}/src/IPhreeqc.h
   ${PROJECT_SOURCE_DIR}/src/IPhreeqc.hpp
@@ -321,156 +254,91 @@ else()
     )
 endif()
 
-# Setup references for /CLR
-if (MSVC AND BUILD_SHARED_LIBS AND BUILD_CLR_LIBS)
-  if (MSVC_VERSION LESS 1600)
-    message(FATAL_ERROR "CLR options must be set manually for versions prior to Visual Studio 2010")
-  endif()
-  set_target_properties(IPhreeqc PROPERTIES VS_DOTNET_REFERENCES "System;System.Drawing;System.Windows.Forms;${CMAKE_CURRENT_SOURCE_DIR}/src/phreeqcpp/ZedGraph.dll")
-  set_target_properties(IPhreeqc PROPERTIES COMMON_LANGUAGE_RUNTIME "")
-  target_compile_definitions(IPhreeqc PRIVATE "MULTICHART")
-endif()
-
 set_target_properties(IPhreeqc PROPERTIES
   VERSION "${IPhreeqc_VERSION}"
   SOVERSION "${IPhreeqc_VERSION_MAJOR}"
   )
 
 # install
-if (STANDALONE_BUILD)
+include(CMakePackageConfigHelpers)
 
-  include(CMakePackageConfigHelpers)
-
-  configure_package_config_file(IPhreeqcConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/IPhreeqcConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/IPhreeqc
-    )
-
-  write_basic_package_version_file("IPhreeqcConfigVersion.cmake"
-    VERSION ${IPhreeqc_VERSION}
-    COMPATIBILITY SameMajorVersion
-    )
-
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/IPhreeqcConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/IPhreeqcConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/IPhreeqc
-    )
-
-  install(TARGETS  IPhreeqc
-    EXPORT   IPhreeqcTargets
-    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
-  install(EXPORT IPhreeqcTargets
-    FILE IPhreeqcTargets.cmake
-    NAMESPACE IPhreeqc::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/IPhreeqc
-    )
-
-  install(FILES ${IPhreeqc_Headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-  if (WIN32)
-    install(FILES ${IPhreeqc_SRC} DESTINATION src)
-  else()
-    install(FILES ${IPhreeqc_SRC} DESTINATION ${CMAKE_INSTALL_DOCDIR}/src)
-  endif()
-  if (BUILD_CLR_LIBS)
-    install(FILES "${PROJECT_SOURCE_DIR}/src/phreeqcpp/ZedGraph.dll" DESTINATION ${CMAKE_INSTALL_BINDIR})
-  endif()
-endif()
-
-if (BUILD_CLR_LIBS)
-  if (NOT BUILD_SHARED_LIBS)
-    message(FATAL_ERROR "BUILD_CLR_LIBS requires that BUILD_SHARED_LIBS be set")
-  endif()
-
-  if (IPHREEQC_STATIC_RUNTIME)
-    message(FATAL_ERROR "BUILD_CLR_LIBS and IPHREEQC_STATIC_RUNTIME are mutually exclusive")
-  endif()
-
-  # CLR files
-  target_sources(IPhreeqc
-    PRIVATE
-      src/phreeqcpp/ChartHandler.cpp
-      src/phreeqcpp/ChartHandler.h
-      src/phreeqcpp/ChartObject.cpp
-      src/phreeqcpp/ChartObject.h
-      src/phreeqcpp/CurveObject.cpp
-      src/phreeqcpp/CurveObject.h
+configure_package_config_file(IPhreeqcConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/IPhreeqcConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/IPhreeqc
   )
 
+write_basic_package_version_file("IPhreeqcConfigVersion.cmake"
+  VERSION ${IPhreeqc_VERSION}
+  COMPATIBILITY SameMajorVersion
+  )
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/IPhreeqcConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/IPhreeqcConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/IPhreeqc
+  )
+
+install(TARGETS  IPhreeqc
+  EXPORT   IPhreeqcTargets
+  LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+install(EXPORT IPhreeqcTargets
+  FILE IPhreeqcTargets.cmake
+  NAMESPACE IPhreeqc::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/IPhreeqc
+  )
+
+install(FILES ${IPhreeqc_Headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if (WIN32)
+  install(FILES ${IPhreeqc_SRC} DESTINATION src)
+else()
+  install(FILES ${IPhreeqc_SRC} DESTINATION ${CMAKE_INSTALL_DOCDIR}/src)
 endif()
+if (BUILD_CLR_LIBS)
+  install(FILES "${PROJECT_SOURCE_DIR}/src/phreeqcpp/ZedGraph.dll" DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
+
 
 include (CTest)
 
-if (STANDALONE_BUILD)
+add_subdirectory(database)
+add_subdirectory(doc)
+add_subdirectory(examples)
 
-  add_subdirectory(database)
-  add_subdirectory(doc)
-  add_subdirectory(examples)
-
-  if (BUILD_TESTING)
-    add_subdirectory(tests)
-  endif()
+if (BUILD_TESTING)
+  add_subdirectory(tests)
+endif()
 
 
-  if (BUILD_TESTING)  # may need to add MSVC version check
-    include(FetchContent)
+if (BUILD_TESTING)  # may need to add MSVC version check
+  include(FetchContent)
 
-    # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
-      cmake_policy(SET CMP0135 NEW)
-    endif()    
+  # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+  if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+    cmake_policy(SET CMP0135 NEW)
+  endif()    
 
-    FetchContent_Declare( 
-      googletest 
-      GIT_REPOSITORY https://github.com/google/googletest.git
-      GIT_TAG v1.17.0
-    )
+  FetchContent_Declare( 
+    googletest 
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.17.0
+  )
 
-    mark_as_advanced(
-      FETCHCONTENT_BASE_DIR
-      FETCHCONTENT_FULLY_DISCONNECTED
-      FETCHCONTENT_QUIET
-      FETCHCONTENT_SOURCE_DIR_GOOGLETEST
-      FETCHCONTENT_UPDATES_DISCONNECTED
-      FETCHCONTENT_UPDATES_DISCONNECTED_GOOGLETEST
-      )
+  # Prevent GoogleTest from overriding our compiler/linker options
+  # when building with Visual Studio
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-    # Prevent GoogleTest from overriding our compiler/linker options
-    # when building with Visual Studio
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-    set(BUILD_GTEST ON CACHE BOOL "" FORCE)
-    set(BUILD_GMOCK ON CACHE BOOL "" FORCE)
-
-    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
-    set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
-
-    mark_as_advanced(
-      BUILD_GTEST
-      BUILD_GMOCK
-      INSTALL_GTEST
-      INSTALL_GMOCK
-      gmock_build_tests
-      gtest_build_tests
-      gtest_build_samples
-      gtest_disable_pthreads
-      gtest_force_shared_crt
-      gtest_hide_internal_symbols
-      )
-
+  FetchContent_MakeAvailable(googletest)
+  if (NOT googletest_POPULATED)
+    # Always build googletest static
+    set(SAVE_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+    set(BUILD_SHARED_LIBS OFF)
     FetchContent_MakeAvailable(googletest)
-    if (NOT googletest_POPULATED)
-      # Always build googletest static
-      set(SAVE_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-      set(BUILD_SHARED_LIBS OFF)
-      FetchContent_MakeAvailable(googletest)
-      set(BUILD_SHARED_LIBS ${SAVE_BUILD_SHARED_LIBS})
-    endif()
-
-    add_subdirectory(gtest)
+    set(BUILD_SHARED_LIBS ${SAVE_BUILD_SHARED_LIBS})
   endif()
+
+  add_subdirectory(gtest)
 endif()
 
 add_subdirectory(litephreeqc)

@@ -21,7 +21,7 @@ set(LPQC_SOURCE_FILES
     src/PhreeqcMatrix/Misc.cpp
 )
 
-add_library(litephreeqc ${LPQC_SOURCE_FILES})
+add_library(litephreeqc STATIC ${LPQC_SOURCE_FILES})
 target_link_libraries(litephreeqc PUBLIC IPhreeqc)
 target_include_directories(litephreeqc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
