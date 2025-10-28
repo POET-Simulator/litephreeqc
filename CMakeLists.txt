@@ -195,10 +195,10 @@ target_sources(IPhreeqc
 
 target_include_directories(IPhreeqc
   PUBLIC
-    $<BUILD_INTERFACE:${IPhreeqc_SOURCE_DIR}/src>
-    $<BUILD_INTERFACE:${IPhreeqc_SOURCE_DIR}/src/phreeqcpp>
-    $<BUILD_INTERFACE:${IPhreeqc_SOURCE_DIR}/src/phreeqcpp/common>
-    $<BUILD_INTERFACE:${IPhreeqc_SOURCE_DIR}/src/phreeqcpp/PhreeqcKeywords>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/phreeqcpp>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/phreeqcpp/common>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/phreeqcpp/PhreeqcKeywords>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   )
 
