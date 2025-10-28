@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project (
-  IPhreeqc
+  litephreeqc
   VERSION 3.8.5
   LANGUAGES CXX C
   )
@@ -24,6 +24,8 @@ if (STANDALONE_BUILD)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
       "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
   endif()
+if (WIN32) 
+    message(FATAL_ERROR "litephreeqc cannot be built on Windows systems.")
 endif()
 
 # overide docdir on windows

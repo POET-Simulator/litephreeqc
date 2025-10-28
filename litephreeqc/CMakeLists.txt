@@ -1,6 +1,3 @@
-if (WIN32) 
-    message(FATAL_ERROR "litephreeqc cannot be built on Windows systems.")
-endif()
 
 set(LPQC_SOURCE_FILES
     src/Engine.cpp
