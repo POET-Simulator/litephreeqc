@@ -229,17 +229,17 @@ LDBLE Phreeqc::setdiff_c(const char *species_name, double d, double d_v_d)
 LDBLE Phreeqc::calc_SC(void)
 /* ---------------------------------------------------------------------- */
 {
-  class species *s_ptr;
-  int i;
-  LDBLE ka, l_z, Dw, ff, sqrt_mu, a, a2, a3, av, v_Cl = 1;
-  SC = 0;
-  sqrt_mu = sqrt(mu_x);
-  bool Falk = false;
-  s_ptr = s_search("H+");
-  if (s_ptr == NULL)
-    return (0);
-  else if (s_ptr->dw_a3 > 24)
-    Falk = true;
+	class species *s_ptr;
+	int i;
+	LDBLE ka, l_z, Dw, ff, sqrt_mu, a, a2, a3, av, v_Cl = 1, Dw_SC;
+	SC = 0;
+	Dw_SC = 1e4 * F_C_MOL * F_C_MOL / (R_KJ_DEG_MOL * 298.15e3); // for recalculating Dw to ll0
+	sqrt_mu = sqrt(mu_x);
+	bool Falk = false;
+	s_ptr = s_search("H+");
+	if (s_ptr == NULL)
+		return(0);
+	else if (s_ptr->dw_a3 > 24) Falk = true;
 
   // LDBLE ta1, ta2, ta3, ta4;
   // for (i = 0; i < (int)this->s_x.size(); i++)
@@ -306,27 +306,28 @@ LDBLE Phreeqc::calc_SC(void)
         ff = av * exp(-a * DH_A * l_z * sqrt_mu / (1 + ka));
       }
 
-      Dw *= ff;
-      if (correct_Dw)
-        s_x[i]->dw_corr = Dw;
-      s_x[i]->dw_t_SC = s_x[i]->moles / mass_water_aq_x * l_z * l_z * Dw;
-      SC += s_x[i]->dw_t_SC;
-    }
-    SC *= 1e7 * F_C_MOL * F_C_MOL / (R_KJ_DEG_MOL * 298150.0);
-    return (SC);
-  } else {
-    /* the phreeqc equation from Appelo, 2017, CCR 101, 102 with viscosity
-      correction, e.g. for SO4-2 and its complexes: Dw      dw_t    a     a2
-      visc   -5< a3 <5 -dw 1.07e-9  236  0.7281  3.452  -0.1515  -3.043  #
-      obsolete or Debye-Onsager with (1 + ka)^2 in the denominator, for the
-      individual ions according to their contribution to mu, with sqrt charge
-      multiplier for B2 and a in ka corrected by volume (or mu^a2, if a3 = -10),
-      and * (viscos_0 / viscos)^av Dw      dw_t    a     a2      visc  a3 = (0)
-      or >5 -dw 1.03e-9  -14    4.03  0.8341  1.679    # Li+, ka = DH_B * a * (1
-      + (vm - v0))^a2 * mu^0.5
-     */
-    LDBLE q, sqrt_q, B1, B2, m_plus, m_min, eq_plus, eq_min, eq_dw_plus,
-        eq_dw_min, z_plus, z_min, t1, Dw_SC;
+			Dw *= ff;
+			if (correct_Dw)
+				s_x[i]->dw_corr = Dw;
+			s_x[i]->dw_t_SC = s_x[i]->moles / mass_water_aq_x * l_z * l_z * Dw;
+			s_x[i]->dw_t_SC *= 1e3 * Dw_SC;
+			SC += s_x[i]->dw_t_SC;
+		}
+		return (SC);
+	}
+	else
+	{
+		/* the phreeqc equation from Appelo, 2017, CCR 101, 102 with viscosity correction, e.g. for SO4-2 and its complexes:
+		         Dw      dw_t    a     a2     visc   -5< a3 <5
+			-dw 1.07e-9  236  0.7281  3.452  -0.1515  -3.043  # obsolete
+		  or
+		   Debye-Onsager with (1 + ka)^2 in the denominator,
+			 for the individual ions according to their contribution to mu, with sqrt charge multiplier for B2 and 
+			 a in ka corrected by volume (or mu^a2, if a3 = -10), and * (viscos_0 / viscos)^av 
+			      Dw      dw_t    a     a2      visc  a3 = (0) or >5
+			 -dw 1.03e-9  -14    4.03  0.8341  1.679    # Li+, ka = DH_B * a * (1 + (vm - v0))^a2 * mu^0.5
+		 */
+		LDBLE q, sqrt_q, B1, B2, m_plus, m_min, eq_plus, eq_min, eq_dw_plus, eq_dw_min, z_plus, z_min, t1;
 
     m_plus = m_min = eq_plus = eq_min = eq_dw_plus = eq_dw_min = z_plus =
         z_min = 0;
@@ -398,11 +399,9 @@ LDBLE Phreeqc::calc_SC(void)
     mu_min = 3 * m_min * (z_min - 1) + m_min;
     mu_plus = 3 * m_plus * (z_plus - 1) + m_plus;
 
-    Dw_SC = 1e4 * F_C_MOL * F_C_MOL /
-            (R_KJ_DEG_MOL * 298.15e3); // for recalculating Dw to ll0
-    t1 = calc_solution_volume();
-    ll_SC = 0.5e3 * (eq_plus + eq_min) / t1 * mass_water_aq_x /
-            t1; // recalculates ll to SC in uS/cm, with mu in mol/kgw
+		//Dw_SC = 1e4 * F_C_MOL * F_C_MOL / (R_KJ_DEG_MOL * 298.15e3); // for recalculating Dw to ll0
+		t1 = calc_solution_volume();
+		ll_SC = 0.5e3 * (eq_plus + eq_min) / t1 * mass_water_aq_x / t1; // recalculates ll to SC in uS/cm, with mu in mol/kgw
 
     for (i = 0; i < (int)this->s_x.size(); i++) {
       if (s_x[i]->type != AQ && s_x[i]->type != HPLUS)
@@ -429,47 +428,50 @@ LDBLE Phreeqc::calc_SC(void)
         ka = DH_B * a2 * sqrt_mu / (1 + a3);
         ff = av * exp(-a * DH_A * l_z * sqrt_mu / (1 + ka));
 
-        Dw *= ff;
-        if (correct_Dw)
-          s_x[i]->dw_corr = Dw;
-        s_x[i]->dw_t_SC = s_x[i]->moles / mass_water_aq_x * l_z * l_z * Dw;
-        SC += s_x[i]->dw_t_SC * 1e3 * Dw_SC;
-      } else {
-        // Falkenhagen...
-        if (!a3)
-          a3 = 10;
-        a = (s_x[i]->dw_a ? s_x[i]->dw_a : 3.5);
-        a2 = (s_x[i]->dw_a2);     // ? s_x[i]->dw_a2 : 0.5);
-        av = (s_x[i]->dw_a_visc); // ? s_x[i]->dw_a_visc : 0.8);
-        if (lz < -0.5 /* && lz > -1.5*/) {
-          // Mg and Ca give different numbers than H+, Li+, Na+ and K for
-          // anions...
-          t1 = (z_plus - 1);
-          // a -=  a3 / 1000 * l_z * t1;
-          // a2 += a3 / 1000 * l_z * t1;
-          a -= 0.126 * l_z * t1;
-          a2 += 0.126 * l_z * t1;
-          // av += 0 * t1;
-        }
-        Dw *= Dw_SC * l_z;
-        if (!a2)
-          t1 = 1;
-        else if (!strcmp(s_x[i]->name, "H+"))
-          t1 = pow(1 + mu_x, a2);
-        else {
-          v0 = calc_vm0(s_x[i]->name, tc_x, 1, 0);
-          t1 = 1 + (s_x[i]->rxn_x.logk[vm_tc] - v0);
-          if (a2 && t1 > 0)
-            t1 = pow(t1, a2);
-          // t1 = (t1 <= a3 / 10 ? a3 / 10 : t1);
-          t1 = (t1 < 1 ? 1 : t1);
-        }
-        if (a3 >= 5)
-          // with the vm correction of a in ka..
-          ka = DH_B * a * t1 * sqrt_mu;
-        else
-          // with a mu^dw_a2 correction of a..
-          ka = DH_B * a * pow((double)mu_x, a2);
+				Dw *= ff;
+				if (correct_Dw)
+					s_x[i]->dw_corr = Dw;
+				s_x[i]->dw_t_SC = s_x[i]->moles / mass_water_aq_x * l_z * l_z * Dw;
+				s_x[i]->dw_t_SC *= 1e3 * Dw_SC;
+				SC += s_x[i]->dw_t_SC;
+			}
+			else
+			{
+				// Falkenhagen...
+				if (!a3) a3 = 10;
+				a = (s_x[i]->dw_a ? s_x[i]->dw_a : 3.5);
+				a2 = (s_x[i]->dw_a2);// ? s_x[i]->dw_a2 : 0.5);
+				av = (s_x[i]->dw_a_visc);// ? s_x[i]->dw_a_visc : 0.8);
+				if (lz < -0.5/* && lz > -1.5*/)
+				{
+					// Mg and Ca give different numbers than H+, Li+, Na+ and K for anions...
+					t1 = (z_plus - 1);
+					//a -=  a3 / 1000 * l_z * t1;
+					//a2 += a3 / 1000 * l_z * t1;
+					a -=  0.126 * l_z * t1;
+					a2 += 0.126 * l_z * t1;
+					//av += 0 * t1;
+				}
+				Dw *= Dw_SC * l_z;
+				if (!a2)
+					t1 = 1;
+				else if (!strcmp(s_x[i]->name, "H+"))
+					t1 = pow(1 + mu_x, a2);
+				else
+				{
+					v0 = calc_vm0(s_x[i]->name, tc_x, 1, 0);
+					t1 = 1 + (s_x[i]->rxn_x.logk[vm_tc] - v0);
+					if (a2 && t1 > 0)
+						t1 = pow(t1, a2);
+					//t1 = (t1 <= a3 / 10 ? a3 / 10 : t1);
+					t1 = (t1 < 1 ? 1 : t1);
+				}
+				if (a3 >= 5)
+					// with the vm correction of a in ka..
+					ka = DH_B * a * t1 * sqrt_mu;
+				else
+					// with a mu^dw_a2 correction of a..
+					ka = DH_B * a * pow((double)mu_x, a2);
 
         t1 = (Dw - B2 * l_z * sqrt_mu / (1 + ka)) *
              (1 - B1 * sqrt_mu /
@@ -484,17 +486,17 @@ LDBLE Phreeqc::calc_SC(void)
           s_x[i]->dw_corr *=
               t1 / Dw * pow(mass_water_aq_x / calc_solution_volume(), 2);
 
-        // fractional contribution in mu, and correct for charge imbalance
-        a2 = 2 / (eq_plus + eq_min);
-        a = (lz > 0 ? mu_plus / (eq_plus * a2) : mu_min / (eq_min * a2));
-        t1 *= s_x[i]->moles * l_z * l_z / a;
-        t1 *= ll_SC;
-        s_x[i]->dw_t_SC = t1 / (1e3 * Dw_SC);
-        SC += t1;
-      }
-    }
-    return SC;
-  }
+				// fractional contribution in mu, and correct for charge imbalance
+				a2 = 2 / (eq_plus + eq_min);
+				a = (lz > 0 ? mu_plus / (eq_plus * a2) : mu_min / (eq_min * a2));
+				t1 *= s_x[i]->moles * l_z * l_z / a;
+				t1 *= ll_SC;
+				s_x[i]->dw_t_SC = t1;
+				SC += t1;
+			}
+		}
+ 		return SC;
+	}
 }
 
 /* VP: Density Start */
@@ -1120,19 +1122,18 @@ LDBLE Phreeqc::calc_t_sc(const char *name)
   char token[MAX_LENGTH];
   class species *s_ptr;
 
-  Utilities::strcpy_safe(token, MAX_LENGTH, name);
-  s_ptr = s_search(token);
-  if (s_ptr != NULL && s_ptr->in) {
-    if (!s_ptr->z)
-      return (0);
-    calc_SC();
-    if (!SC)
-      return (0);
-    LDBLE t =
-        s_ptr->dw_t_SC * 1e7 * F_C_MOL * F_C_MOL / (R_KJ_DEG_MOL * 298150.0);
-    return (t / SC);
-  }
-  return (0);
+	Utilities::strcpy_safe(token, MAX_LENGTH, name);
+	s_ptr = s_search(token);
+	if (s_ptr != NULL && s_ptr->in)
+	{
+		if (!s_ptr->z)
+			return (0);
+		calc_SC();
+		if (!SC)
+			return (0);
+		return s_ptr->dw_t_SC / SC;
+	}
+	return (0);
 }
 
 /* ---------------------------------------------------------------------- */

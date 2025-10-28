@@ -226,6 +226,9 @@ if (NOT IPHREEQC_ENABLE_MODULE)
   )
 endif()
 
+# c++14
+target_compile_features(IPhreeqc PUBLIC cxx_std_14)
+
 set(IPhreeqc_Headers
   ${PROJECT_SOURCE_DIR}/src/IPhreeqc.h
   ${PROJECT_SOURCE_DIR}/src/IPhreeqc.hpp

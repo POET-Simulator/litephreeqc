@@ -1,0 +1,30 @@
+[
+  {
+    "prefix": "src",
+    "repo": "usgs-coupled-subtrees/iphreeqc-src"
+  },
+  {
+    "prefix": "examples/c",
+    "repo": "usgs-coupled-subtrees/phreeqc-commanuscript-cgfinal-examples-c"
+  },
+  {
+    "prefix": "examples/com",
+    "repo": "usgs-coupled-subtrees/phreeqc-commanuscript-cgfinal-examples-com"
+  },
+  {
+    "prefix": "examples/fortran",
+    "repo": "usgs-coupled-subtrees/phreeqc-COMManuscript-CGfinal-examples-fortran"
+  },
+  {
+    "prefix": "database",
+    "repo": "usgs-coupled-subtrees/phreeqc3-database"
+  },
+  {
+    "prefix": "phreeqc3-doc",
+    "repo": "usgs-coupled-subtrees/phreeqc3-doc"
+  },
+  {
+    "prefix": "phreeqc3-examples",
+    "repo": "usgs-coupled-subtrees/phreeqc3-examples"
+  }
+]

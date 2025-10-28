@@ -141,14 +141,136 @@ cxxSolution::cxxSolution(std::map<int, cxxSolution> &solutions, cxxMix &mix,
 }
 cxxSolution::~cxxSolution() { delete this->initial_data; }
 
-void cxxSolution::dump_xml(std::ostream &s_oss, unsigned int indent) const {
-  unsigned int i;
-  s_oss.precision(DBL_DIG - 1);
-  std::string indent0(""), indent1("");
-  for (i = 0; i < indent; ++i)
-    indent0.append(Utilities::INDENT);
-  for (i = 0; i < indent + 1; ++i)
-    indent1.append(Utilities::INDENT);
+cxxSolution::cxxSolution(PHRQ_io * io)
+	//
+	// default constructor for cxxSolution 
+	//
+:	cxxNumKeyword(io)
+{
+	this->io = io;
+	this->new_def = false;
+	this->patm = 1.0;
+	this->potV = 0.0;
+	this->tc = 25.0;
+	this->ph = 7.0;
+	this->pe = 4.0;
+	this->mu = 1e-7;
+	this->ah2o = 1.0;
+	this->total_h = 111.1;
+	this->total_o = 55.55;
+	this->cb = 0.0;
+	this->density = 1.0;
+	this->viscosity = 1.0;
+	this->viscos_0 = 1.0;
+	this->mass_water = 1.0;
+	this->soln_vol = 1.0;
+	this->total_alkalinity = 0.0;
+	this->totals.type = cxxNameDouble::ND_ELT_MOLES;
+	this->master_activity.type = cxxNameDouble::ND_SPECIES_LA;
+	this->species_gamma.type = cxxNameDouble::ND_SPECIES_GAMMA;
+	this->initial_data = NULL;
+}
+cxxSolution::cxxSolution(const cxxSolution &old_sol)
+:	initial_data(NULL)
+{
+	*this = old_sol;
+}
+const cxxSolution &
+cxxSolution::operator =(const cxxSolution &rhs)
+{
+	if (this != &rhs)
+	{
+		this->io                         = rhs.io;
+		this->n_user                     = rhs.n_user;
+		this->n_user_end                 = rhs.n_user_end;
+		this->description                = rhs.description;
+		this->new_def                    = rhs.new_def;
+		this->patm                       = rhs.patm;
+		this->potV                       = rhs.potV;
+		this->tc                         = rhs.tc;
+		this->ph                         = rhs.ph;
+		this->pe                         = rhs.pe;
+		this->mu                         = rhs.mu;
+		this->ah2o                       = rhs.ah2o;
+		this->total_h                    = rhs.total_h;
+		this->total_o                    = rhs.total_o;
+		this->density                    = rhs.density;
+		this->viscosity                  = rhs.viscosity;
+		this->viscos_0                   = rhs.viscos_0;
+		this->cb                         = rhs.cb;
+		this->mass_water                 = rhs.mass_water;
+		this->soln_vol                   = rhs.soln_vol;
+		this->total_alkalinity           = rhs.total_alkalinity;
+		this->totals		             = rhs.totals;
+		this->master_activity            = rhs.master_activity;
+		this->species_gamma              = rhs.species_gamma;
+		this->isotopes                   = rhs.isotopes;
+		this->species_map                = rhs.species_map;
+		this->log_gamma_map              = rhs.log_gamma_map;
+		this->log_molalities_map         = rhs.log_molalities_map;
+		if (this->initial_data)
+			delete initial_data;
+		if (rhs.initial_data != NULL)
+			this->initial_data           = new cxxISolution(*rhs.initial_data);
+		else
+			this->initial_data           = NULL;
+	}
+	return *this;
+}
+cxxSolution::cxxSolution(std::map < int, cxxSolution > &solutions,
+						 cxxMix & mix, int l_n_user, PHRQ_io * io)
+//
+// constructor for cxxSolution from mixture of solutions
+//
+: cxxNumKeyword(io)
+{
+//
+//   Zero out solution data
+//
+	this->zero();
+	this->n_user = this->n_user_end = l_n_user;
+	this->new_def = false;
+	this->ah2o = 0;
+	// potV is an external variable, imposed in a given solution, not mixed.
+	std::map < int, cxxSolution >::const_iterator sol = solutions.find(mix.Get_n_user());
+	const cxxSolution *cxxsoln_ptr1;
+	if (sol != solutions.end())
+	{
+		cxxsoln_ptr1 = &(sol->second);
+		if (cxxsoln_ptr1->new_def)
+			this->potV = 0.0;
+		else
+			this->potV = cxxsoln_ptr1->potV;
+	}
+	//
+	// Sort to enable positive mixes first
+	const std::map < int, LDBLE >& mixcomps = mix.Get_mixComps();
+	std::set<std::pair<LDBLE, int> >s;
+	for (std::map < int, LDBLE >::const_iterator it = mixcomps.begin();
+		it != mixcomps.end(); it++)
+	{
+		std::pair<LDBLE, int> p(it->second, it->first);
+		s.insert(p); 
+	}
+//
+//   Mix solutions
+//
+	std::set < std::pair< LDBLE, int > >::const_reverse_iterator rit = s.rbegin();
+	for (rit = s.rbegin(); rit != s.rend(); rit++)
+	{
+		sol = solutions.find(rit->second);
+		if (sol == solutions.end())
+		{
+			std::ostringstream msg;
+			msg << "Solution " << rit->second << " not found in mix_cxxSolutions.";
+			error_msg(msg.str(), CONTINUE);
+		}
+		else
+		{
+			cxxsoln_ptr1 = &(sol->second);
+			this->add(*cxxsoln_ptr1, rit->first);
+		}
+	}
 
   // Solution element and attributes
   s_oss << indent0;
@@ -1253,66 +1375,89 @@ void cxxSolution::add(const cxxSolution &addee, LDBLE extensive)
 // Add existing solution to "this" solution
 //
 {
-  if (extensive == 0.0)
-    return;
-  LDBLE ext1 = this->mass_water;
-  LDBLE ext2 = addee.mass_water * extensive;
-  LDBLE f1 = ext1 / (ext1 + ext2);
-  LDBLE f2 = ext2 / (ext1 + ext2);
-  this->tc = f1 * this->tc + f2 * addee.tc;
-  this->ph = f1 * this->ph + f2 * addee.ph;
-  this->pe = f1 * this->pe + f2 * addee.pe;
-  this->mu = f1 * this->mu + f2 * addee.mu;
-  this->ah2o = f1 * this->ah2o + f2 * addee.ah2o;
-  this->total_h += addee.total_h * extensive;
-  this->total_o += addee.total_o * extensive;
-  this->cb += addee.cb * extensive;
-  this->density = f1 * this->density + f2 * addee.density;
-  this->viscosity = f1 * this->viscosity + f2 * addee.viscosity;
-  this->viscos_0 = f1 * this->viscos_0 + f2 * addee.viscos_0;
-  this->patm = f1 * this->patm + f2 * addee.patm;
-  // this->potV = f1 * this->potV + f2 * addee.potV; // appt
-  this->mass_water += addee.mass_water * extensive;
-  this->soln_vol += addee.soln_vol * extensive;
-  this->total_alkalinity += addee.total_alkalinity * extensive;
-  this->totals.add_extensive(addee.totals, extensive);
-  this->master_activity.add_log_activities(addee.master_activity, f1, f2);
-  this->species_gamma.add_intensive(addee.species_gamma, f1, f2);
-  this->Add_isotopes(addee.isotopes, f2, extensive);
-  {
-    // Add species
-    std::map<int, double>::const_iterator it = addee.species_map.begin();
-    for (; it != addee.species_map.end(); it++) {
-      if (this->species_map.find(it->first) != this->species_map.end()) {
-        this->species_map[it->first] =
-            this->species_map[it->first] * f1 + it->second * f2;
-      } else {
-        this->species_map[it->first] = it->second;
-      }
-    }
-    // Add gammas
-    std::map<int, double>::const_iterator git = addee.log_gamma_map.begin();
-    for (; git != addee.log_gamma_map.end(); git++) {
-      if (this->log_gamma_map.find(git->first) != this->log_gamma_map.end()) {
-        this->log_gamma_map[git->first] =
-            this->log_gamma_map[git->first] * f1 + git->second * f2;
-      } else {
-        this->log_gamma_map[git->first] = git->second;
-      }
-    }
-    // Add molalities
-    std::map<int, double>::const_iterator mit =
-        addee.log_molalities_map.begin();
-    for (; mit != addee.log_molalities_map.end(); mit++) {
-      if (this->log_molalities_map.find(mit->first) !=
-          this->log_molalities_map.end()) {
-        this->log_molalities_map[mit->first] =
-            this->log_molalities_map[mit->first] * f1 + mit->second * f2;
-      } else {
-        this->log_molalities_map[mit->first] = mit->second;
-      }
-    }
-  }
+	if (extensive == 0.0)
+		return;
+	LDBLE ext1 = this->mass_water;
+	LDBLE ext2 = addee.mass_water * extensive;
+	this->mass_water += addee.mass_water * extensive;
+	if (this->mass_water <= 0.0)
+	{
+		std::ostringstream msg;
+		msg << "Negative mass of water when mixing solutions.";
+		error_msg(msg.str(), STOP);
+	}
+	LDBLE fconc = 0.0, f1 = 0.0, f2 = 0.0;
+	if (extensive > 0.0)
+	{
+
+		f1 = ext1 / (ext1 + ext2);
+		f2 = ext2 / (ext1 + ext2);
+	}
+	else
+	{
+		f1 = 1.0;
+		f2 = 0.0;
+	}
+	this->tc = f1 * this->tc + f2 * addee.tc;
+	this->ph = f1 * this->ph + f2 * addee.ph;
+	this->pe = f1 * this->pe + f2 * addee.pe;
+	this->mu = f1 * this->mu + f2 * addee.mu;
+	this->ah2o = f1 * this->ah2o + f2 * addee.ah2o;
+	this->total_h += addee.total_h * extensive;
+	this->total_o += addee.total_o * extensive;
+	this->cb += addee.cb * extensive;
+	this->density = f1 * this->density + f2 * addee.density;
+	this->viscosity = f1 * this->viscosity + f2 * addee.viscosity;
+	this->viscos_0 = f1 * this->viscos_0 + f2 * addee.viscos_0;
+	this->patm = f1 * this->patm + f2 * addee.patm;
+	// this->potV = f1 * this->potV + f2 * addee.potV; // appt
+	this->soln_vol += addee.soln_vol * extensive;
+	this->total_alkalinity += addee.total_alkalinity * extensive;
+	this->totals.add_extensive(addee.totals, extensive);
+	this->master_activity.add_log_activities(addee.master_activity, f1, f2);
+	this->species_gamma.add_intensive(addee.species_gamma, f1, f2);
+	this->Add_isotopes(addee.isotopes, f2, extensive);
+	{
+		// Add species
+		std::map<int, double>::const_iterator it = addee.species_map.begin();
+		for ( ; it != addee.species_map.end(); it++)
+		{
+			if (this->species_map.find(it->first) != this->species_map.end())
+			{
+				this->species_map[it->first] = this->species_map[it->first] * f1 + it->second * f2;
+			}
+			else
+			{
+				this->species_map[it->first] = it->second;
+			}
+		}
+		// Add gammas
+		std::map<int, double>::const_iterator git = addee.log_gamma_map.begin();
+		for ( ; git != addee.log_gamma_map.end(); git++)
+		{
+			if (this->log_gamma_map.find(git->first) != this->log_gamma_map.end())
+			{
+				this->log_gamma_map[git->first] = this->log_gamma_map[git->first] * f1 + git->second * f2;
+			}
+			else
+			{
+				this->log_gamma_map[git->first] = git->second;
+			}
+		}
+		// Add molalities
+		std::map<int, double>::const_iterator mit = addee.log_molalities_map.begin();
+		for (; mit != addee.log_molalities_map.end(); mit++)
+		{
+			if (this->log_molalities_map.find(mit->first) != this->log_molalities_map.end())
+			{
+				this->log_molalities_map[mit->first] = this->log_molalities_map[mit->first] * f1 + mit->second * f2;
+			}
+			else
+			{
+				this->log_molalities_map[mit->first] = mit->second;
+			}
+		}
+	}
 }
 
 void cxxSolution::multiply(LDBLE extensive)
