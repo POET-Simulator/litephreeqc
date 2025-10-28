@@ -302,9 +302,9 @@ endif()
 
 include (CTest)
 
-add_subdirectory(database)
-add_subdirectory(doc)
-add_subdirectory(examples)
+# add_subdirectory(database)
+# add_subdirectory(doc)
+# add_subdirectory(examples)
 
 if (BUILD_TESTING)
   add_subdirectory(tests)
