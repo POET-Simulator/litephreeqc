@@ -6,6 +6,7 @@ before_script:
 
 stages:
     - test
+    - release
 
 test:
     stage: test
@@ -20,3 +21,20 @@ test:
             - _build/test_results.xml
         reports:
             junit: _build/test_results.xml
+
+push:
+  stage: release
+  variables:
+    GITHUB_REPOSITORY: 'git@github.com:POET-Simulator/litephreeqc.git'
+    ORIGINAL_REPO_URL: 'https://git.gfz-potsdam.de/naaice/iphreeqc.git'
+    ORIGINAL_REPO_NAME: 'iphreeqc'
+  before_script:
+    - apt-get update -y && apt-get install -y git openssh-client
+    # I know that there is this file env variable in gitlab, but somehow it does not work for me (still complaining about white spaces ...)
+    # Therefore, the ssh key is stored as a base64 encoded string
+    - mkdir -p ~/.ssh && echo $GITHUB_SSH_PRIVATE_KEY | base64 -d > ~/.ssh/id_ed25519 && chmod 0600 ~/.ssh/id_ed25519
+    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+  script:
+    - rm -rf $ORIGINAL_REPO_NAME.git
+    - git clone --mirror $ORIGINAL_REPO_URL "$ORIGINAL_REPO_NAME.git" && cd $ORIGINAL_REPO_NAME.git
+    - git push --mirror $GITHUB_REPOSITORY
