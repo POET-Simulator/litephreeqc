@@ -25,7 +25,7 @@ test:
 push:
   stage: release
   variables:
-    GITHUB_REPOSITORY: 'git@github.com:POET-Simulator/iphreeqc.git'
+    GITHUB_REPOSITORY: 'git@github.com:POET-Simulator/litephreeqc.git'
     ORIGINAL_REPO_URL: 'https://git.gfz-potsdam.de/naaice/iphreeqc.git'
     ORIGINAL_REPO_NAME: 'iphreeqc'
   before_script:
