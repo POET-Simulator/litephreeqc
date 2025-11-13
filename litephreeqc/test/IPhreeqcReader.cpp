@@ -79,6 +79,12 @@ double IPhreeqcReader::operator[](const std::string &name) const {
       // if it ends with '_si', we need to find '-si'
       pos = _m_raw_output.find("-si", pos);
     }
+  } else if (name == "MassH2O") {
+    pos = _m_raw_output.find("mass_water");
+
+    if (pos == std::string::npos) {
+      throw std::runtime_error("Name not found in output: " + name);
+    }
   } else {
     // if not, we first need to find '-totals'
     pos = _m_raw_output.find("-totals");

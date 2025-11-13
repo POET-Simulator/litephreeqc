@@ -39,7 +39,7 @@ POET_TEST(PhreeqcMatrixOneSolution) {
 
   PhreeqcMatrix::STLExport exported_init = pqc_mat.get();
   // ID + H,O,Charge + 6 Solutions + 4 Equil incl. params
-  EXPECT_EQ(exported_init.names.size(), 19);
+  EXPECT_EQ(exported_init.names.size(), 20);
 
   IPhreeqcReader pqc_compare(base_db, base_test::script);
   pqc_compare.setOutputID(1);
@@ -102,7 +102,7 @@ POET_TEST(PhreeqcMatrixMultiSolution) {
   pqc_compare.setOutputID(1);
 
   for (std::size_t i = 1; i < exported.names.size(); i++) {
-    if (i > 13 && i < 18) {
+    if (i > 14 && i < 19) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }
@@ -159,7 +159,7 @@ POET_TEST(PhreeqcMatrixCtor) {
   pqc_compare.setOutputID(1);
 
   for (std::size_t i = 1; i < exported.names.size(); i++) {
-    if (i > 13 && i < 18) {
+    if (i > 14 && i < 19) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }
@@ -190,7 +190,7 @@ POET_TEST(PhreeqcMatrixOperator) {
   pqc_compare.setOutputID(1);
 
   for (std::size_t i = 1; i < exported.names.size(); i++) {
-    if (i > 13 && i < 18) {
+    if (i > 14 && i < 19) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
       continue;
     }
@@ -255,8 +255,8 @@ POET_TEST(PhreeqcMatrixWithoutRedoxAndH0O0) {
   PhreeqcMatrix pqc_mat(barite_db, barite_script, false, false);
 
   const std::vector<std::string> expected_names_without_redox = {
-      "H",  "O",  "Charge", "tc", "patm", "SolVol",
-      "pH", "pe", "Ba",     "Cl", "S",    "Sr",
+      "H",  "O",       "Charge", "tc", "patm", "SolVol", "pH",
+      "pe", "MassH2O", "Ba",     "Cl", "S",    "Sr",
   };
 
   EXPECT_EQ(expected_names_without_redox, pqc_mat.getSolutionNames());
