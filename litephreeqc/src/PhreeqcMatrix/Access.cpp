@@ -304,7 +304,7 @@ std::vector<std::string> PhreeqcMatrix::getMatrixTransported() const {
     std::vector<std::string> names;
     
     const std::vector<std::string> to_remove = {
-	"tc", "patm", "SolVol", "pH", "pe"
+	"tc", "patm", "SolVol", "pH", "pe", "MassH2O"
     };
 
     // sols contains all solutes; we must remove { tc, patm, SolVol, pH, pe }
@@ -322,7 +322,7 @@ std::vector<std::string> PhreeqcMatrix::getMatrixTransported() const {
 std::vector<std::string> PhreeqcMatrix::getMatrixOutOnly() const {
     // MDL we must append here selected_output / user_punch
     std::vector<std::string> defaultnames = {
-	"tc", "patm", "SolVol", "pH", "pe"
+	"tc", "patm", "SolVol", "pH", "pe", "MassH2O"
     };
     std::vector<std::string> ret;
     for (auto nm : defaultnames) {

@@ -41,7 +41,7 @@ endif()
 # compile Var.c as c++
 set_source_files_properties(src/Var.c PROPERTIES LANGUAGE CXX)
 
-add_library(IPhreeqc STATIC src/IPhreeqc.cpp)
+add_library(IPhreeqc src/IPhreeqc.cpp)
 
 target_sources(IPhreeqc
   PRIVATE
