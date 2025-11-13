@@ -31,7 +31,7 @@ target_include_directories(litephreeqc PUBLIC
 # Set C++20 standard
 target_compile_features(litephreeqc PUBLIC cxx_std_20)
 
-if (BUILD_TESTING AND STANDALONE_BUILD)
+if (BUILD_TESTING)
     enable_testing()
 
     set(LPQC_TEST_SOURCE_FILES
