@@ -15,7 +15,7 @@
 #include <set>
 
 const std::set<std::string> to_ignore = {
-    "H", "O", "Charge", "tc", "patm", "SolVol", "pH", "pe", "H(0)", "O(0)"};
+    "H", "O", "Charge", "tc", "patm", "SolVol", "pH", "pe", "MassH2O", "H(0)", "O(0)"};
 
 std::vector<std::string> Phreeqc::find_all_valence_states(
     const std::vector<std::string> &solution_names) {
