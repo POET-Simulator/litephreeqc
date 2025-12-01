@@ -145,9 +145,9 @@ void PhreeqcEngine::Impl::run(double time_step) {
   this->RunString(runs_string.c_str());
 
   if (this->GetErrorStringLineCount() > 0) {
-    std::cerr << ":: Error in Phreeqc script: " << this->GetErrorString()
+    std::cerr << ":: PhreeqcEngine::Impl::run: Error in Phreeqc script: " << this->GetErrorString()
               << "\n";
-    throw std::runtime_error("Phreeqc script error");
+    throw std::runtime_error(":: PhreeqcEngine::Impl::run: Phreeqc script error");
   }
 }
 
