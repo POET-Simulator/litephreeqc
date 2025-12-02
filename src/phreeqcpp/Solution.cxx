@@ -1083,7 +1083,7 @@ void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc,
   this->total_h = h_tot;
   this->total_o = o_tot;
   this->cb = charge;
-  this->mass_water = massh2o; // o_tot / 55.55; MDL
+  this->mass_water = massh2o; // o_tot / 55.55; // MDL
 
   // this->density = 1.0;
   // this->viscosity = 1.0;
@@ -1108,6 +1108,7 @@ void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc,
   //   }
   // }
 }
+
 void cxxSolution::Update_activities(const cxxNameDouble &original_tot) {
   // Totals and activities of solution are updated
   // nd does not have H, O, charge
@@ -1166,6 +1167,7 @@ void cxxSolution::Update_activities(const cxxNameDouble &original_tot) {
     }
   }
 }
+
 void cxxSolution::Update(const cxxNameDouble &const_nd) {
   // const_nd is a list of new totals, assumed to be inclusive of all elements
   // Totals and activities of solution are updated
@@ -1233,19 +1235,20 @@ void cxxSolution::Update(const cxxNameDouble &const_nd) {
   // update totals
   this->totals = simple_new;
 }
+
 void cxxSolution::zero() {
   this->tc = 0.0;
   this->ph = 0.0;
   this->pe = 0.0;
   this->mu = 0.0;
-  this->ah2o = 0.0;
+  this->ah2o = 1.0;
   this->total_h = 0.0;
   this->total_o = 0.0;
   this->cb = 0.0;
   this->density = 1.0;
   this->viscosity = 1.0;
   this->viscos_0 = 1.0;
-  this->mass_water = 0.0;
+  this->mass_water = 1.0;
   this->soln_vol = 0.0;
   this->total_alkalinity = 0.0;
   this->totals.type = cxxNameDouble::ND_ELT_MOLES;
