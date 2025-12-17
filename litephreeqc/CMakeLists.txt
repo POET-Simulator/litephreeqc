@@ -61,10 +61,10 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
 
     include(GoogleTest)
     gtest_discover_tests(litephreeqc_test)
+
+    add_executable(golemrunner test/testGolemRunner.cpp)
+    target_link_libraries(golemrunner litephreeqc)
+
+    add_executable(testGetters     test/testGetters.cpp)
+    target_link_libraries(testGetters litephreeqc)
 endif()
-
-add_executable(golemrunner test/testGolemRunner.cpp)
-target_link_libraries(golemrunner litephreeqc)
-
-add_executable(testGetters     test/testGetters.cpp)
-target_link_libraries(testGetters litephreeqc)
