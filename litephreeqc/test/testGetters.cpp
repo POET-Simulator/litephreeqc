@@ -1,4 +1,4 @@
-//  Time-stamp: "Last modified 2025-07-28 20:14:08 delucia"
+//  Time-stamp: "Last modified 2026-01-23 13:56:47 delucia"
 #include <iostream>
 #include <iomanip>
 #include <linux/limits.h>
@@ -92,6 +92,10 @@ int main(int argc, char *argv[]) {
     auto MatNamesEqui = pqc_mat1.getMatrixEquilibrium(); 
     std::cout << ":: pqc_mat1.getMatrixEquilibrium(): \n";
     std::cout << MatNamesEqui << "\n\n";
+
+    auto MatNamesAllMin = pqc_mat1.getMatrixMinerals(); 
+    std::cout << ":: pqc_mat1.getMatrixMinerals(): \n";
+    std::cout << MatNamesAllMin << "\n\n";
 
     auto outonly = pqc_mat1.getMatrixOutOnly(); 
     std::cout << ":: pqc_mat1.getMatrixOutOnly(): \n";

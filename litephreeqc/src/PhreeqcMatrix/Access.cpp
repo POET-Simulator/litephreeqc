@@ -300,6 +300,26 @@ std::vector<std::string> PhreeqcMatrix::getMatrixEquilibrium() const {
 }
 
 // MDL
+std::vector<std::string> PhreeqcMatrix::getMatrixMinerals() const {
+
+    std::vector<std::string> nam_eq  = this->getMatrixEquilibrium();
+    std::vector<std::string> nam_kin = this->getMatrixKinetics();
+    std::vector<std::string> all;
+    for (auto name : nam_eq){
+	if (name.ends_with("_eq")) {
+	    all.push_back(name);
+	}
+    }
+    for (auto name : nam_kin){
+	if (name.ends_with("_kin")) {
+	    all.push_back(name);
+	}
+    }
+    
+    return all;
+}
+
+// MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixTransported() const {
     std::vector<std::string> names;
     
@@ -317,6 +337,7 @@ std::vector<std::string> PhreeqcMatrix::getMatrixTransported() const {
     
     return names;
 }
+
 
 // MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixOutOnly() const {

@@ -348,13 +348,18 @@ public:
    std::vector<std::string> getMatrixEquilibrium() const;
 
       
-   /*
+   /**
+   @brief Returns all mineral names (with suffix)
    
+   @return std::vector<std::string> vector of names
+   */
+   std::vector<std::string> getMatrixMinerals() const;
+
+   /**
    @brief Returns all column names of the Matrix pertaining to
    quantities that must be transported
    
    @return std::vector<std::string> vector of names
-
    */
    std::vector<std::string> getMatrixTransported() const;
 
