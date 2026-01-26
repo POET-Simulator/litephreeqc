@@ -37,6 +37,8 @@ void SolutionWrapper::get(std::span<LDBLE> &data) const {
   data[6] = solution->Get_ph();
   data[7] = solution->Get_pe();
   data[8] = solution->Get_mass_water();
+  data[9] = solution->Get_viscosity();
+  data[10] = solution->Get_density();
 
   const cxxNameDouble &totals =
       (_with_redox ? solution->Get_totals()
@@ -63,6 +65,9 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
   const double &tc = data[3];
   const double &patm = data[4];
   const double &massh2o = data[5];
+  // MDL: 20260126 Adding density and viscosity
+  const double &viscosity = data[6];
+  const double &density = data[7];
 
   for (const auto &tot_name : solution_order) {
     const double value = data[i++];
@@ -73,7 +78,7 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
     new_totals[tot_name] = value;
   }
 
-  this->solution->Update(total_h, total_o, cb, tc, patm, massh2o,
+  this->solution->Update(total_h, total_o, cb, tc, patm, massh2o, viscosity, density,
                          _with_redox ? new_totals
                                      : new_totals.Simplify_redox());
 }

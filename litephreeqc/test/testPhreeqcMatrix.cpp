@@ -256,7 +256,7 @@ POET_TEST(PhreeqcMatrixWithoutRedoxAndH0O0) {
 
   const std::vector<std::string> expected_names_without_redox = {
       "H",  "O",       "Charge", "tc", "patm", "SolVol", "pH",
-      "pe", "MassH2O", "Ba",     "Cl", "S",    "Sr",
+      "pe", "MassH2O", "Viscosity", "Density", "Ba",     "Cl", "S",    "Sr",
   };
 
   EXPECT_EQ(expected_names_without_redox, pqc_mat.getSolutionNames());
