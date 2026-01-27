@@ -31,17 +31,20 @@
 #include <utility>
 #include <vector>
 
-bool include_h0_o0 = false;
-bool with_redox = false;
+static bool s_include_h0_o0 = false;
+static bool s_with_redox = false;
+static PhreeqcMatrix::OptionalEssentials s_optional_essentials =
+    PhreeqcMatrix::OptionalEssentials::All;
 
 static std::vector<std::string> dump_solution_names(cxxSolution *solution,
                                                     Phreeqc *phreeqc) {
   std::vector<std::string> placeholder;
 
-  std::vector<std::string> solnames =
-      SolutionWrapper::names(solution, include_h0_o0, placeholder, with_redox);
+  std::vector<std::string> solnames = SolutionWrapper::names(
+      solution, s_include_h0_o0, placeholder, s_with_redox,
+      s_optional_essentials);
 
-  if (with_redox) {
+  if (s_with_redox) {
     solnames = phreeqc->find_all_valence_states(solnames);
   }
 
@@ -144,7 +147,7 @@ create_vector_from_phreeqc(Phreeqc *phreeqc, int id,
   // Solution
   SolutionWrapper sol_wrapper(
       Utilities::Rxn_find(phreeqc->Get_Rxn_solution_map(), id), solution_names,
-      with_redox);
+      s_with_redox, s_optional_essentials);
 
   base_add_to_element_vector<PhreeqcMatrix::PhreeqcComponent::SOLUTION>(
       sol_wrapper, solution_names, elements);
@@ -228,8 +231,9 @@ void PhreeqcMatrix::initialize() {
     this->_m_pqc->RunString("RUN_CELLS\n-cells 1\nEND");
   }
 
-  include_h0_o0 = this->_m_with_h0_o0;
-  with_redox = this->_m_with_redox;
+  s_include_h0_o0 = this->_m_with_h0_o0;
+  s_with_redox = this->_m_with_redox;
+  s_optional_essentials = this->_m_optional_essentials;
 
   std::vector<std::string> solutions = find_all_solutions(phreeqc);
 

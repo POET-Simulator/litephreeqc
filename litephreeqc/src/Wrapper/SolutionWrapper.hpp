@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "PhreeqcMatrix.hpp"
 #include "Solution.h"
 #include "WrapperBase.hpp"
 #include <array>
@@ -24,15 +25,19 @@ class SolutionWrapper : public WrapperBase {
 public:
   SolutionWrapper(cxxSolution *soln,
                   const std::vector<std::string> &solution_order,
-                  bool with_redox);
+                  bool with_redox,
+                  PhreeqcMatrix::OptionalEssentials optional_essentials =
+                      PhreeqcMatrix::OptionalEssentials::All);
 
-  void get(std::span<LDBLE> &data) const;
+  void get(std::span<LDBLE> &data) const override;
 
-  void set(const std::span<LDBLE> &data);
+  void set(const std::span<LDBLE> &data) override;
 
   static std::vector<std::string>
   names(cxxSolution *solution, bool include_h0_o0,
-        std::vector<std::string> &solution_order, bool with_redox);
+        std::vector<std::string> &solution_order, bool with_redox,
+        PhreeqcMatrix::OptionalEssentials optional_essentials =
+            PhreeqcMatrix::OptionalEssentials::All);
 
   std::vector<std::string> getEssentials() const;
 
@@ -40,12 +45,30 @@ private:
   cxxSolution *solution;
   const std::vector<std::string> solution_order;
 
-  static constexpr std::array<const char *, 11> ESSENTIALS = {
-      "H",      "O",  "Charge", "tc", "patm",
-      "SolVol", "pH", "pe",     "MassH2O",
-      "Viscosity", "Density"}; // 20260126 MDL 
+  // Mandatory essentials (always included): H, O, Charge, tc, patm
+  static constexpr std::array<const char *, 5> MANDATORY_ESSENTIALS = {
+      "H", "O", "Charge", "tc", "patm"};
 
-  static constexpr std::size_t NUM_ESSENTIALS = ESSENTIALS.size();
+  // Optional essentials (configurable): SolVol, pH, pe, MassH2O, Viscosity,
+  // Density
+  static constexpr std::array<const char *, 6> OPTIONAL_ESSENTIAL_NAMES = {
+      "SolVol", "pH", "pe", "MassH2O", "Viscosity", "Density"};
+
+  // Corresponding flags for each optional essential
+  static constexpr std::array<PhreeqcMatrix::OptionalEssentials, 6>
+      OPTIONAL_ESSENTIAL_FLAGS = {PhreeqcMatrix::OptionalEssentials::SolVol,
+                                  PhreeqcMatrix::OptionalEssentials::pH,
+                                  PhreeqcMatrix::OptionalEssentials::pe,
+                                  PhreeqcMatrix::OptionalEssentials::MassH2O,
+                                  PhreeqcMatrix::OptionalEssentials::Viscosity,
+                                  PhreeqcMatrix::OptionalEssentials::Density};
+
+  static constexpr std::size_t NUM_MANDATORY_ESSENTIALS =
+      MANDATORY_ESSENTIALS.size();
 
   const bool _with_redox;
+  const PhreeqcMatrix::OptionalEssentials _optional_essentials;
+
+  // Compute the number of active optional essentials
+  std::size_t countActiveOptionals() const;
 };

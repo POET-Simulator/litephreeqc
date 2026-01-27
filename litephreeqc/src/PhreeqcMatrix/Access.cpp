@@ -321,33 +321,56 @@ std::vector<std::string> PhreeqcMatrix::getMatrixMinerals() const {
 
 // MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixTransported() const {
-    std::vector<std::string> names;
-    
-    const std::vector<std::string> to_remove = {
-	"tc", "patm", "SolVol", "pH", "pe", "MassH2O", "Viscosity", "Density"
-    };
+  using OE = PhreeqcMatrix::OptionalEssentials;
 
-    // sols contains all solutes; we must remove { tc, patm, SolVol, pH, pe, Viscosity, Density}
-    auto sols = this->getSolutionNames();
-    for (auto name : sols) {
-	if (std::find(to_remove.begin(), to_remove.end(), name) == to_remove.end()) {
-	    names.push_back(name);
-	}
+  // Build the removal list dynamically based on optional essentials
+  std::vector<std::string> to_remove = {"tc", "patm"};
+
+  // Add optional essentials that are enabled to the removal list
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::SolVol))
+    to_remove.push_back("SolVol");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::pH))
+    to_remove.push_back("pH");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::pe))
+    to_remove.push_back("pe");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::MassH2O))
+    to_remove.push_back("MassH2O");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::Viscosity))
+    to_remove.push_back("Viscosity");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::Density))
+    to_remove.push_back("Density");
+
+  std::vector<std::string> names;
+  auto sols = this->getSolutionNames();
+  for (const auto &name : sols) {
+    if (std::find(to_remove.begin(), to_remove.end(), name) == to_remove.end()) {
+      names.push_back(name);
     }
-    
-    return names;
-}
+  }
 
+  return names;
+}
 
 // MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixOutOnly() const {
-    // MDL we must append here selected_output / user_punch
-    std::vector<std::string> defaultnames = {
-	"tc", "patm", "SolVol", "pH", "pe", "MassH2O", "Viscosity", "Density"
-    };
-    std::vector<std::string> ret;
-    for (auto nm : defaultnames) {
-	ret.push_back(nm);
-    }
-    return ret;
+  using OE = PhreeqcMatrix::OptionalEssentials;
+
+  // Build the list dynamically based on optional essentials
+  std::vector<std::string> ret = {"tc", "patm"};
+
+  // Add only the enabled optional essentials
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::SolVol))
+    ret.push_back("SolVol");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::pH))
+    ret.push_back("pH");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::pe))
+    ret.push_back("pe");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::MassH2O))
+    ret.push_back("MassH2O");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::Viscosity))
+    ret.push_back("Viscosity");
+  if (PhreeqcMatrix::hasFlag(_m_optional_essentials, OE::Density))
+    ret.push_back("Density");
+
+  return ret;
 }

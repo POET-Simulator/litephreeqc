@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <set>
@@ -38,6 +39,69 @@ class IPhreeqc;
 class PhreeqcMatrix {
 public:
   /**
+   * @brief Bitflags for optional essential quantities in PhreeqcMatrix.
+   *
+   * The first 5 essentials (H, O, Charge, tc, patm) are always mandatory.
+   * The last 6 (SolVol, pH, pe, MassH2O, Viscosity, Density) can be optionally
+   * included or excluded using these flags.
+   *
+   * Usage:
+   * @code
+   * using OE = PhreeqcMatrix::OptionalEssentials;
+   *
+   * // Default - all included (backward compatible)
+   * PhreeqcMatrix mat(db, script);
+   *
+   * // Only pH and pe
+   * PhreeqcMatrix mat(db, script, false, true, OE::pH | OE::pe);
+   *
+   * // Everything except Viscosity and Density
+   * PhreeqcMatrix mat(db, script, false, true,
+   *                   OE::All & ~(OE::Viscosity | OE::Density));
+   * @endcode
+   */
+  enum class OptionalEssentials : std::uint8_t {
+    None = 0,
+    SolVol = 1 << 0,
+    pH = 1 << 1,
+    pe = 1 << 2,
+    MassH2O = 1 << 3,
+    Viscosity = 1 << 4,
+    Density = 1 << 5,
+    All = 0x3F // All 6 optional essentials included (default)
+  };
+
+  // Bitwise operators for OptionalEssentials
+  friend constexpr OptionalEssentials operator|(OptionalEssentials lhs,
+                                                OptionalEssentials rhs) {
+    return static_cast<OptionalEssentials>(static_cast<std::uint8_t>(lhs) |
+                                           static_cast<std::uint8_t>(rhs));
+  }
+
+  friend constexpr OptionalEssentials operator&(OptionalEssentials lhs,
+                                                OptionalEssentials rhs) {
+    return static_cast<OptionalEssentials>(static_cast<std::uint8_t>(lhs) &
+                                           static_cast<std::uint8_t>(rhs));
+  }
+
+  friend constexpr OptionalEssentials operator~(OptionalEssentials val) {
+    return static_cast<OptionalEssentials>(~static_cast<std::uint8_t>(val));
+  }
+
+  /**
+   * @brief Check if a specific flag is set in a combination of flags.
+   *
+   * @param set The combination of flags to check
+   * @param flag The specific flag to look for
+   * @return true if the flag is set, false otherwise
+   */
+  static constexpr bool hasFlag(OptionalEssentials set,
+                                OptionalEssentials flag) {
+    return (static_cast<std::uint8_t>(set) & static_cast<std::uint8_t>(flag)) ==
+           static_cast<std::uint8_t>(flag);
+  }
+
+  /**
    * @brief Construct a new Phreeqc Matrix object
    *
    * Default constructor. Does nothing. Used only for assignment operator.
@@ -58,19 +122,21 @@ public:
    *
    * This constructor initializes a PhreeqcMatrix object using the provided
    * database and input script. It sets the default values to exclude H(0) and
-   * O(0) in the output and to include redox states.
+   * O(0) in the output and to include redox states, and includes all optional
+   * essentials.
    *
    * @param database The path to the database file.
    * @param input_script The input script to be used.
    */
   PhreeqcMatrix(const std::string &database, const std::string &input_script)
-      : PhreeqcMatrix(database, input_script, false, true) {}
+      : PhreeqcMatrix(database, input_script, false, true,
+                      OptionalEssentials::All) {}
 
   /**
    * @brief Construct a new Phreeqc Matrix object
    *
    * Construct a new Phreeqc Matrix object by reading the database and input
-   * script already present as a string.
+   * script already present as a string. Includes all optional essentials.
    *
    * @param database Phreeqc database as a string.
    * @param input_script Phreeqc input script as a string.
@@ -78,7 +144,28 @@ public:
    * @param with_redox Whether to include redox states in the output or not.
    */
   PhreeqcMatrix(const std::string &database, const std::string &input_script,
-                bool with_h0_o0, bool with_redox);
+                bool with_h0_o0, bool with_redox)
+      : PhreeqcMatrix(database, input_script, with_h0_o0, with_redox,
+                      OptionalEssentials::All) {}
+
+  /**
+   * @brief Construct a new Phreeqc Matrix object with configurable optional
+   * essentials.
+   *
+   * Construct a new Phreeqc Matrix object by reading the database and input
+   * script already present as a string. Allows selecting which optional
+   * essentials (SolVol, pH, pe, MassH2O, Viscosity, Density) to include.
+   *
+   * @param database Phreeqc database as a string.
+   * @param input_script Phreeqc input script as a string.
+   * @param with_h0_o0 Whether to include H(0) and O(0) in the output or not.
+   * @param with_redox Whether to include redox states in the output or not.
+   * @param optional_essentials Bitflags specifying which optional essentials to
+   * include.
+   */
+  PhreeqcMatrix(const std::string &database, const std::string &input_script,
+                bool with_h0_o0, bool with_redox,
+                OptionalEssentials optional_essentials);
 
   /**
    * @brief Construct a new Phreeqc Matrix object
@@ -326,6 +413,19 @@ public:
    */
   bool withRedox() const { return _m_with_redox; }
 
+  /**
+   * @brief Retrieves the optional essentials configuration.
+   *
+   * This function returns the bitflags indicating which optional essentials
+   * (SolVol, pH, pe, MassH2O, Viscosity, Density) are included.
+   *
+   * @return OptionalEssentials The current optional essentials
+   * configuration.
+   */
+  OptionalEssentials optionalEssentials() const {
+    return _m_optional_essentials;
+  }
+
   // MDL
   /**
    * @brief Returns all column names of the Matrix pertaining to KINETICS
@@ -390,4 +490,6 @@ private:
 
   bool _m_with_h0_o0;
   bool _m_with_redox;
+  OptionalEssentials _m_optional_essentials =
+      OptionalEssentials::All;
 };

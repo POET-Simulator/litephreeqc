@@ -16,61 +16,111 @@
 #include <set>
 #include <vector>
 
+std::size_t SolutionWrapper::countActiveOptionals() const {
+  std::size_t count = 0;
+  for (const auto &flag : OPTIONAL_ESSENTIAL_FLAGS) {
+    if (PhreeqcMatrix::hasFlag(_optional_essentials, flag)) {
+      count++;
+    }
+  }
+  return count;
+}
+
 SolutionWrapper::SolutionWrapper(
     cxxSolution *soln, const std::vector<std::string> &_solution_order,
-    bool with_redox)
-    : solution(soln), solution_order(_solution_order.begin() + NUM_ESSENTIALS,
-                                     _solution_order.end()),
-      _with_redox(with_redox) {
+    bool with_redox, PhreeqcMatrix::OptionalEssentials optional_essentials)
+    : solution(soln),
+      solution_order(_solution_order.begin() +
+                         static_cast<std::ptrdiff_t>(NUM_MANDATORY_ESSENTIALS) +
+                         static_cast<std::ptrdiff_t>([optional_essentials]() {
+                           std::size_t count = 0;
+                           for (const auto &flag : OPTIONAL_ESSENTIAL_FLAGS) {
+                             if (PhreeqcMatrix::hasFlag(optional_essentials, flag)) {
+                               count++;
+                             }
+                           }
+                           return count;
+                         }()),
+                     _solution_order.end()),
+      _with_redox(with_redox), _optional_essentials(optional_essentials) {
   this->num_elements = _solution_order.size();
-
-  auto &totals = solution->Get_totals();
 }
 
 void SolutionWrapper::get(std::span<LDBLE> &data) const {
-  data[0] = solution->Get_total_h();
-  data[1] = solution->Get_total_o();
-  data[2] = solution->Get_cb();
-  data[3] = solution->Get_tc();
-  data[4] = solution->Get_patm();
-  data[5] = solution->Get_soln_vol();
-  data[6] = solution->Get_ph();
-  data[7] = solution->Get_pe();
-  data[8] = solution->Get_mass_water();
-  data[9] = solution->Get_viscosity();
-  data[10] = solution->Get_density();
+  using OE = PhreeqcMatrix::OptionalEssentials;
+  std::size_t idx = 0;
+
+  // Mandatory essentials (always indices 0-4)
+  data[idx++] = solution->Get_total_h();
+  data[idx++] = solution->Get_total_o();
+  data[idx++] = solution->Get_cb();
+  data[idx++] = solution->Get_tc();
+  data[idx++] = solution->Get_patm();
+
+  // Optional essentials (conditional)
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::SolVol))
+    data[idx++] = solution->Get_soln_vol();
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::pH))
+    data[idx++] = solution->Get_ph();
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::pe))
+    data[idx++] = solution->Get_pe();
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::MassH2O))
+    data[idx++] = solution->Get_mass_water();
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::Viscosity))
+    data[idx++] = solution->Get_viscosity();
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::Density))
+    data[idx++] = solution->Get_density();
 
   const cxxNameDouble &totals =
       (_with_redox ? solution->Get_totals()
                    : solution->Get_totals().Simplify_redox());
 
-  std::size_t i = NUM_ESSENTIALS;
+  // Totals start at dynamic idx
   for (const auto &tot_name : solution_order) {
     auto it = totals.find(tot_name);
     if (it == totals.end()) {
-      data[i++] = 0.0;
+      data[idx++] = 0.0;
       continue;
     }
-    data[i++] = it->second > 1e-25 ? it->second : 0.;
+    data[idx++] = it->second > 1e-25 ? it->second : 0.;
   }
 }
 
 void SolutionWrapper::set(const std::span<LDBLE> &data) {
-  std::size_t i = NUM_ESSENTIALS;
+  using OE = PhreeqcMatrix::OptionalEssentials;
+  std::size_t idx = 0;
   cxxNameDouble new_totals;
 
-  const double &total_h = data[0];
-  const double &total_o = data[1];
-  const double &cb = data[2];
-  const double &tc = data[3];
-  const double &patm = data[4];
-  const double &massh2o = data[5];
-  // MDL: 20260126 Adding density and viscosity
-  const double &viscosity = data[6];
-  const double &density = data[7];
+  // Mandatory essentials (always first)
+  const double total_h = data[idx++];
+  const double total_o = data[idx++];
+  const double cb = data[idx++];
+  const double tc = data[idx++];
+  const double patm = data[idx++];
+
+  // Optional essentials (conditional) - use defaults if not present
+  double soln_vol = 0.0;
+  double ph = 7.0;
+  double pe = 4.0;
+  double massh2o = 1.0;
+  double viscosity = 1.0;
+  double density = 1.0;
+
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::SolVol))
+    soln_vol = data[idx++];
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::pH))
+    ph = data[idx++];
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::pe))
+    pe = data[idx++];
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::MassH2O))
+    massh2o = data[idx++];
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::Viscosity))
+    viscosity = data[idx++];
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::Density))
+    density = data[idx++];
 
   for (const auto &tot_name : solution_order) {
-    const double value = data[i++];
+    const double value = data[idx++];
 
     if (value < 1E-25) {
       continue;
@@ -78,18 +128,28 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
     new_totals[tot_name] = value;
   }
 
-  this->solution->Update(total_h, total_o, cb, tc, patm, massh2o, viscosity, density,
+  this->solution->Update(total_h, total_o, cb, tc, patm, massh2o, viscosity,
+                         density,
                          _with_redox ? new_totals
                                      : new_totals.Simplify_redox());
 }
 
 std::vector<std::string>
 SolutionWrapper::names(cxxSolution *solution, bool include_h0_o0,
-                       std::vector<std::string> &solution_order,
-                       bool with_redox) {
+                       std::vector<std::string> &solution_order, bool with_redox,
+                       PhreeqcMatrix::OptionalEssentials optional_essentials) {
   std::vector<std::string> names;
 
-  names.insert(names.end(), ESSENTIALS.begin(), ESSENTIALS.end());
+  // Add mandatory essentials
+  names.insert(names.end(), MANDATORY_ESSENTIALS.begin(),
+               MANDATORY_ESSENTIALS.end());
+
+  // Add only the enabled optional essentials
+  for (std::size_t i = 0; i < OPTIONAL_ESSENTIAL_NAMES.size(); ++i) {
+    if (PhreeqcMatrix::hasFlag(optional_essentials, OPTIONAL_ESSENTIAL_FLAGS[i])) {
+      names.push_back(OPTIONAL_ESSENTIAL_NAMES[i]);
+    }
+  }
 
   if (include_h0_o0) {
     names.push_back("H(0)");

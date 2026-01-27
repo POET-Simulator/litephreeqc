@@ -38,8 +38,8 @@ POET_TEST(PhreeqcMatrixOneSolution) {
   EXPECT_FALSE(pqc_mat.checkIfExists(2));
 
   PhreeqcMatrix::STLExport exported_init = pqc_mat.get();
-  // ID + H,O,Charge + 6 Solutions + 4 Equil incl. params
-  EXPECT_EQ(exported_init.names.size(), 20);
+  // ID + H,O,Charge,tc,patm,SolVol,pH,pe,MassH2O,Viscosity,Density + 6 Solutions + 4 Equil incl. params
+  EXPECT_EQ(exported_init.names.size(), 22);
 
   IPhreeqcReader pqc_compare(base_db, base_test::script);
   pqc_compare.setOutputID(1);
@@ -47,6 +47,11 @@ POET_TEST(PhreeqcMatrixOneSolution) {
   EXPECT_EQ(exported_init.names, base_test::expected_names);
   EXPECT_EQ(exported_init.values[0], 1);
   for (std::size_t i = 1; i < exported_init.values.size(); ++i) {
+    // Skip Viscosity and Density as IPhreeqcReader doesn't provide them
+    if (exported_init.names[i] == "Viscosity" ||
+        exported_init.names[i] == "Density") {
+      continue;
+    }
     EXPECT_NEAR(exported_init.values[i], pqc_compare[exported_init.names[i]],
                 1e-7);
     // EXPECT_NEAR(exported_init.values[i], base_test::expected_values[i],
@@ -102,8 +107,12 @@ POET_TEST(PhreeqcMatrixMultiSolution) {
   pqc_compare.setOutputID(1);
 
   for (std::size_t i = 1; i < exported.names.size(); i++) {
-    if (i > 14 && i < 19) {
+    if (i > 16 && i < 21) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
+      continue;
+    }
+    // Skip Viscosity and Density as IPhreeqcReader doesn't provide them
+    if (exported.names[i] == "Viscosity" || exported.names[i] == "Density") {
       continue;
     }
     EXPECT_NEAR(exported.values[i], pqc_compare[exported.names[i]], 1e-7);
@@ -159,8 +168,12 @@ POET_TEST(PhreeqcMatrixCtor) {
   pqc_compare.setOutputID(1);
 
   for (std::size_t i = 1; i < exported.names.size(); i++) {
-    if (i > 14 && i < 19) {
+    if (i > 16 && i < 21) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
+      continue;
+    }
+    // Skip Viscosity and Density as IPhreeqcReader doesn't provide them
+    if (exported.names[i] == "Viscosity" || exported.names[i] == "Density") {
       continue;
     }
     EXPECT_NEAR(exported.values[i], pqc_compare[exported.names[i]], 1e-7);
@@ -190,8 +203,12 @@ POET_TEST(PhreeqcMatrixOperator) {
   pqc_compare.setOutputID(1);
 
   for (std::size_t i = 1; i < exported.names.size(); i++) {
-    if (i > 14 && i < 19) {
+    if (i > 16 && i < 21) {
       EXPECT_TRUE(std::isnan(exported.values[i]));
+      continue;
+    }
+    // Skip Viscosity and Density as IPhreeqcReader doesn't provide them
+    if (exported.names[i] == "Viscosity" || exported.names[i] == "Density") {
       continue;
     }
     EXPECT_NEAR(exported.values[i], pqc_compare[exported.names[i]], 1e-7);
@@ -260,4 +277,131 @@ POET_TEST(PhreeqcMatrixWithoutRedoxAndH0O0) {
   };
 
   EXPECT_EQ(expected_names_without_redox, pqc_mat.getSolutionNames());
+}
+
+POET_TEST(PhreeqcMatrixOptionalEssentials) {
+  using OE = PhreeqcMatrix::OptionalEssentials;
+
+  // Test with only pH, pe, and Viscosity selected
+  PhreeqcMatrix pqc_mat(barite_db, barite_script, false, true,
+                        OE::pH | OE::pe | OE::Viscosity);
+
+  // Verify the optionalEssentials accessor returns the correct value
+  EXPECT_EQ(pqc_mat.optionalEssentials(), OE::pH | OE::pe | OE::Viscosity);
+
+  // Get solution names and verify they contain only the selected optional
+  // essentials
+  const auto solution_names = pqc_mat.getSolutionNames();
+
+  // Should contain mandatory essentials: H, O, Charge, tc, patm
+  EXPECT_NE(std::find(solution_names.begin(), solution_names.end(), "H"),
+            solution_names.end());
+  EXPECT_NE(std::find(solution_names.begin(), solution_names.end(), "O"),
+            solution_names.end());
+  EXPECT_NE(std::find(solution_names.begin(), solution_names.end(), "Charge"),
+            solution_names.end());
+  EXPECT_NE(std::find(solution_names.begin(), solution_names.end(), "tc"),
+            solution_names.end());
+  EXPECT_NE(std::find(solution_names.begin(), solution_names.end(), "patm"),
+            solution_names.end());
+
+  // Should contain selected optional essentials: pH, pe, Viscosity
+  EXPECT_NE(std::find(solution_names.begin(), solution_names.end(), "pH"),
+            solution_names.end());
+  EXPECT_NE(std::find(solution_names.begin(), solution_names.end(), "pe"),
+            solution_names.end());
+  EXPECT_NE(std::find(solution_names.begin(), solution_names.end(), "Viscosity"),
+            solution_names.end());
+
+  // Should NOT contain excluded optional essentials: SolVol, MassH2O, Density
+  EXPECT_EQ(std::find(solution_names.begin(), solution_names.end(), "SolVol"),
+            solution_names.end());
+  EXPECT_EQ(std::find(solution_names.begin(), solution_names.end(), "MassH2O"),
+            solution_names.end());
+  EXPECT_EQ(std::find(solution_names.begin(), solution_names.end(), "Density"),
+            solution_names.end());
+
+  // Verify getMatrixOutOnly returns only enabled optionals (plus tc, patm)
+  const auto out_only = pqc_mat.getMatrixOutOnly();
+  EXPECT_NE(std::find(out_only.begin(), out_only.end(), "tc"), out_only.end());
+  EXPECT_NE(std::find(out_only.begin(), out_only.end(), "patm"), out_only.end());
+  EXPECT_NE(std::find(out_only.begin(), out_only.end(), "pH"), out_only.end());
+  EXPECT_NE(std::find(out_only.begin(), out_only.end(), "pe"), out_only.end());
+  EXPECT_NE(std::find(out_only.begin(), out_only.end(), "Viscosity"),
+            out_only.end());
+  EXPECT_EQ(std::find(out_only.begin(), out_only.end(), "SolVol"),
+            out_only.end());
+  EXPECT_EQ(std::find(out_only.begin(), out_only.end(), "MassH2O"),
+            out_only.end());
+  EXPECT_EQ(std::find(out_only.begin(), out_only.end(), "Density"),
+            out_only.end());
+
+  // Verify getMatrixTransported excludes enabled optionals
+  const auto transported = pqc_mat.getMatrixTransported();
+  EXPECT_EQ(std::find(transported.begin(), transported.end(), "tc"),
+            transported.end());
+  EXPECT_EQ(std::find(transported.begin(), transported.end(), "patm"),
+            transported.end());
+  EXPECT_EQ(std::find(transported.begin(), transported.end(), "pH"),
+            transported.end());
+  EXPECT_EQ(std::find(transported.begin(), transported.end(), "pe"),
+            transported.end());
+  EXPECT_EQ(std::find(transported.begin(), transported.end(), "Viscosity"),
+            transported.end());
+  // H, O, Charge should be in transported
+  EXPECT_NE(std::find(transported.begin(), transported.end(), "H"),
+            transported.end());
+  EXPECT_NE(std::find(transported.begin(), transported.end(), "O"),
+            transported.end());
+  EXPECT_NE(std::find(transported.begin(), transported.end(), "Charge"),
+            transported.end());
+
+  // Test with no optional essentials
+  PhreeqcMatrix pqc_mat_none(barite_db, barite_script, false, true, OE::None);
+  const auto solution_names_none = pqc_mat_none.getSolutionNames();
+
+  // Should only have mandatory essentials + chemical species (no optional
+  // essentials)
+  EXPECT_EQ(
+      std::find(solution_names_none.begin(), solution_names_none.end(), "pH"),
+      solution_names_none.end());
+  EXPECT_EQ(
+      std::find(solution_names_none.begin(), solution_names_none.end(), "pe"),
+      solution_names_none.end());
+  EXPECT_EQ(std::find(solution_names_none.begin(), solution_names_none.end(),
+                      "SolVol"),
+            solution_names_none.end());
+  EXPECT_EQ(std::find(solution_names_none.begin(), solution_names_none.end(),
+                      "MassH2O"),
+            solution_names_none.end());
+  EXPECT_EQ(std::find(solution_names_none.begin(), solution_names_none.end(),
+                      "Viscosity"),
+            solution_names_none.end());
+  EXPECT_EQ(std::find(solution_names_none.begin(), solution_names_none.end(),
+                      "Density"),
+            solution_names_none.end());
+
+  // Test with all optional essentials (default behavior)
+  PhreeqcMatrix pqc_mat_all(barite_db, barite_script, false, true, OE::All);
+  const auto solution_names_all = pqc_mat_all.getSolutionNames();
+
+  // Should have all optional essentials
+  EXPECT_NE(
+      std::find(solution_names_all.begin(), solution_names_all.end(), "pH"),
+      solution_names_all.end());
+  EXPECT_NE(
+      std::find(solution_names_all.begin(), solution_names_all.end(), "pe"),
+      solution_names_all.end());
+  EXPECT_NE(
+      std::find(solution_names_all.begin(), solution_names_all.end(), "SolVol"),
+      solution_names_all.end());
+  EXPECT_NE(
+      std::find(solution_names_all.begin(), solution_names_all.end(), "MassH2O"),
+      solution_names_all.end());
+  EXPECT_NE(std::find(solution_names_all.begin(), solution_names_all.end(),
+                      "Viscosity"),
+            solution_names_all.end());
+  EXPECT_NE(std::find(solution_names_all.begin(), solution_names_all.end(),
+                      "Density"),
+            solution_names_all.end());
 }

@@ -54,8 +54,9 @@ POET_TEST(PhreeqcEngineStep) {
 
   for (std::size_t i = 0; i < cell_names.size(); ++i) {
     // Somehow 'pe' will not result in a expected near value, therefore we skip
-    // it
-    if (cell_names[i] == "pe") {
+    // it. Also skip Viscosity and Density as IPhreeqcReader doesn't provide them.
+    if (cell_names[i] == "pe" || cell_names[i] == "Viscosity" ||
+        cell_names[i] == "Density") {
       continue;
     }
     EXPECT_NEAR(cell_values[i], pqc_compare[cell_names[i]], 1e-6);
