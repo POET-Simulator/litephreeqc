@@ -21,6 +21,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+# Build shared or static libraries
+option(BUILD_SHARED_LIBS "Build shared libraries instead of static" OFF)
+
 # set standard directory locations
 include(GNUInstallDirs)
 
@@ -258,8 +261,8 @@ else()
 endif()
 
 set_target_properties(IPhreeqc PROPERTIES
-  VERSION "${IPhreeqc_VERSION}"
-  SOVERSION "${IPhreeqc_VERSION_MAJOR}"
+  VERSION "${PROJECT_VERSION}"
+  SOVERSION "${PROJECT_VERSION_MAJOR}"
   )
 
 # install
@@ -271,7 +274,7 @@ configure_package_config_file(IPhreeqcConfig.cmake.in
   )
 
 write_basic_package_version_file("IPhreeqcConfigVersion.cmake"
-  VERSION ${IPhreeqc_VERSION}
+  VERSION ${PROJECT_VERSION}
   COMPATIBILITY SameMajorVersion
   )
 
