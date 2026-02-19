@@ -1070,7 +1070,7 @@ void cxxSolution::read_raw(CParser &parser, bool check) {
 }
 
 void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc,
-                         LDBLE patm, LDBLE massh2o, LDBLE viscosity, LDBLE density, const cxxNameDouble &const_nd) {
+                         LDBLE patm, const cxxNameDouble &const_nd) {
   this->new_def = false;
   this->patm = patm;
   // this->potV = 0.0;
@@ -1083,10 +1083,10 @@ void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc,
   this->total_h = h_tot;
   this->total_o = o_tot;
   this->cb = charge;
-  this->mass_water = massh2o; // o_tot / 55.55; // MDL
-  // MDL 20260126: adding viscosity and density
-  this->density = density;
-  this->viscosity = viscosity;
+  this->mass_water = o_tot / 55.55; // massh2o; // MDL reverted as of 20260219
+  // Reverted 20260219 //  MDL 20260126: adding viscosity and density
+  // this->density = density;
+  // this->viscosity = viscosity;
   // this->soln_vol = 1.0;
   // this->total_alkalinity = 0.0;
 

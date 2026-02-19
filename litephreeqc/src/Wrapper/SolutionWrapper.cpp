@@ -128,8 +128,7 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
     new_totals[tot_name] = value;
   }
 
-  this->solution->Update(total_h, total_o, cb, tc, patm, massh2o, viscosity,
-                         density,
+  this->solution->Update(total_h, total_o, cb, tc, patm, // MDL reverted 20260219 massh2o, viscosity, density,
                          _with_redox ? new_totals
                                      : new_totals.Simplify_redox());
 }

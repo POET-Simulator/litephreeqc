@@ -123,7 +123,7 @@ public:
   // void modify_activities(const cxxSolution & original);
   // void Simplify_totals();
   void Update(const cxxNameDouble &nd);
-  void Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc, LDBLE patm, LDBLE massh2o, LDBLE viscosity, LDBLE density, const cxxNameDouble &nd);
+  void Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc, LDBLE patm, const cxxNameDouble &nd); // MDL reverted 20260219 , LDBLE massh2o, LDBLE viscosity, LDBLE density
   void Update_activities(const cxxNameDouble &original_tot);
   void Serialize(Dictionary &dictionary, std::vector<int> &ints,
                  std::vector<double> &doubles);
