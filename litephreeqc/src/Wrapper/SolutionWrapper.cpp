@@ -99,10 +99,10 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
   const double patm = data[idx++];
 
   // Optional essentials (conditional) - use defaults if not present
-  double soln_vol = 0.0;
   double ph = 7.0;
   double pe = 4.0;
-  double massh2o = 1.0;
+  double massh2o = total_o/55.5;
+  double soln_vol = massh2o;
   double viscosity = 1.0;
   double density = 1.0;
 
@@ -128,9 +128,27 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
     new_totals[tot_name] = value;
   }
 
-  this->solution->Update(total_h, total_o, cb, tc, patm, // MDL reverted 20260219 massh2o, viscosity, density,
+  this->solution->Update(total_h, total_o, cb, tc, patm,
                          _with_redox ? new_totals
                                      : new_totals.Simplify_redox());
+
+  // Set optional properties directly on the solution object after Update(),
+  // since Update() does not handle them. Without this, the solution retains
+  // stale values from the previous cell processed by this Engine.
+  // Only overwrite with positive values; if transport zeroed them out,
+  // keep the fallback from Update() (e.g. mass_water = o_tot/55.55).
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::SolVol) && soln_vol > 0)
+    this->solution->Set_soln_vol(soln_vol);
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::pH))
+    this->solution->Set_ph(ph);
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::pe))
+    this->solution->Set_pe(pe);
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::MassH2O) && massh2o > 0)
+    this->solution->Set_mass_water(massh2o);
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::Viscosity) && viscosity > 0)
+    this->solution->Set_viscosity(viscosity);
+  if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::Density) && density > 0)
+    this->solution->Set_density(density);
 }
 
 std::vector<std::string>
