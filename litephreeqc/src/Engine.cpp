@@ -79,6 +79,7 @@ public:
     std::vector<std::string> surface_comps;
     std::vector<std::string> surface_charges;
     std::vector<std::string> solution_primaries;
+    PhreeqcMatrix::OptionalEssentials optional_essentials;
   };
   void init_wrappers(const InitCell &cell);
 };
@@ -116,7 +117,8 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
                    pqc_mat.getEquilibriumNames(cell_id),
                    pqc_mat.getSurfaceCompNames(cell_id),
                    pqc_mat.getSurfaceChargeNames(cell_id),
-                   pqc_mat.getSolutionPrimaries()};
+                   pqc_mat.getSolutionPrimaries(),
+                   pqc_mat.optionalEssentials()};
 
   this->init_wrappers(cell);
 }
@@ -155,7 +157,8 @@ void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {
 
   // Solutions
   this->solutionWrapperPtr = std::make_unique<SolutionWrapper>(
-      this->Get_solution(1), cell.solutions, cell.with_redox);
+      this->Get_solution(1), cell.solutions, cell.with_redox,
+      cell.optional_essentials);
 
   if (this->Get_exchange(1) != nullptr) {
     this->exchangeWrapperPtr = std::make_unique<ExchangeWrapper>(
