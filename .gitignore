@@ -212,6 +212,7 @@ doc/RELEASE
 
 # backup files
 *~
+*.bak
 
 # autotools
 aclocal.m4
