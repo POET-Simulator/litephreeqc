@@ -50,6 +50,8 @@ std::map<int, std::string> PhreeqcMatrix::getDumpStringsPQI() const {
 }
 
 std::string PhreeqcMatrix::getDumpStringsPQI(int cell_id) const {
+  std::lock_guard<std::mutex> lock(*_m_dump_mutex);
+
   this->_m_pqc->SetDumpStringOn(true);
 
   const std::string call_string =

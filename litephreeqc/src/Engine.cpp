@@ -151,6 +151,18 @@ void PhreeqcEngine::Impl::run(double time_step) {
               << "\n";
     throw std::runtime_error(":: PhreeqcEngine::Impl::run: Phreeqc script error");
   }
+
+  // xsolution_save() stores the pre-run density/viscosity in the solution
+  // object, then calc_solution_volume() -> calc_dens() overwrites density_x
+  // and viscos with post-chemistry values — but those are never written back
+  // to the solution object. Fix that here.
+  cxxSolution *sol = this->Get_solution(1);
+  if (sol != nullptr) {
+    if (this->PhreeqcPtr->Get_density_x() > 0)
+      sol->Set_density(this->PhreeqcPtr->Get_density_x());
+    if (this->PhreeqcPtr->Get_viscos() > 0)
+      sol->Set_viscosity(this->PhreeqcPtr->Get_viscos());
+  }
 }
 
 void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {

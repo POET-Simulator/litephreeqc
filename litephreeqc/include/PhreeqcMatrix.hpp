@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -485,6 +486,10 @@ private:
 
   std::shared_ptr<IPhreeqc> _m_pqc;
   std::shared_ptr<PhreeqcKnobs> _m_knobs;
+  // Shared mutex protecting _m_pqc access in getDumpStringsPQI(); shared_ptr
+  // so that copies of PhreeqcMatrix (which share _m_pqc) also share the lock.
+  mutable std::shared_ptr<std::mutex> _m_dump_mutex =
+      std::make_shared<std::mutex>();
 
   std::string _m_database;
 

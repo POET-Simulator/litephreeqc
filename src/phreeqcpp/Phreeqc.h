@@ -1666,6 +1666,10 @@ public:
     return this->calculate_value_map;
   }
 
+  // litephreeqc: accessors for post-chemistry density/viscosity
+  LDBLE Get_density_x() const { return density_x; }
+  LDBLE Get_viscos() const { return viscos; }
+
 protected:
   std::vector<class isotope_ratio *> isotope_ratio;
   std::map<std::string, class isotope_ratio *> isotope_ratio_map;
