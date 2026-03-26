@@ -62,6 +62,9 @@ void Phreeqc::initialize(void)
     basic_free();
   }
   basic_interpreter = new PBasic(this, phrq_io);
+
+  lua_instance = std::make_unique<LuaCore>(this);
+
   // allocate one change_surf
   change_surf = (struct Change_Surf *)PHRQ_malloc(
       (size_t)(2 * sizeof(struct Change_Surf)));

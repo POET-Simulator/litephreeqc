@@ -7784,8 +7784,8 @@ int Phreeqc::read_user_punch(void)
   std::string stdtoken;
   const char *next_char;
   const char *opt_list[] = {
-      "start",   /* 0 */
-      "end",     /* 1 */
+      "start_script",   /* 0 */
+      "end_script",     /* 1 */
       "heading", /* 2 */
       "headings" /* 3 */
   };
@@ -7854,7 +7854,7 @@ int Phreeqc::read_user_punch(void)
       r->commands.clear();
     }
     case OPT_1: /* read command */
-      r->commands.append(";\0");
+      r->commands.append("\n");
       r->commands.append(line);
       opt_save = OPT_1;
       break;

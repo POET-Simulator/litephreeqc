@@ -91,8 +91,7 @@ int Phreeqc::calc_kinetic_reaction(cxxKinetics *kinetics_ptr, LDBLE time_step)
       rate_p = kinetics_comp_ptr->Get_d_params();
       count_rate_p = (int)kinetics_comp_ptr->Get_d_params().size();
       if (rate_ptr->new_def == TRUE) {
-        if (basic_compile(rates[j].commands.c_str(), &rates[j].linebase,
-                          &rates[j].varbase, &rates[j].loopbase) != 0) {
+        if (lua_instance->parse_chunk(rates[j].commands, rates[j].name)!= 0) {
           error_string = sformatf("Fatal Basic error in rate %s.",
                                   kinetics_comp_ptr->Get_rate_name().c_str());
           error_msg(error_string, STOP);
@@ -100,12 +99,14 @@ int Phreeqc::calc_kinetic_reaction(cxxKinetics *kinetics_ptr, LDBLE time_step)
 
         rate_ptr->new_def = FALSE;
       }
-      if (basic_run(l_command, rates[j].linebase, rates[j].varbase,
-                    rates[j].loopbase) != 0) {
+      if (lua_instance->run(rates[j].name) != 0) {
         error_string = sformatf("Fatal Basic error in rate %s.",
                                 kinetics_comp_ptr->Get_rate_name().c_str());
         error_msg(error_string, STOP);
       }
+
+      rate_moles = lua_instance->pop_value();
+
       if (std::isnan(rate_moles)) {
         error_string = sformatf("Moles of reaction not SAVEed for %s.",
                                 kinetics_comp_ptr->Get_rate_name().c_str());
