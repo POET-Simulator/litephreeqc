@@ -113,7 +113,7 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
   // MDL: checks for silent errors to prevent suspect null pointers
   if (this->GetErrorStringLineCount() > 0)
     throw std::runtime_error(
-        "PhreeqcEngine init RunString failed for cell " +
+        "PhreeqcEngine init: RunString failed for cell " +
         std::to_string(cell_id) + ":\n" + this->GetErrorString());
 
   if (this->Get_solution(1) == nullptr)
