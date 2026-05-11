@@ -21,14 +21,13 @@ set(LPQC_SOURCE_FILES
     src/PhreeqcMatrix/Misc.cpp
 )
 
-# add_library(litephreeqc STATIC ${LPQC_SOURCE_FILES})
 add_library(litephreeqc ${LPQC_SOURCE_FILES})
 target_link_libraries(litephreeqc PUBLIC IPhreeqc)
 target_include_directories(litephreeqc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
-# Set C++20 standard for LITEPHREEQC
+# Set C++20 standard
 target_compile_features(litephreeqc PUBLIC cxx_std_20)
 
 if (BUILD_TESTING AND STANDALONE_BUILD)
@@ -62,11 +61,6 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
 
     include(GoogleTest)
     gtest_discover_tests(litephreeqc_test)
-
-    add_executable(golemrunner test/testGolemRunner.cpp)
-    target_link_libraries(golemrunner litephreeqc)
-
-    add_executable(testGetters     test/testGetters.cpp)
-    target_link_libraries(testGetters litephreeqc)
 endif()
+
 
