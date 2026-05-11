@@ -110,6 +110,17 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
 
   this->RunString(pqc_string.c_str());
 
+  // MDL: checks for silent errors to prevent suspect null pointers
+  if (this->GetErrorStringLineCount() > 0)
+    throw std::runtime_error(
+        "PhreeqcEngine init RunString failed for cell " +
+        std::to_string(cell_id) + ":\n" + this->GetErrorString());
+
+  if (this->Get_solution(1) == nullptr)
+    throw std::runtime_error(
+        "PhreeqcEngine init: solution 1 not found after RunString for cell " +
+        std::to_string(cell_id) + " — dump string may be malformed or database mismatch");
+
   InitCell cell = {pqc_mat.getSolutionNames(),
                    pqc_mat.withRedox(),
                    pqc_mat.getExchanger(cell_id),
