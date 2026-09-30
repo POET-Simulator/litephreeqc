@@ -18,6 +18,7 @@
 #include "../Wrapper/KineticWrapper.hpp"
 #include "../Wrapper/SolutionWrapper.hpp"
 #include "../Wrapper/SurfaceWrapper.hpp"
+#include "../Wrapper/SelectedOutputWrapper.hpp"
 
 #include <IPhreeqc.hpp>
 #include <Phreeqc.h>
@@ -25,6 +26,7 @@
 #include <cmath>
 #include <cstddef>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <set>
 #include <string>
@@ -233,13 +235,31 @@ void PhreeqcMatrix::initialize() {
 
   std::vector<std::string> solutions = find_all_solutions(phreeqc);
 
+  CSelectedOutput *selected_output = this->_m_pqc->GetSelectedOutput(1);
+  std::vector<std::string> so_base_names;
+  if (selected_output != nullptr && selected_output->GetColCount() > 0) {
+    this->_m_selected_output_names =
+        SelectedOutputWrapper::names(selected_output, so_base_names);
+  }
+
   for (auto &[id, solution] : phreeqc->Get_Rxn_solution_map()) {
     if (id < 0) {
       continue;
     }
-    const auto &[elements, base_names] = create_vector_from_phreeqc(
+    auto [elements, base_names] = create_vector_from_phreeqc(
         phreeqc, id, solutions, this->_m_surface_primaries);
 
+    if (selected_output != nullptr && !this->_m_selected_output_names.empty()) {
+      for (const auto &name : so_base_names) {
+        base_names.push_back(
+            {PhreeqcMatrix::base_names::Components::SELECTED_OUTPUT, name});
+      }
+
+      SelectedOutputWrapper so_wrapper(selected_output, so_base_names, id);
+      base_add_to_element_vector<
+          PhreeqcMatrix::PhreeqcComponent::SELECTED_OUTPUT>(
+          so_wrapper, this->_m_selected_output_names, elements);
+    }
     _m_map[id] = elements;
     _m_internal_names[id] = base_names;
   }

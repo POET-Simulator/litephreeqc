@@ -890,6 +890,22 @@ public:
 
 	Phreeqc *GetPhreeqcPtr(void) { return this->PhreeqcPtr; };
 
+	CSelectedOutput* GetSelectedOutput(int n_user = 1) {
+		std::map< int, CSelectedOutput* >::iterator it = this->SelectedOutputMap.find(n_user);
+		if (it != this->SelectedOutputMap.end()) {
+			return it->second;
+		}
+		return 0;
+	}
+
+	const CSelectedOutput* GetSelectedOutput(int n_user = 1) const {
+		std::map< int, CSelectedOutput* >::const_iterator it = this->SelectedOutputMap.find(n_user);
+		if (it != this->SelectedOutputMap.end()) {
+			return it->second;
+		}
+		return 0;
+	}
+
 protected:
 	int EndRow(void);
 	void AddSelectedOutput(const char* name, const char* format, va_list argptr);
