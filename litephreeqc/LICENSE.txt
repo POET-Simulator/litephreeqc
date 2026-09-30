@@ -1,10 +1,8 @@
-This project is subject to the original PHREEQC license. `litephreeqc` is a
-version of the PHREEQC code that has been modified to be used as a library.
+litephreeqc is licensed under the European Union Public Licence (EUPL-1.2).
 
-It adds a C++ interface on top of the original PHREEQC code, with small changes
-to the original code base. 
+Copyright (c) 2024-2026 Max Luebke (University of Potsdam)
+                      Marco De Lucia (GFZ German Research Centre for Geosciences)
 
-Authors of Modifications:
-- Max Luebke (mluebke@uni-potsdam.de) - University of Potsdam
-- Marco De Lucia (delucia@gfz.de) - GFZ Helmholz Centre for Geosciences
+SPDX-License-Identifier: EUPL-1.2
 
+See the full license text in LICENSES/EUPL-1.2.txt or LICENSE.md.
