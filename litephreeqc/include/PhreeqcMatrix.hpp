@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "PhreeqcKnobs.hpp"
-#include "PhreeqcSelectedOutputParser.hpp"
 
 class IPhreeqc;
 
@@ -207,8 +206,23 @@ public:
     std::string name;
   };
 
-  const PhreeqcSelectedOutputParser &getSelectedOutput() const {
-    return *_m_selected_output_parser;
+  /**
+   * @brief Checks if selected output is available.
+   *
+   * @return true if selected output is present, false otherwise.
+   */
+  bool hasSelectedOutput() const {
+    return !this->_m_selected_output_names.empty();
+  }
+
+  /**
+   * @brief Retrieves the string representation of the selected output block.
+   *
+   * @return A constant reference to the string containing the selected output
+   * block.
+   */
+  const std::string &getSelectedOutputBlockString() const {
+    return this->_m_selected_output_block_string;
   }
 
   /**
@@ -382,7 +396,7 @@ public:
    * @return std::vector<std::string> vector of names
    */
   std::vector<std::string> getSelectedOutputNames() const {
-    return this->_m_selected_output_parser->getHeader();
+    return this->_m_selected_output_names;
   }
 
 private:
@@ -397,7 +411,8 @@ private:
 
   std::shared_ptr<IPhreeqc> _m_pqc;
   std::shared_ptr<PhreeqcKnobs> _m_knobs;
-  std::shared_ptr<PhreeqcSelectedOutputParser> _m_selected_output_parser;
+  std::string _m_selected_output_block_string;
+  std::vector<std::string> _m_selected_output_names;
 
   std::string _m_database;
 

@@ -11,6 +11,7 @@
  *
  */
 
+#include <algorithm>
 #include <stdexcept>
 
 #include <testInput.hpp>
@@ -62,4 +63,48 @@ POET_TEST(PhreeqcEngineStep) {
   }
 
   EXPECT_THROW(engine.runCell(cell_values, -1), std::invalid_argument);
+}
+
+POET_TEST(PhreeqcEngineSelectedOutputStep) {
+  const std::string script_with_so = R"(SOLUTION 1
+units mol/kgw
+temp 25
+Ca 0.1
+Mg 0.1
+Cl 0.5 charge
+Na 0.1
+PURE 1
+Calcite  0.0 1
+Dolomite 0.0 0
+SELECTED_OUTPUT 1
+ -reset false
+ -totals Ca Na
+USER_PUNCH 1
+ -headings MyVal
+ 10 PUNCH 789.0
+RUN_CELLS
+ -cells 1
+END)";
+
+  PhreeqcMatrix pqc_mat(test_database, script_with_so);
+
+  PhreeqcEngine engine(pqc_mat, 1);
+
+  std::vector<double> cell_values = pqc_mat.get().values;
+  std::vector<std::string> cell_names = pqc_mat.get().names;
+  cell_values.erase(cell_values.begin(), cell_values.begin() + 1);
+  cell_names.erase(cell_names.begin(), cell_names.begin() + 1);
+
+  auto it_ca_so = std::find(cell_names.begin(), cell_names.end(), "Ca(mol/kgw)_SO");
+  auto it_punch = std::find(cell_names.begin(), cell_names.end(), "MyVal_SO");
+  EXPECT_NE(it_ca_so, cell_names.end());
+  EXPECT_NE(it_punch, cell_names.end());
+
+  std::size_t ca_idx = std::distance(cell_names.begin(), it_ca_so);
+  std::size_t punch_idx = std::distance(cell_names.begin(), it_punch);
+
+  EXPECT_NO_THROW(engine.runCell(cell_values, 100));
+
+  EXPECT_NEAR(cell_values[ca_idx], 0.12131, 1e-3);
+  EXPECT_NEAR(cell_values[punch_idx], 789.0, 1e-4);
 }
