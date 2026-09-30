@@ -39,3 +39,29 @@ Any modifications made to original IPhreeqc source files to support `litephreeqc
 * **SUNDIALS / CVODE**: Developed by Lawrence Livermore National Laboratory and distributed under a BSD license (see notices in `src/phreeqcpp/cvode.*`).
 * **Chipmunk BASIC**: Embedded basic interpreter routines (see notices in `src/phreeqcpp/PBasic.cpp`).
 * **GoogleTest**: Used for unit testing, licensed under the BSD 3-Clause License.
+
+---
+
+## 4. Summary of Modifications to USGS IPhreeqc Code
+
+In compliance with the USGS User Rights Notice, the following modifications were made to the original IPhreeqc source code to enable library integration with `litephreeqc`:
+
+* **`src/IPhreeqc.hpp` & `src/IPhreeqc.cpp`**:
+  - Added `GetPhreeqcPtr()` method to expose a direct pointer to the internal `Phreeqc` instance.
+  - Added `struct SolutionMapping` and `getSolutionMapping()` to track module and solution index associations during simulation execution.
+* **`src/phreeqcpp/Phreeqc.h` & `src/phreeqcpp/litephreeqc_funcs.cpp`**:
+  - Added valence state identification helper methods (`find_all_valence_states`, `find_valence_states`) for geochemical species.
+* **`src/phreeqcpp/Solution.h` & `src/phreeqcpp/Solution.cxx`**:
+  - Added `Update()` overload accepting temperature (`tc`) and pressure (`patm`).
+* **Authors of Modifications**:
+  - Max Luebke (mluebke@uni-potsdam.de) - University of Potsdam
+  - Marco De Lucia (delucia@gfz.de) - GFZ German Research Centre for Geosciences
+* **Dates of Modifications**: 2024–2026.
+
+### New Components in `litephreeqc/` (EUPL-1.2)
+The files in `litephreeqc/` are newly authored components and not modifications of USGS files:
+* **`PhreeqcEngine`**: High-level execution engine wrapping individual simulation cells.
+* **`PhreeqcMatrix`**: In-memory matrix representation of multi-cell chemical states.
+* **`PhreeqcRunner`**: Multi-cell scheduler and batch execution runner.
+* **`PhreeqcKnobs`**: Convergence and numerical parameter controller.
+* **`Wrapper/`**: Typed C++ wrappers for solutions, equilibrium phases, ion exchangers, surfaces, and kinetics.
