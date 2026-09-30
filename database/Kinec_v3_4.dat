@@ -1,13 +1,19 @@
-# Kinec_v3.dat - last edited July 23, 2024 by MA and EHO.
+# Kinec_v3_4.dat – last edited Sep 29, 2025 by MA and EHO.
+
 #
 # This database contains the parameters for calculating mineral dissolution rates for primary and secondary silicate minerals using the equations and parameters reported by Hermanska et al. (2022, 2023),
-# and dissolution rates for other mineral systems using the equations and parameters reported by Oelkers and addassi (2024*).
+# and dissolution rates for other mineral systems using the equations and parameters reported by Oelkers and Addassi (2025a). The overall database structure and examples are described in Oelkers and Addassi (2025b).
 #
 # This database contains thermodynamic properties from the Carbfix.dat (Voigt et al., 2018) and the llnl.dat database. 
-# The thermodynamic data for Gaspite, Variscite were taken from https://thermoddem.brgm.fr/ and Monazite-Ce was extracte from (A.P. Gysi et al. / Geochimica et Cosmochimica Acta 242 (2018))
+# The thermodynamic data for Gaspeite, Variscite were taken from https://thermoddem.brgm.fr/ and Monazite-Ce was extracted from (A.P. Gysi et al. / Geochimica et Cosmochimica Acta 242 (2018))
 #
 # Several solid solutions have been added to the kinetics database to properly address the release of metals from solid solutions.  The solubilities of these solid solutions are based on the ideal mechanical mixing of the endmembers. These solid solutions are indicated by the suffix: _ss
-#
+
+# Updates in this revision:
+# • Solid-solution SR definitions: replaced '*' with '^' for exponents on end-member coefficients.
+# • Solid-solution kinetics control flow: corrected jump target (line 4 now goes to 10, not 100/1000).
+# • Surface-area (SA) guard: added check to avoid divide-by-zero; uses fixed SA if m0 ≤ 0.
+# • Carbonate rate expressions: corrected missing surface-area factor; r_plus_c now multiplied by S.
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # README for the RATES blocks in the Kinec.v2.dat file
 
@@ -32,7 +38,7 @@
 
 #KINETICS
 #Augite_ss                                  # Name of the mineral
-#    -formula  Mg0.45Fe0.275Ca0.275SiO3  1  # Mineral formula ! must be added to run solid solutions.
+#    -formula  Mg0.45Fe0.275Ca0.275SiO3  1  # Mineral formula ! must be added to run solid soultions. 
 #    -m0       100                          # Initial moles of mineral
 #    -parms    0 0.0088183 0 2              # Four parameters as explained below
 
@@ -51,13 +57,15 @@
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
 # References for KINEC_v3.dat database description: 
-#Hermanska M., Voigt M. J., Marieni C., Declercq J., and Oelkers E. H. (2022) A comprehensive and internally consistent mineral dissolution rate database: Part I: Primary silicate minerals and glasses. Chemical Geology. 597, 120807. https://doi.org/10.1016/j.chemgeo.2022.120807
+#Hermanska M., Voigt M. J., Marieni C., Declercq J., and Oelkers E. H. (2022). A comprehensive and internally consistent mineral dissolution rate database: Part I: Primary silicate minerals and glasses. Chemical Geology. 597, 120807. https://doi.org/10.1016/j.chemgeo.2022.120807
 #
-#Hermanska M., Voigt M. J., Marieni C., Declercq J., and Oelkers E. H. (2023) A comprehensive and internally consistent mineral dissolution rate database: Part II: Secondary silicate minerals. Chemical Geology. 636, 121632 https://doi.org/10.1016/j.chemgeo.2023.121632
+#Hermanska M., Voigt M. J., Marieni C., Declercq J., and Oelkers E. H. (2023). A comprehensive and internally consistent mineral dissolution rate database: Part II: Secondary silicate minerals. Chemical Geology. 636, 121632 https://doi.org/10.1016/j.chemgeo.2023.121632
+#
+# Oelkers, E.H., Addassi, M. (2025a). A comprehensive and consistent mineral dissolution rate database: Part III: Non-silicate minerals including carbonate, sulfate, phosphate, halide, and oxy-hydroxide minerals. Chemical Geology, 673, 122528. https://doi.org/10.1016/j.chemgeo.2024.122528
 #
 # and 
-#
-# Oelkers, E.H., Addassi, M. 2024. A comprehensive and internally consistent mineral dissolution rate database: Part III: Non-silicate minerals including carbonate, sulfide, phosphate, halide, and oxy-hydroxide minerals. (in preparation)
+# 
+# Oelkers, E.H., Addassi, M. (2025b). Kinec_v3: A computer database for the calculation of the dissolution rates of the major rock forming minerals. Chemical Geology, 695, 123041. https://doi.org/10.1016/j.chemgeo.2025.123041 
 # *********************************************************************
 #
 # Thermodynamics from carbfix.dat (Voigt et al., 2018).
@@ -89,7 +97,7 @@
 # HOK+98: http://dx.doi.org/10.1016/S0016-7037(97)00219-6 (C2H6(g), C3H8(g))
 # Hovis04: http://dx.doi.org/10.2138/am-2004-0111 (NH4-muscovite molar volume)
 # HSS95: http://dx.doi.org/10.1016/0016-7037(95)00314-P (55 solutes)
-# Joh90: Johnson, J.W., 1990, Personal calculation, Parameters given provide smooth metastable extrapolation of one-bar steam properties predicted by the Haar et al. (1984) equation of state to temperatures < the saturation temperature (99.632 C):  Earth Sci. Dept, LLNL, Livermore, CA. (H2O(g))
+# Joh90: Johnson, J.W., 1990, Personal calculation, Parameters given provide smooth metastable extrapolation of one-bar steam properties predicted by the Haar et al. (1984) equation of state to temperatures < the saturation temperature (99.632 C):  Earch Sci. Dept, LLNL, Livermore, CA. (H2O(g))
 # Kel60: http://www.worldcat.org/oclc/693388901 (8 gases)
 # M13: McColm I. J. (2013) Dictionary of Ceramic Science and Engineering, p.72. (CaUO4 molar volume)
 # Marion+03: http://dx.doi.org/10.1016/S0016-7037(03)00372-7 (FeOH+)
@@ -3353,6 +3361,11 @@ Albite_low
 #	Extrapol	supcrt92
 #	Ref		HDN+78
 
+Almandine  # diagenesis.dat
+Fe3Al2Si3O12 + 12.0000 H+ = 2.0000 Al+3 + 6.0000 H2O + 3.0000 SiO2    + 3.0000 Fe+2
+	-analytic	-1.326693e+04	-3.538098e+00	6.203812e+05	5.062124e+03	-2.978557e+07	1.037379e-03
+	-Vm	115.2500
+
 Alum-K
 	KAl(SO4)2:12H2O = Al+3 + K+ + 2 SO4-2 + 12 H2O
 	log_k		-4.8818
@@ -4872,17 +4885,12 @@ Gyrolite
 #	Extrapol	Cp integration
 #	Ref		82sar/bar
 
-Halite
+Halite # copied from the Thermoddem_MAJ2020 to resolve inconsistent results for solubility 
 	NaCl = Cl- + Na+
-	log_k		1.5855
-	-delta_H	3.7405		kJ/mol
-#	deltafH		-98.26		kcal/mol
-	-analytic	-1.0163e2 -3.4761e-2 2.2796e3 4.2802e1 3.5602e1
-#	Range		0-350
-	-Vm		27.015
-#	Extrapol	supcrt92
-#	Ref		HDN+78
-
+     log_k     1.594     
+     delta_h   3.700     #kJ/mol        #78hel/del, 98cha
+     -analytic -7.522461E+2  -1.1904903E-1  4.1385514E+4  2.7417807E+2  -2.4808996E+6
+     #References = LogK/DGf: Internal calculation; DHf/DHr: 78hel/del, 98cha; S°: 98cha; Cp: 78hel/del; V°: 78hel/del;
 Hatrurite
 	Ca3SiO5 + 6 H+ = SiO2 + 3 Ca+2 + 3 H2O
 	log_k		73.4056
@@ -7527,7 +7535,7 @@ Si1.00Al0.23O2(OH)0.69 + 0.23 OH- = 0.23 Al(OH)4- + SiO2
 # Additional phases  
 ##Non-silicate minerals including carbonate, sulfide, phosphate, halide, and oxy-hydroxide minerals####
 # 16 added solids
-# The thermodynmaic properties are from the llnl.data database export for Gaspite
+# The thermodynmaic propeties are from the llnl.data database expet for Gaspeite 
 #------------
 
 
@@ -7584,7 +7592,7 @@ Fluorite
 	-Vm			24.542 #https://thermoddem.brgm.fr/
 #       -Range:  0-300
 
-Gaspite  # M 118.702 https://thermoddem.brgm.fr/
+Gaspeite  # M 118.702 https://thermoddem.brgm.fr/
 NiCO3 + H+ = HCO3- + Ni+2
 		log_k -0.74
         -analytic -909.497277	-0.146985	50789.653398	329.221149	-2880194.459776
@@ -7677,8 +7685,8 @@ RATES
 Albite #NaAlSi3O8; M 262.219 g/mol
 -start
 1 name$ = "Albite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -7711,8 +7719,8 @@ Albite #NaAlSi3O8; M 262.219 g/mol
 Albite_high #NaAlSi3O8; M 262.219 g/mol
 -start
 1 name$ = "Albite_high"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -7745,8 +7753,8 @@ Albite_high #NaAlSi3O8; M 262.219 g/mol
 Albite_low #NaAlSi3O8; M 262.219 g/mol
 -start
 1 name$ = "Albite_low"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -7779,8 +7787,8 @@ Albite_low #NaAlSi3O8; M 262.219 g/mol
 Almandine#Fe3Al2(SiO4)3, M 500.4 g/mol
 -start
 1 name$ = "Almandine"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -7813,8 +7821,8 @@ Almandine#Fe3Al2(SiO4)3, M 500.4 g/mol
 Analcime#Na0.96Al0.96Si2.04O6:1H2O; 219.27 g/mol
 -start
 1 name$ = "Analcime"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -7849,8 +7857,8 @@ Analcime#Na0.96Al0.96Si2.04O6:1H2O; 219.27 g/mol
 Andalusite#Al2SiO5, M 162.9 g/mol
 -start
 1 name$ = "Andalusite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -7884,12 +7892,12 @@ Andalusite#Al2SiO5, M 162.9 g/mol
 
 Andesine_ss#Ca0.4Na0.6Al1.4Si2.6O8 , M 268.613 g/mol
 -start
-1 name$ = "Andesine_ss"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 268.613 else S = m0 * ((m/m0)^(2/3)) * 268.613 * PARM(2)
-4 GOTO 100
+1 Molar_mass = 268.613
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Andesine=(SR ("Albite")*0.6)*(SR ("Anorthite")*0.4)
+10 SR_Andesine=(SR ("Albite")^0.6)*(SR ("Anorthite")^0.4)
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -7920,8 +7928,8 @@ Andesine_ss#Ca0.4Na0.6Al1.4Si2.6O8 , M 268.613 g/mol
 Andradite#Ca3Fe2(SiO4)3, M 510.9 g/mol
 -start
 1 name$ = "Andradite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -7953,8 +7961,8 @@ Andradite#Ca3Fe2(SiO4)3, M 510.9 g/mol
 Annite	#KFe3AlSi3O10(OH)2; M 511.85 g/mol
 -start
 1 name$ = "Annite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -7988,8 +7996,8 @@ Annite	#KFe3AlSi3O10(OH)2; M 511.85 g/mol
 Anorthite	#CaAl2Si2O8; M 278.204 g/mol
 -start
 1 name$ = "Anorthite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3))* GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3))* GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8022,8 +8030,8 @@ Anorthite	#CaAl2Si2O8; M 278.204 g/mol
 Anthophyllite #Mg7Si8O22(OH)2, M 780.807 g/mol
 -start
 1 name$ = "Anthophyllite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8052,8 +8060,8 @@ Anthophyllite #Mg7Si8O22(OH)2, M 780.807 g/mol
 Antigorite	#Mg3Si2O5(OH4); M 277 g/mol
 -start
 1 name$ = "Antigorite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8082,11 +8090,12 @@ Antigorite	#Mg3Si2O5(OH4); M 277 g/mol
 
 Augite_ss#Mg0.45Fe0.275Ca0.275SiO3;M 113.4  g/mol   
 -start
-   2 if (PARM(1) = 0) then  goto 3 else goto 5
-   3 if PARM(3) = 0 then S = PARM(2) * m * 113.4 else S = m0 * ((m/m0)^(2/3)) * 113.4 * PARM(2)
-   4 GOTO 1000
-   5 S = PARM(2)*TOT("water")
-   10 SR_Augite=(SR ("Wollastonite")*0.45)*(SR ("Ferrosilite")*0.275)*(SR ("Enstatite")*0.275)
+1 Molar_mass = 113.4
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
+5 S = PARM(2)*TOT("water")
+10 SR_Augite=(SR ("Wollastonite")^0.45)*(SR ("Ferrosilite")^0.275)*(SR ("Enstatite")^0.275)
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -8112,8 +8121,8 @@ Augite_ss#Mg0.45Fe0.275Ca0.275SiO3;M 113.4  g/mol
 Beidellite-Ca#Ca.175Al2.35Si3.65O10(OH)2; M 366.9 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Beidellite-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8146,8 +8155,8 @@ Beidellite-Ca#Ca.175Al2.35Si3.65O10(OH)2; M 366.9 g/mol # listed as SMECTITE in 
 Beidellite-Fe# Fe.175Al2.35Si3.65O10(OH)2  369.7 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Beidellite-Fe"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8180,8 +8189,8 @@ Beidellite-Fe# Fe.175Al2.35Si3.65O10(OH)2  369.7 g/mol # listed as SMECTITE in D
 Beidellite-K# K.35Al2.35Si3.65O10(OH)2; M 373.6 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Beidellite-K"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8214,8 +8223,8 @@ Beidellite-K# K.35Al2.35Si3.65O10(OH)2; M 373.6 g/mol # listed as SMECTITE in DB
 Beidellite-Mg# Mg.175Al2.35Si3.65O10(OH)2; M 364.2 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Beidellite-Mg"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8248,8 +8257,8 @@ Beidellite-Mg# Mg.175Al2.35Si3.65O10(OH)2; M 364.2 g/mol # listed as SMECTITE in
 Beidellite-Na# Na.35Al2.35Si3.65O10(OH)2 ; M 368.0 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Beidellite-Na"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8282,11 +8291,12 @@ Beidellite-Na# Na.35Al2.35Si3.65O10(OH)2 ; M 368.0 g/mol # listed as SMECTITE in
 
 Biotite_ss	#KFe1.5Mg1.5AlSi3O10(OH)2; M 464.564 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 464.564 else S = m0 * ((m/m0)^(2/3)) * 464.564 * PARM(2)
-4 GOTO 1000
+1 Molar_mass = 464.564
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Biotite=(SR ("Annite")*0.5)*(SR ("Phlogopite")*0.5)
+10 SR_Biotite=(SR ("Annite")^0.5)*(SR ("Phlogopite")^0.5)
 
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
@@ -8318,11 +8328,12 @@ Biotite_ss	#KFe1.5Mg1.5AlSi3O10(OH)2; M 464.564 g/mol
 
 Bronzite_ss#Mg0.77Fe0.23SiO3, M 107.6 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 107.6 else S = m0 * ((m/m0)^(2/3)) * 107.6 * PARM(2)
-4 GOTO 1000
+1 Molar_mass = 107.6
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Bronzite=(SR ("Enstatite")*0.77)*(SR ("Ferrosilite")*0.23)
+10 SR_Bronzite=(SR ("Enstatite")^0.77)*(SR ("Ferrosilite")^0.23)
 
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
@@ -8349,11 +8360,11 @@ Bronzite_ss#Mg0.77Fe0.23SiO3, M 107.6 g/mol
 
 Bytownite_ss#Ca0.77Na0.23Al1.77Si2.23O8, M 243.67 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 243.67 else S = m0 * ((m/m0)^(2/3)) * 243.67 * PARM(2)
-4 GOTO 1000
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * 243.67 else S = m0 * ((m/m0)^(2/3)) * 243.67 * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Bytownite=(SR ("Albite")*0.23)*(SR ("Anorthite")*0.77)
+10 SR_Bytownite=(SR ("Albite")^0.23)*(SR ("Anorthite")^0.77)
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -8384,8 +8395,8 @@ Bytownite_ss#Ca0.77Na0.23Al1.77Si2.23O8, M 243.67 g/mol
 Chabazite-Ca# CaAl2Si4O12:6H2O
 -start
 1 name$ = "Chabazite-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8418,8 +8429,8 @@ Chabazite-Ca# CaAl2Si4O12:6H2O
 Chabazite-Na# Na2Al2Si4O12:6H2O
 -start
 1 name$ = "Chabazite-Na"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8452,8 +8463,8 @@ Chabazite-Na# Na2Al2Si4O12:6H2O
 Chalcedony# SiO2 M 60.08 g/mol #listed as Amorphous SiO2 in DB part 1
 -start
 1 name$ = "Chalcedony"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8481,11 +8492,11 @@ Chalcedony# SiO2 M 60.08 g/mol #listed as Amorphous SiO2 in DB part 1
 5000 save moles
 -end
 
-Chrysotile	# Mg3Si2O5(OH4); M 278.9 g/mol
+Chrysotile	# Mg3Si2O5(OH)4; M 278.9 g/mol
 -start
 1 name$ = "Chrysotile"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8514,8 +8525,8 @@ Chrysotile	# Mg3Si2O5(OH4); M 278.9 g/mol
 Chamosite# Fe5Al(AlSi3O10)(OH)8; M 713.44 g/mol
 -start
 1 name$ = "Chamosite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8550,8 +8561,8 @@ Chamosite# Fe5Al(AlSi3O10)(OH)8; M 713.44 g/mol
 Clinochlore-14A#Mg5Al(AlSi3O10)(OH)8; M 555.79 g/mol
 -start
 1 name$ = "Clinochlore-14A"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8585,8 +8596,8 @@ Clinochlore-14A#Mg5Al(AlSi3O10)(OH)8; M 555.79 g/mol
 Clinochlore-7A# Mg5Al(AlSi3O10)(OH)8; M 555.79 g/mol
 -start
 1 name$ = "Clinochlore-7A"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8620,8 +8631,8 @@ Clinochlore-7A# Mg5Al(AlSi3O10)(OH)8; M 555.79 g/mol
 Clinoptilolite-Ca# Ca1.5Al3Si15O36:12H2O
 -start
 1 name$ = "Clinoptilolite-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8655,8 +8666,8 @@ Clinoptilolite-Ca# Ca1.5Al3Si15O36:12H2O
 Clinoptilolite-Na# Na3Al3Si15O36:10H2O
 -start
 1 name$ = "Clinoptilolite-Na"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8689,8 +8700,8 @@ Clinoptilolite-Na# Na3Al3Si15O36:10H2O
 Cristobalite(alpha)#SiO2; M 60.08 g/mol
 -start
 1 name$ = "Cristobalite(alpha)"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8721,8 +8732,8 @@ Cristobalite(alpha)#SiO2; M 60.08 g/mol
 Cristobalite(beta)#SiO2, M 60.08 g/mol
 -start
 1 name$ = "Cristobalite(beta)"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8753,8 +8764,8 @@ Cristobalite(beta)#SiO2, M 60.08 g/mol
 Daphnite-14A#Fe5Al(AlSi3O10)(OH)8;M 713.44 g/mol
 -start
 1 name$ = "Daphnite-14A"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8788,8 +8799,8 @@ Daphnite-14A#Fe5Al(AlSi3O10)(OH)8;M 713.44 g/mol
 Daphnite-7A#Fe5Al(AlSi3O10)(OH)8; M 713.44 g/mol
 -start
 1 name$ = "Daphnite-7A"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8823,8 +8834,8 @@ Daphnite-7A#Fe5Al(AlSi3O10)(OH)8; M 713.44 g/mol
 Diopside #CaMgSi2O6; M 216.55 g/mol
 -start
 1 name$ = "Diopside"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8854,8 +8865,8 @@ Diopside #CaMgSi2O6; M 216.55 g/mol
 Enstatite#MgSiO3;M 100.387 g/mol
 -start
 1 name$ = "Enstatite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8885,8 +8896,8 @@ Enstatite#MgSiO3;M 100.387 g/mol
 Epidote#Ca2FeAl2Si3O12OH;M 483.215 g/mol
 -start
 1 name$ = "Epidote"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8920,8 +8931,8 @@ Epidote#Ca2FeAl2Si3O12OH;M 483.215 g/mol
 Epidote-ord#Ca2FeAl2Si3O12OH;M 483.215 g/mol
 -start
 1 name$ = "Epidote-ord"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8955,8 +8966,8 @@ Epidote-ord#Ca2FeAl2Si3O12OH;M 483.215 g/mol
 Fayalite   #Fe2SiO4;M 203.771 g/mol
 -start
 1 name$ = "Fayalite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -8985,8 +8996,8 @@ Fayalite   #Fe2SiO4;M 203.771 g/mol
 Ferroactinolite #Ca2Fe5Si8O22(OH)2, M 970.053 g/mol, kinetic parameters from Tremolite
 -start
 1 name$ = "Ferroactinolite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9017,8 +9028,8 @@ Ferroactinolite #Ca2Fe5Si8O22(OH)2, M 970.053 g/mol, kinetic parameters from Tre
 Forsterite   #Mg2SiO4, M 140.692 g/mol   
 -start
 1 name$ = "Forsterite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9047,9 +9058,9 @@ Forsterite   #Mg2SiO4, M 140.692 g/mol
 
 Glass_Basalt#SiTi0.02Al0.36Fe0.19Mg0.28Ca0.26Na0.08K0.008O3.364 , M 122.566 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 122.566 else S = m0 * ((m/m0)^(2/3)) * 122.566 * PARM(2)
-4 GOTO 1000
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * 122.566 else S = m0 * ((m/m0)^(2/3)) * 122.566 * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
@@ -9074,9 +9085,9 @@ Glass_Basalt#SiTi0.02Al0.36Fe0.19Mg0.28Ca0.26Na0.08K0.008O3.364 , M 122.566 g/mo
 
 Glass_Rhyolite#SiAl0.23Na0.13Fe0.05K0.05Ca0.03Mg0.007Ti0.004O2.536; M 84.165 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 84.165 else S = m0 * ((m/m0)^(2/3)) * 84.165 * PARM(2)
-4 GOTO 1000
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * 84.165 else S = m0 * ((m/m0)^(2/3)) * 84.165 * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
@@ -9104,11 +9115,12 @@ Glass_Rhyolite#SiAl0.23Na0.13Fe0.05K0.05Ca0.03Mg0.007Ti0.004O2.536; M 84.165 g/m
 
 Glaucophane_ss#Na2Mg3Al2Si8O22(OH)2, M 783.531 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 783.531 else S = m0 * ((m/m0)^(2/3)) * 783.531 * PARM(2)
-4 GOTO 1000
+1 Molar_mass = 783.531
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Glaucophane =((SR ("Anthophyllite")*1)*(SR ("Jadeite")*2))*(SR ("Enstatite")*(-4))
+10 SR_Glaucophane =((SR ("Anthophyllite")^1)*(SR ("Jadeite")^2))*(SR ("Enstatite")^(-4))
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -9136,8 +9148,8 @@ Glaucophane_ss#Na2Mg3Al2Si8O22(OH)2, M 783.531 g/mol
 Grossular#Ca3Al2(SiO4)3, M 453 g/mol
 -start
 1 name$ = "Grossular"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9170,8 +9182,8 @@ Grossular#Ca3Al2(SiO4)3, M 453 g/mol
 Heulandite-Ca# CaAl2Si7O18:6H2O
 -start
 1 name$ = "Heulandite-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9204,8 +9216,8 @@ Heulandite-Ca# CaAl2Si7O18:6H2O
 Heulandite-Na# Na2Al2Si7O18:5H2O
 -start
 1 name$ = "Heulandite-Na"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9237,11 +9249,12 @@ Heulandite-Na# Na2Al2Si7O18:5H2O
 
 Hornblende_ss#Ca2(Mg4Al)(Si7Al)O22(OH)2, M 813.927 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 813.927 else S = m0 * ((m/m0)^(2/3)) * 813.927 * PARM(2)
-4 GOTO 100
+1 Molar_mass = 813.927
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Hornblende =((SR ("Tremolite")*1)*(SR ("Corundum")*1))*(SR ("Enstatite")*(-1))
+10 SR_Hornblende =((SR ("Tremolite")^1)*(SR ("Corundum")^1))*(SR ("Enstatite")^(-1))
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -9269,8 +9282,8 @@ Hornblende_ss#Ca2(Mg4Al)(Si7Al)O22(OH)2, M 813.927 g/mol
 Illite# K0.6Mg0.25Al1.8Al0.5Si3.5O10(OH)2
 -start
 1 name$ = "Illite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9303,8 +9316,8 @@ Illite# K0.6Mg0.25Al1.8Al0.5Si3.5O10(OH)2
 Jadeite# NaAl(SiO3)2;M 203.9 g/mol
 -start
 1 name$ = "Jadeite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9334,8 +9347,8 @@ Jadeite# NaAl(SiO3)2;M 203.9 g/mol
 Kaolinite	# Al2Si2O5(OH)4; M 258.16 g/mol
 -start
 1 name$ = "Kaolinite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9368,8 +9381,8 @@ Kaolinite	# Al2Si2O5(OH)4; M 258.16 g/mol
 K-Feldspar #KAlSi3O8; M 278.33 g/mol
 -start
 1 name$ = "K-Feldspar"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9403,8 +9416,8 @@ K-Feldspar #KAlSi3O8; M 278.33 g/mol
 Kyanite# Al2SiO5, M 162.9 g/mol
 -start
 1 name$ = "Kyanite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9438,8 +9451,8 @@ Kyanite# Al2SiO5, M 162.9 g/mol
 Larnite   #Ca2SiO4;M 172.237 g/mol
 -start
 1 name$ = "Larnite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9455,8 +9468,8 @@ Larnite   #Ca2SiO4;M 172.237 g/mol
 1003 Eb = 60900# J/mol
 1004 R = 8.314 #J.deg-1.mol-1
 1006 Sig = 1  
-1007 na =0.44
-1008 nb =0.22	
+1007 na =0.4
+1008 nb =0.2	
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
 2001 rplusb = Ab* (exp(-Eb/ (R * Tk)))*(act("H+")^nb)* S
 2002 rplus = rplusa + rplusb
@@ -9467,11 +9480,12 @@ Larnite   #Ca2SiO4;M 172.237 g/mol
 
 Labradorite_ss# Ca0.68Na0.32Al1.68Si2.32O8, M 245.84 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 245.84 else S = m0 * ((m/m0)^(2/3)) * 245.84 * PARM(2)
-4 GOTO 1000
+1 Molar_mass = 245.84
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Labradorite=(SR ("Albite")*0.32)*(SR ("Anorthite")*0.68)
+10 SR_Labradorite=(SR ("Albite")^0.32)*(SR ("Anorthite")^0.68)
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -9494,51 +9508,17 @@ Labradorite_ss# Ca0.68Na0.32Al1.68Si2.32O8, M 245.84 g/mol
 2001 rplusn = An* (exp(-En/ (R * Tk))) * S
 2002 rplusb = Ab* (exp(-Eb/ (R * Tk)))* (act("H+")^nb) * S 
 2009 rplus = rplusa + rplusn + rplusb
-2010 SR_Labradorite=(SR ("Albite")*0.32)*(SR ("Anorthite")*0.68)
 3000 rate = rplus * (1 - (SR_Labradorite^(1/Sig)))
 4000 moles = rate * time
 5000 save moles
 -end
 
-Labradorite_ss_an55# Ca0.55Na0.45Al1.68Si2.32O8, M 245.84 g/mol
--start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 245.84 else S = m0 * ((m/m0)^(2/3)) * 245.84 * PARM(2)
-4 GOTO 1000
-5 S = PARM(2)*TOT("water")
-10 Labradorite_ss_an55=(SR ("Albite")*0.55)*(SR ("Anorthite")*0.55)
-##-----------------Dissolution and precipitation options---------------------##
-100  if (PARM(4) = 0) then  goto 1000 else goto 110 
-110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
-150 If (SR_Labradorite_an55 < 1) Then GoTo 5000 else GoTO 1000 # warning no dissolution reaction
-200 If (SR_Labradorite_an55 > 1) Then GoTo 5000 else GoTO 1000 # warning no precipitation reaction#
-##------------------Kinetic calculation---------------------##
-        #Parameters
-1000 Aa = 5886.557 #mol.m-2.s-1
-1001 An = 0.17	#mol.m-2.s-1 
-1002 Ab = 1.5e-5 #mol.m-2.s-1
-1003 Ea = 58000  #J.mol-1
-1004 En = 60000	#J.mol-1
-1005 Eb = 50000	#J.mol-1
-1006 R =  8.314 #J.deg-1.mol-1
-1008 na = 1.0
-1010 nb = -0.35
-1011 Sig = 2.32
-		#rate equations
-2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na )* S
-2001 rplusn = An* (exp(-En/ (R * Tk))) * S
-2002 rplusb = Ab* (exp(-Eb/ (R * Tk)))* (act("H+")^nb) * S 
-2009 rplus = rplusa + rplusn + rplusb
-3000 rate = rplus * (1 - (Labradorite_ss_an55^(1/Sig)))
-4000 moles = rate * time
-5000 save moles
--end
 
 Laumontite# CaAl2Si4O12:4.5H2O
 -start
 1 name$ = "Laumontite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9571,8 +9551,8 @@ Laumontite# CaAl2Si4O12:4.5H2O
 Lizardite	#Mg3Si2O5(OH4); M 277 g/mol
 -start
 1 name$ = "Lizardite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9601,8 +9581,8 @@ Lizardite	#Mg3Si2O5(OH4); M 277 g/mol
 Leonhardite# CaAl2Si4O12:3.5H2O
 -start
 1 name$ = "Leonhardite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9635,8 +9615,8 @@ Leonhardite# CaAl2Si4O12:3.5H2O
 Maximum_Microcline #KAlSi3O8; M 278.33 g/mol
 -start
 1 name$ = "Maximum_Microcline"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9670,8 +9650,8 @@ Maximum_Microcline #KAlSi3O8; M 278.33 g/mol
 Mesolite# Ca0.667Na0.666Al2Si3O10:2.667H2O
 -start
 1 name$ = "Mesolite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9704,8 +9684,8 @@ Mesolite# Ca0.667Na0.666Al2Si3O10:2.667H2O
 Montmor-Ca# Ca.175Mg.35Al1.65Si4O10(OH)2
 -start
 1 name$ = "Montmor-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9739,8 +9719,8 @@ Montmor-Ca# Ca.175Mg.35Al1.65Si4O10(OH)2
 Montmor-Mg# Mg.525Al1.65Si4O10(OH)2; M 363.6 g/mol
 -start
 1 name$ = "Montmor-Mg"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9773,8 +9753,8 @@ Montmor-Mg# Mg.525Al1.65Si4O10(OH)2; M 363.6 g/mol
 Montmor-K#
 -start
 1 name$ = "Montmor-K"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9807,8 +9787,8 @@ Montmor-K#
 Mordenite-Ca# Ca0.5AlSi5O12:4H2O
 -start
 1 name$ = "Mordenite-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -9841,8 +9821,8 @@ Mordenite-Ca# Ca0.5AlSi5O12:4H2O
 Mordenite-Na# NaAlSi5O12:3H2O
 -start
 1 name$ = "Mordenite-Na"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -9875,8 +9855,8 @@ Mordenite-Na# NaAlSi5O12:3H2O
 Muscovite #KAl3Si3O10(OH)2, M 398.303 g/mol
 -start
 1 name$ = "Muscovite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -9909,8 +9889,8 @@ Muscovite #KAl3Si3O10(OH)2, M 398.303 g/mol
 Natrolite# Na2Al2Si3O10:2H2O
 -start
 1 name$ = "Natrolite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -9943,8 +9923,8 @@ Natrolite# Na2Al2Si3O10:2H2O
 Nepheline #NaAlSiO4
 -start
 1 name$ = "Nepheline"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -9977,8 +9957,8 @@ Nepheline #NaAlSiO4
 Nontronite-Ca# Ca.175Fe2Al.35Si3.65H2O12; M 424.7 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Nontronite-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10011,8 +9991,8 @@ Nontronite-Ca# Ca.175Fe2Al.35Si3.65H2O12; M 424.7 g/mol # listed as SMECTITE in 
 Nontronite-K# K.35Fe2Al.35Si3.65H2O12; M 431.3 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Nontronite-K"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10045,8 +10025,8 @@ Nontronite-K# K.35Fe2Al.35Si3.65H2O12; M 431.3 g/mol # listed as SMECTITE in DB 
 Nontronite-Mg# Mg.175Fe2Al.35Si3.65H2O12; M 421.9 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Nontronite-Mg"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10079,8 +10059,8 @@ Nontronite-Mg# Mg.175Fe2Al.35Si3.65H2O12; M 421.9 g/mol # listed as SMECTITE in 
 Nontronite-Na# Na.35Fe2Al.35Si3.65H2O12; M 425.7 g/mol # listed as SMECTITE in DB part 2
 -start
 1 name$ = "Nontronite-Na"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10112,11 +10092,12 @@ Nontronite-Na# Na.35Fe2Al.35Si3.65H2O12; M 425.7 g/mol # listed as SMECTITE in D
 
 Oligoclase_ss#Ca0.186Na0.814Al1.186Si2.814O8, M 265.2 g/mol
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 265.2 else S = m0 * ((m/m0)^(2/3)) * 265.2 * PARM(2)
-4 GOTO 1000
+1 Molar_mass = 265.2
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Oligoclase=(SR ("Albite")*0.814)*(SR ("Anorthite")*0.186)
+10 SR_Oligoclase=(SR ("Albite")^0.814)*(SR ("Anorthite")^0.186)
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -10146,11 +10127,12 @@ Oligoclase_ss#Ca0.186Na0.814Al1.186Si2.814O8, M 265.2 g/mol
 
 Olivine_ss#Mg1.8Fe0.2SiO4;M   147.31 g/mol   
 -start
-   2 if (PARM(1) = 0) then  goto 3 else goto 5
-   3 if PARM(3) = 0 then S = PARM(2) * m * 147.31 else S = m0 * ((m/m0)^(2/3)) * 113.4 * PARM(2)
-   4 GOTO 1000
-   5 S = PARM(2)*TOT("water")
-10 SR_Olivine=(SR ("Forsterite")*0.9)*(SR ("Fayalite")*0.1)
+1 Molar_mass = 147.31
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
+5 S = PARM(2)*TOT("water")
+10 SR_Olivine=(SR ("Forsterite")^0.9)*(SR ("Fayalite")^0.1)
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -10178,8 +10160,8 @@ Olivine_ss#Mg1.8Fe0.2SiO4;M   147.31 g/mol
 Paragonite # NaAl3Si3O10(OH)2
 -start
 1 name$ = "Paragonite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -10212,8 +10194,8 @@ Paragonite # NaAl3Si3O10(OH)2
 Pargasite #NaCa2Al3Mg4Si6O22(OH)2, M 835.814 g/mol, kinetic parameters from glaucophane in DB P1
 -start
 1 name$ = "Pargasite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10223,18 +10205,17 @@ Pargasite #NaCa2Al3Mg4Si6O22(OH)2, M 835.814 g/mol, kinetic parameters from glau
 200 if (SR (name$) > 1) Then GoTo 5000 else goto 1000 # warning no precipitation reaction#
 ##------------------Kinetic calculation---------------------##
 		# parameters
-1000 Aa = 3.327e8 #mol.m-2.s-1
-1001 Ab = 5000 #mol.m-2.s-1
-1002 Ea = 85000 #J.mol-1
-1003 Eb = 94400 #J.mol-1
+1000 Aa = 3.0e-3 #mol.m-2.s-1
+1001 An = 2.0e-5 #mol.m-2.s-1
+1002 Ea = 50000 #J.mol-1
+1003 En = 48000 #J.mol-1
 1004 R =  8.314 #J.deg-1.mol-1
-1005 na = 0.7
-1006 nb = -0.12
+1005 na = 0.2
 1007 Sig = 6
 		#rate equations
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na )* S
-2001 rplusb = Ab* (exp(-Eb/ (R * Tk)))*(act("H+")^nb )* S
-2010 rplus = rplusa + rplusb
+2001 rplusn = An* (exp(-En/ (R * Tk))) * S
+2010 rplus = rplusa + rplusn
 3000 rate = rplus * (1 - (SR("Pargasite")^(1/Sig)))
 4000 moles = rate * time
 5000 save moles
@@ -10243,8 +10224,8 @@ Pargasite #NaCa2Al3Mg4Si6O22(OH)2, M 835.814 g/mol, kinetic parameters from glau
 Phlogopite	#KAlMg3Si3O10(OH)2; M 417.25
 -start
 1 name$ = "Phlogopite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10278,8 +10259,8 @@ Phlogopite	#KAlMg3Si3O10(OH)2; M 417.25
 Prehnite#Ca2Al2Si3O10(OH)2 ;M 415.1 g/mol
 -start
 1 name$ = "Prehnite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10313,8 +10294,8 @@ Prehnite#Ca2Al2Si3O10(OH)2 ;M 415.1 g/mol
 Pyrophyllite#Al2Si4O10(OH)2, M 363.908 g/mol
 -start
 1 name$ = "Pyrophyllite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10347,8 +10328,8 @@ Pyrophyllite#Al2Si4O10(OH)2, M 363.908 g/mol
 Quartz#SiO2; M 60.08 g/mol
 -start
 1 name$ = "Quartz"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution only or precipitation only option---------------------##
@@ -10378,11 +10359,12 @@ Quartz#SiO2; M 60.08 g/mol
 
 Riebeckite_ss#Na2Fe5Si8O22(OH)2, M 935.877 g/mol, kinetic parameters from tremolite
 -start
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * 935.877 else S = m0 * ((m/m0)^(2/3)) * 935.877 * PARM(2)
-4 GOTO 1000
+1 Molar_mass = 935.877
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * Molar_mass else S = m0 * ((m/m0)^(2/3)) * Molar_mass * PARM(2)
+4 GOTO 10
 5 S = PARM(2)*TOT("water")
-10 SR_Riebeckite =((SR ("Wollastonite")*1)*(SR ("Jadeite")*2))*(SR ("Sillimanite")*(-2))
+10 SR_Riebeckite =((SR ("Wollastonite")^1)*(SR ("Jadeite")^2))*(SR ("Sillimanite")^(-2))
 ##-----------------Dissolution and precipitation options---------------------##
 100  if (PARM(4) = 0) then  goto 1000 else goto 110 
 110 if (PARM(4) = 1) Then GoTo 150 else goto 200 # 
@@ -10409,8 +10391,8 @@ Riebeckite_ss#Na2Fe5Si8O22(OH)2, M 935.877 g/mol, kinetic parameters from tremol
 Sanidine_high #KAlSi3O8; M 278.33 g/mol, kinetic parameters from K-feldspar in DB P1
 -start
 1 name$ = "Sanidine_high"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -10444,8 +10426,8 @@ Sanidine_high #KAlSi3O8; M 278.33 g/mol, kinetic parameters from K-feldspar in D
 Saponite-Fe-Ca#Ca.175Fe3Al.35Si3.65O10(OH)2; M 480.5 g/mol
 -start
 1 name$ = "Saponite-Fe-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -10478,8 +10460,8 @@ Saponite-Fe-Ca#Ca.175Fe3Al.35Si3.65O10(OH)2; M 480.5 g/mol
 Saponite-Fe-Fe#Fe3.175Al.35Si3.65O10(OH)2; M 483.3  g/mol
 -start
 1 name$ = "Saponite-Fe-Fe"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -10512,8 +10494,8 @@ Saponite-Fe-Fe#Fe3.175Al.35Si3.65O10(OH)2; M 483.3  g/mol
 Saponite-Fe-K#K.35Fe3Al.35Si3.65O10(OH)2; M 487.2  g/mol
 -start
 1 name$ = "Saponite-Fe-K"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10546,8 +10528,8 @@ Saponite-Fe-K#K.35Fe3Al.35Si3.65O10(OH)2; M 487.2  g/mol
 Saponite-Fe-Mg#Mg.175Fe3Al.35Si3.65O10(OH)2 ; M 477.7  g/mol
 -start
 1 name$ = "Saponite-Fe-Mg"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10580,8 +10562,8 @@ Saponite-Fe-Mg#Mg.175Fe3Al.35Si3.65O10(OH)2 ; M 477.7  g/mol
 Saponite-Fe-Na#Na.35Fe3Al.35Si3.65O10(OH)2; M 481.5  g/mol
 -start
 1 name$ = "Saponite-Fe-Na"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10614,8 +10596,8 @@ Saponite-Fe-Na#Na.35Fe3Al.35Si3.65O10(OH)2; M 481.5  g/mol
 Saponite-Mg-Ca#Ca.175Mg3Al.35Si3.65O10(OH)2 ; M 385.9  g/mol
 -start
 1 name$ = "Saponite-Mg-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10648,8 +10630,8 @@ Saponite-Mg-Ca#Ca.175Mg3Al.35Si3.65O10(OH)2 ; M 385.9  g/mol
 Saponite-Mg-Fe#Fe.175Mg3Al.35Si3.65O10(OH)2 ; M 388.6 g/mol
 -start
 1 name$ = "Saponite-Mg-Fe"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10682,8 +10664,8 @@ Saponite-Mg-Fe#Fe.175Mg3Al.35Si3.65O10(OH)2 ; M 388.6 g/mol
 Saponite-Mg-K#K.35Mg3Al.35Si3.65O10(OH)2 ; M 392.6 g/mol
 -start
 1 name$ = "Saponite-Mg-K"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10716,8 +10698,8 @@ Saponite-Mg-K#K.35Mg3Al.35Si3.65O10(OH)2 ; M 392.6 g/mol
 Saponite-Mg-Mg#Mg3.175Al.35Si3.65O10(OH)2  ; M 383.0 g/mol
 -start
 1 name$ = "Saponite-Mg-Mg"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10750,8 +10732,8 @@ Saponite-Mg-Mg#Mg3.175Al.35Si3.65O10(OH)2  ; M 383.0 g/mol
 Saponite-Mg-Na#Na.35Mg3Al.35Si3.65O10(OH)2; M 386.9 g/mol
 -start
 1 name$ = "Saponite-Mg-Na"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10784,8 +10766,8 @@ Saponite-Mg-Na#Na.35Mg3Al.35Si3.65O10(OH)2; M 386.9 g/mol
 Scolecite# CaAl2Si3O10:3H2O
 -start
 1 name$ = "Scolecite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10818,8 +10800,8 @@ Scolecite# CaAl2Si3O10:3H2O
 Sepiolite #Mg4Si6O15(OH)2:6H2O,653.22 g/mol
 -start
 1 name$ = "Sepiolite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10848,8 +10830,8 @@ Sepiolite #Mg4Si6O15(OH)2:6H2O,653.22 g/mol
 SiO2(am)#M 60.08 g/mol
 -start
 1 name$ = "SiO2(am)"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10880,8 +10862,8 @@ SiO2(am)#M 60.08 g/mol
 Smectite-high-Fe-Mg# Ca.025Na.1K.2Fe.5Fe.2Mg1.15Al1.25Si3.5H2O12
 -start
 1 name$ = "Smectite-high-Fe-Mg"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10915,8 +10897,8 @@ Smectite-high-Fe-Mg# Ca.025Na.1K.2Fe.5Fe.2Mg1.15Al1.25Si3.5H2O12
 Smectite-low-Fe-Mg# Ca.02Na.15K.2Fe.29Fe.16Mg.9Al1.25Si3.75H2O12; 395.5 g/mol
 -start
 1 name$ = "Smectite-low-Fe-Mg"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$))  else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10949,8 +10931,8 @@ Smectite-low-Fe-Mg# Ca.02Na.15K.2Fe.29Fe.16Mg.9Al1.25Si3.75H2O12; 395.5 g/mol
 Spodumene# LiAlSi2O6;M 187.9 g/mol
 -start
 1 name$ = "Spodumene"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -10980,8 +10962,8 @@ Spodumene# LiAlSi2O6;M 187.9 g/mol
 Stilbite# Ca.02Na.15K.2Fe.29Fe.16Mg.9Al1.25Si3.75H2O12
 -start
 1 name$ = "Stilbite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -11014,8 +10996,8 @@ Stilbite# Ca.02Na.15K.2Fe.29Fe.16Mg.9Al1.25Si3.75H2O12
 Stilbite-Ca# CaAl2Si7O18:7H2O
 -start
 1 name$ = "Stilbite-Ca"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -11048,8 +11030,8 @@ Stilbite-Ca# CaAl2Si7O18:7H2O
 Talc #Mg3Si4O10(OH)2,379.259 g/mol
 -start
 1 name$ = "Talc"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -11078,8 +11060,8 @@ Talc #Mg3Si4O10(OH)2,379.259 g/mol
 Tremolite #Ca2Mg5Si8O22(OH)2, 812.353 g/mol
 -start
 1 name$ = "Tremolite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -11108,8 +11090,8 @@ Tremolite #Ca2Mg5Si8O22(OH)2, 812.353 g/mol
 Thomsonite# Ca2NaAl5Si5O20:6H2O
 -start
 1 name$ = "Thomsonite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -11142,8 +11124,8 @@ Thomsonite# Ca2NaAl5Si5O20:6H2O
 Wollastonite#CaSiO3;M 117.1 g/mol
 -start
 1 name$ = "Wollastonite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -11174,8 +11156,8 @@ Wollastonite#CaSiO3;M 117.1 g/mol
 Zoisite#Ca2Al3(SiO4)3OH;M 457.1 g/mol
 -start
 1 name$ = "Zoisite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##----------------- Dissolution and precipitation options---------------------##
@@ -11211,8 +11193,8 @@ Zoisite#Ca2Al3(SiO4)3OH;M 457.1 g/mol
 Anglesite	#PbSO4; M 303.264 g/mol
 -start
 1 name$ = "Anglesite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11243,8 +11225,8 @@ Anglesite	#PbSO4; M 303.264 g/mol
 Anhydrite #CaSO4; M 136.14 g/mol
 -start
 1 name$ = "Anhydrite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11271,8 +11253,8 @@ Anhydrite #CaSO4; M 136.14 g/mol
 Fluorapatite #Ca5(PO4)3F ; M 504.302 g/mol
 -start
 1 name$ = "Fluorapatite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11303,8 +11285,8 @@ Fluorapatite #Ca5(PO4)3F ; M 504.302 g/mol
 Hydroxyapatite #Ca5(OH)(PO4)3 ; M 502.31 g/mol
 -start
 1 name$ = "Hydroxyapatite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11335,8 +11317,8 @@ Hydroxyapatite #Ca5(OH)(PO4)3 ; M 502.31 g/mol
 Barite #BaSO4 ; M 233.404 g/mol
 -start
 1 name$ = "Barite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11363,8 +11345,8 @@ Barite #BaSO4 ; M 233.404 g/mol
 Boehmite #AlO2H  : M 59.988 g/mol
 -start
 1 name$ = "Boehmite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11398,8 +11380,8 @@ Boehmite #AlO2H  : M 59.988 g/mol
 Brucite #Mg(OH)2 ; M 58.32 g/mol
 -start
 1 name$ = "Brucite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11426,8 +11408,8 @@ Brucite #Mg(OH)2 ; M 58.32 g/mol
 Celestite  #SrSO4 ; M 183.684 g/mol
 -start
 1 name$ = "Celestite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11454,8 +11436,8 @@ Celestite  #SrSO4 ; M 183.684 g/mol
 Diaspore #AlHO2 : M 59.99 g/mol
 -start
 1 name$ = "Diaspore"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11489,8 +11471,8 @@ Diaspore #AlHO2 : M 59.99 g/mol
 Fluorite  #CaF2 ; M 78.075 g/mol
 -start
 1 name$ = "Fluorite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11517,8 +11499,8 @@ Fluorite  #CaF2 ; M 78.075 g/mol
 Gibbsite #Al(OH)3 : M 78.00 g/mol
 -start
 1 name$ = "Gibbsite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11552,8 +11534,8 @@ Gibbsite #Al(OH)3 : M 78.00 g/mol
 Gypsum #CaSO4:2H2O : M 172.17 g/mol
 -start
 1 name$ = "Gypsum"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11580,8 +11562,8 @@ Gypsum #CaSO4:2H2O : M 172.17 g/mol
 Halite #NaCl : M 58.44 g/mol
 -start
 1 name$ = "Halite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11607,8 +11589,8 @@ Halite #NaCl : M 58.44 g/mol
 Monazite-Ce #CePO4  : M 235.087 g/mol
 -start
 1 name$ = "Monazite-Ce"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11642,8 +11624,8 @@ Monazite-Ce #CePO4  : M 235.087 g/mol
 Periclase #MgO : M 40.304 g/mol
 -start
 1 name$ = "Periclase"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11670,8 +11652,8 @@ Periclase #MgO : M 40.304 g/mol
 Pyromorphite  #Pb5(PO4)3Cl ; M 1356.365 g/mol 
 -start
 1 name$ = "Pyromorphite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11698,8 +11680,8 @@ Pyromorphite  #Pb5(PO4)3Cl ; M 1356.365 g/mol
 Variscite #AlPO4:2H2O ; M 157.983 g/mol
 -start
 1 name$ = "Variscite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11732,8 +11714,8 @@ Variscite #AlPO4:2H2O ; M 157.983 g/mol
 Aragonite   #CaCO3; M 100.0869 g/mol
 -start
 1 name$ = "Aragonite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11754,7 +11736,7 @@ Aragonite   #CaCO3; M 100.0869 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Aragonite")^(1/Sig)) 
 5000 moles = rate * time
@@ -11765,8 +11747,8 @@ Aragonite   #CaCO3; M 100.0869 g/mol
 Calcite   #CaCO3; M 100.0869 g/mol
 -start
 1 name$ = "Calcite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11787,7 +11769,7 @@ Calcite   #CaCO3; M 100.0869 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Calcite")^(1/Sig)) 
 5000 moles = rate * time
@@ -11798,8 +11780,8 @@ Calcite   #CaCO3; M 100.0869 g/mol
 Cerussite   #PbCO3; M 267.2089 g/mol
 -start
 1 name$ = "Cerussite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11820,7 +11802,7 @@ Cerussite   #PbCO3; M 267.2089 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Cerussite")^(1/Sig)) 
 5000 moles = rate * time
@@ -11830,8 +11812,8 @@ Cerussite   #PbCO3; M 267.2089 g/mol
 Dawsonite # NaAlCO3(OH)2 : M 144.0 g/mol
 -start
 1 name$ = "Dawsonite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11852,7 +11834,7 @@ Dawsonite # NaAlCO3(OH)2 : M 144.0 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Dawsonite")^(1/Sig)) 
 5000 moles = rate * time
@@ -11862,8 +11844,8 @@ Dawsonite # NaAlCO3(OH)2 : M 144.0 g/mol
 Dolomite # CaMg(CO3)2: M 184.40 g/mol !!!
 -start
 1 name$ = "Dolomite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11884,7 +11866,7 @@ Dolomite # CaMg(CO3)2: M 184.40 g/mol !!!
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Dolomite")^(1/Sig)) 
 5000 moles = rate * time
@@ -11892,11 +11874,11 @@ Dolomite # CaMg(CO3)2: M 184.40 g/mol !!!
 -end
 
 
-Gaspite # NiCO3: M 118.702 g/mol
+Gaspeite # NiCO3: M 118.702 g/mol
 -start
-1 name$ = "Gaspite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+1 name$ = "Gaspeite"
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11917,9 +11899,9 @@ Gaspite # NiCO3: M 118.702 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
-4000 rate = rplus * (1 - SR("Gaspite")^(1/Sig)) 
+4000 rate = rplus * (1 - SR("Gaspeite")^(1/Sig)) 
 5000 moles = rate * time
 6000 save moles
 -end
@@ -11928,8 +11910,8 @@ Gaspite # NiCO3: M 118.702 g/mol
 Magnesite # MgCO3: M 84.314 g/mol
 -start
 1 name$ = "Magnesite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11950,7 +11932,7 @@ Magnesite # MgCO3: M 84.314 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Magnesite")^(1/Sig)) 
 5000 moles = rate * time
@@ -11961,8 +11943,8 @@ Magnesite # MgCO3: M 84.314 g/mol
 Otavite # CdCO3: M 172.419 g/mol
 -start
 1 name$ = "Otavite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -11983,7 +11965,7 @@ Otavite # CdCO3: M 172.419 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Otavite")^(1/Sig)) 
 5000 moles = rate * time
@@ -11993,8 +11975,8 @@ Otavite # CdCO3: M 172.419 g/mol
 Rhodochrosite #MnCO3  : M 114.95 g/mol
 -start
 1 name$ = "Rhodochrosite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -12015,7 +11997,7 @@ Rhodochrosite #MnCO3  : M 114.95 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Rhodochrosite")^(1/Sig)) 
 5000 moles = rate * time
@@ -12025,8 +12007,8 @@ Rhodochrosite #MnCO3  : M 114.95 g/mol
 Siderite # FeCO3: M 115.856 g/mol !!!
 -start
 1 name$ = "Siderite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -12047,7 +12029,7 @@ Siderite # FeCO3: M 115.856 g/mol !!!
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Siderite")^(1/Sig)) 
 5000 moles = rate * time
@@ -12058,8 +12040,8 @@ Siderite # FeCO3: M 115.856 g/mol !!!
 Smithsonite # ZnCO3: M 125.399 g/mol  !!!
 -start
 1 name$ = "Smithsonite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -12080,7 +12062,7 @@ Smithsonite # ZnCO3: M 125.399 g/mol  !!!
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Smithsonite")^(1/Sig)) 
 5000 moles = rate * time
@@ -12091,8 +12073,8 @@ Smithsonite # ZnCO3: M 125.399 g/mol  !!!
 Strontianite # ZnCO3: M 125.399 g/mol
 -start
 1 name$ = "Strontianite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -12113,7 +12095,7 @@ Strontianite # ZnCO3: M 125.399 g/mol
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Strontianite")^(1/Sig)) 
 5000 moles = rate * time
@@ -12124,8 +12106,8 @@ Strontianite # ZnCO3: M 125.399 g/mol
 Witherite # BaCO3: M 197.349 g/mol !!!
 -start
 1 name$ = "Witherite"
-2 if (PARM(1) = 0) then  goto 3 else goto 5
-3 if PARM(3) = 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
+2 if PARM(1) = 0 then  goto 3 else goto 5
+3 if PARM(3) = 0 or m0 <= 0 then S = PARM(2) * m * GFW(PHASE_FORMULA(name$)) else S = m0 * ((m/m0)^(2/3)) * GFW(PHASE_FORMULA(name$)) * PARM(2)
 4 GOTO 100
 5 S = PARM(2)*TOT("water")
 ##-----------------Dissolution and precipitation options---------------------##
@@ -12146,7 +12128,7 @@ Witherite # BaCO3: M 197.349 g/mol !!!
 1009 act_c = act("HCO3-")+act("CO3-2")
 1010 carb_term = 1-(kc*act_c)/(1+kc*act_c)
 2000 rplusa = Aa* (exp(-Ea/ (R * Tk)))*(act("H+")^na)* S
-2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term
+2001 rplusc = Ac* (exp(-Eac/ (R * Tk)))*carb_term * S
 2002 rplus = rplusa + rplusc
 4000 rate = rplus * (1 - SR("Witherite")^(1/Sig)) 
 5000 moles = rate * time
@@ -12154,6 +12136,22 @@ Witherite # BaCO3: M 197.349 g/mol !!!
 -end
 	
 ###!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

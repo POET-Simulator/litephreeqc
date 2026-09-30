@@ -1,4 +1,151 @@
 Version @PHREEQC_VER@: @PHREEQC_DATE@
+
+	-----------------
+	May 12, 2026
+	-----------------
+	PhreeqcRM: The callback functionality that was available in C++ and Fortran has 
+	been implemented for Python. The implementation allows use of the function CALLBACK in
+	any of the Basic scripts defined for PHREEQC (mainly, USER_PUNCH and RATES). 
+	The CALLBACK function allows information from the user's model to be passed to 
+	output and rates calculations in PhreeqcRM.
+
+	To implement the CALLBACK Basic function, it is necessary to specify a Python function
+	with the new Python PhreeqcRM method set_basic_callback. The Python function returns a float
+	that is interpreted as the result of the Basic CALLBACK function. 
+
+	For MPI, another layer is necessary to use the CALLBACK Basic function. The Python PhreeqcRM
+	method set_mpi_worker_callback defines an intermediate Python callback function that allows
+	the workers of MPI to respond to user-defined task requests from root. An example of 
+	using CALLBACK with MPI is included in the script swig/python/TestAllMethods.py.
+	
+	-----------------
+	February 13, 2026
+	-----------------
+	PHREEQC: In SOLUTION input, if a blank value is given for pH, pe, an
+	element, temperature, density, or units, the input line is ignored.
+	
+	-----------------
+	February 13, 2026
+	-----------------
+	PhreeqcRM: Fixed a bug with GetDensityCalculated (equivalent to GetDensity, which is 
+	deprecated). The values returned from the method were not always current. This change
+	does not affect values returned by the Basic function RHO in SELECTED_OUTPUT and the 
+	values returned by the BMI method get_value("DensityCalculated"...); these values
+	have always been correct.
+	
+	-----------------
+	February 1, 2026
+	-----------------
+	PhreeqcRM: MPI has been implemented for the Python version. The package 
+	mpi4py is required. Python test cases included in the swig/python directory of the 
+	installation work for both OpenMP and MPI.
+	
+	-----------------
+	October 13, 2025
+	-----------------
+	PHREEQC:  
+	Updated PHREEQC.DAT: SOLUTION_SPECIES: F-, NaF, KF, using high P, T using data 
+	from Majer et al., 1997, JSC 26, 847. PHASES: Fluorite, solubility data from 
+	Strübel, 1965, NJbM,M 83-95; Henry, 2018, PhD, Colorado School of Mines.
+
+	Updated PITZER.DAT: SOLUTION_SPECIES: SO4-2
+
+	Updated PHREEQC.DAT: SOLUTION_SPECIES: SO4-2, NaSO4-, Na2SO4, KSO4-, MgSO4, 
+	Mg(SO4)2-2, AmmHSO4-
+
+	Modified viscosity parameters for Br-, using high temperature data from 
+	Abdulagatov and Azizov, 2006, J.S.C. 35, 705 (NaBr), and 2008, J.S.C 37, 3 
+	(KBr). 
+		
+	-----------------
+	October 28, 2025
+	-----------------
+	PHREEQC: 
+	Corrected -Vm of K-mica in PHREEQC.DAT.
+
+	Added -Vm and modified -viscosity of SOLUTION_SPECIES HCl in PHREEQC.DAT. 
+
+	PHREEQC: A new option was added to the keyword data block LLNL_AQUEOUS_MODEL_PARAMETERS.
+	
+		-use_phreeqc_dha_dhb [True or False]
+		
+-use_phreeqc_dha_dhb True
+
+	--Debye-Hückel A and B values and the density of pure water are calculated 
+		pressure- and temperature-dependent as done with phreeqc.dat and pitzer.dat
+	--the value of bdot can be defined for individual SOLUTE_SPECIES as in 
+		phreeqc.dat with -gamma adot bdot
+	--the density of the solution is calculated using the molar volume 
+		parameters (-Vm) in SOLUTION_SPECIES
+	--the pressure dependence of log K's is calculated from the molar volume 
+		parameters in SOLUTION_SPECIES and PHASES
+
+-use_phreeqc_dha_dhb False
+	--Gives results as previously with a llnl-type database
+	 
+	--Debye-Hückel A and B are calculated temperature-dependent by 
+		interpolating the numbers in -dh_a and -dh_b in the 
+		LLNL_AQUEOUS_MODEL_PARAMETERS.
+
+	--The value of bdot is the same for all aqueous species, from 
+		interpolating the numbers in -bdot in the LLNL_AQUEOUS_MODEL_PARAMETERS.
+		
+	--Vm values are not used for calculating the pressure dependence of 
+		reactions and, if present, solution densities are not correct 
+
+	-----------------
+	October 13, 2025
+	-----------------
+	PHREEQC:  Updated phreeqc.dat, Amm.dat, and phreeqc_rates.dat.
+	--Adapted H2 and Hdg properties in SOLUTE_SPECIES and PHASES for improved solubility 
+		calculations at high T, P, and I.
+	--Revised the data for carbonate species in for better T, P, and I dependent calcite equilibrium 
+		and viscosity calculations.
+
+	PHREEQC:  Updated PITZER.DAT:
+		SOLUTION_SPECIES: Mg+2, Ba+2, CO3-2, Hdg, HCO3-, CO2.
+		PHASES: Barite, Calcite, CO2(g), Hdg(g) [= H2(g)].
+		PITZER:
+			 in -B0, -B1 and -B2: HCO3- Na+
+			 in -THETA: Cl- HCO3-
+			 in -LAMDA: Cl- Hdg, Hdg Mg+2 and Hdg Na+
+			 in -ZETA: Hdg Cl- Na+
+			 in -PSI: Cl- HCO3- Na+
+		GAS_BINARY_PARAMETERS: H2O(g) Hdg(g)
+		
+	PHREEQC:  Updated phreeqc.dat, Amm.dat, and phreeqc_rate.dat:
+		SOLUTION_SPECIES: Mg+2, Ba+2, CO3-2, SO4-2, H2, Hdg, HCO3-, CO2, (CO2)2, CaHCO3+, MgSO4, Mg(SO4)2-2, NaHCO3, KHCO3, 
+			removed BaSO4.
+		PHASES: Calcite, Barite, CO2(g), H2(g), Hdg(g).
+		GAS_BINARY_PARAMETERS: H2O(g) H2(g), H2O(g) Hdg(g)
+		
+	PHREEQC: 
+		--Revised the viscosity calculation [viscosity(cxxSurface *surf_ptr) in transport.cpp] to avoid a negative viscosity.
+		--Viscosity calculations at temperatures higher than 200ºC now return the viscosity of pure water. In previous 
+			versions, the Falkenhagen A factor and the volume factors of the anions were calculated at T, P, I of the 
+			solution and used to calculate the viscosity.
+
+	PHREEQC:  Updated phreeqc.dat, Amm.dat, and phreeqc_rates.dat:
+		--Defined the Na2SO4 complex in PHREEQC.DAT for an improved calculation of the solubilities of anhydrite, gypsum, 
+			celestite, barite and other sulfates in concentrated NaCl solutions. The activity parameters (‑gamma and 
+			‑analytical_expression) and the physical parameters (‑Vm, ‑viscosity and ‑dw) were redefined for all the 
+			SO4-2 solution species. 
+
+	PHREEQC:  
+		--Removed the activity of water in the calculation of the density of pure water (rho_0) at T, P in 
+			calc_rho_0(LDBLE tc, LDBLE pa) in utilities.cpp (rho_0 is independent of salinity).
+
+	PHREEQC:  
+		--In various databases: the Alkalinity of E is set to 1 to give the correct equation for non-master 
+		species with e- in the reaction:
+		
+		SOLUTION_MASTER_SPECIES
+			E     e-     1     0      0
+
+Version 3.8.8: September 12, 2025
+
+	Bug_fix for calc_t_sc("") in basicsubs.cpp.
+	
 	-----------------
 	August 23, 2025
 	-----------------
