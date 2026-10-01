@@ -1,3 +1,10 @@
+/*
+ * Modified for litephreeqc by Max Luebke (University of Potsdam)
+ * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
+ * Modifications: Added SolutionMapping tracking logic during simulation steps.
+ * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
+ */
+
 #include "IPhreeqc.hpp" // IPhreeqc
 #include "Phreeqc.h"    // Phreeqc
 #include "Version.h"
