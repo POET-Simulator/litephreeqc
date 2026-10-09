@@ -214,8 +214,8 @@ void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {
   }
 
   if (this->GetSelectedOutput(1) != nullptr && !cell.selected_output.empty()) {
-    this->selectedOutputWrapperPtr = std::make_unique<SelectedOutputWrapper>(
-        this->GetSelectedOutput(1), cell.selected_output);
+    this->selectedOutputWrapperPtr =
+        std::make_unique<SelectedOutputWrapper>(this, cell.selected_output);
     this->has_selected_output = true;
   }
 }

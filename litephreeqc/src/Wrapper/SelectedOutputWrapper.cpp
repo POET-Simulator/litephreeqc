@@ -25,24 +25,27 @@ static inline std::string trim(const std::string &str) {
 }
 
 SelectedOutputWrapper::SelectedOutputWrapper(
-    CSelectedOutput *selected_output,
-    const std::vector<std::string> &headings,
-    std::size_t target_row)
-    : selected_output(selected_output), headings(headings),
-      target_row(target_row) {
+    IPhreeqc *pqc, const std::vector<std::string> &headings,
+    std::size_t target_row, int n_user)
+    : pqc(pqc), n_user(n_user), headings(headings), target_row(target_row) {
   this->num_elements = headings.size();
-  this->resolve_col_indices();
+  this->resolve_col_indices(this->current());
 }
 
-void SelectedOutputWrapper::resolve_col_indices() const {
-  if (this->selected_output == nullptr ||
-      this->selected_output->GetColCount() == 0) {
+const CSelectedOutput *SelectedOutputWrapper::current() const {
+  return this->pqc == nullptr ? nullptr
+                              : this->pqc->GetSelectedOutput(this->n_user);
+}
+
+void SelectedOutputWrapper::resolve_col_indices(
+    const CSelectedOutput *selected_output) const {
+  if (selected_output == nullptr || selected_output->GetColCount() == 0) {
     return;
   }
 
   std::map<std::string, int> heading_to_col;
-  for (size_t col = 0; col < this->selected_output->GetColCount(); ++col) {
-    CVar v = this->selected_output->Get(0, static_cast<int>(col));
+  for (size_t col = 0; col < selected_output->GetColCount(); ++col) {
+    CVar v = selected_output->Get(0, static_cast<int>(col));
     std::string h = (v.type == TT_STRING && v.sVal) ? v.sVal : "";
     heading_to_col[trim(h)] = static_cast<int>(col);
   }
@@ -71,20 +74,21 @@ void SelectedOutputWrapper::resolve_col_indices() const {
 }
 
 void SelectedOutputWrapper::get(std::span<LDBLE> &data) const {
+  const CSelectedOutput *selected_output = this->current();
+
   if (this->col_indices.empty() ||
       this->col_indices.size() != this->num_elements) {
-    this->resolve_col_indices();
+    this->resolve_col_indices(selected_output);
   }
 
-  if (this->selected_output == nullptr ||
-      this->selected_output->GetColCount() == 0) {
+  if (selected_output == nullptr || selected_output->GetColCount() == 0) {
     for (size_t i = 0; i < data.size(); ++i) {
       data[i] = std::numeric_limits<LDBLE>::quiet_NaN();
     }
     return;
   }
 
-  const size_t row_count = this->selected_output->GetRowCount();
+  const size_t row_count = selected_output->GetRowCount();
   // row_count includes row 0 (headings). If row_count <= 1, no data rows have been punched.
   if (row_count <= 1) {
     for (size_t i = 0; i < data.size(); ++i) {
@@ -107,13 +111,13 @@ void SelectedOutputWrapper::get(std::span<LDBLE> &data) const {
   for (size_t i = 0; i < data.size() && i < this->col_indices.size(); ++i) {
     const int col = this->col_indices[i];
     if (col < 0 ||
-        static_cast<size_t>(col) >= this->selected_output->GetColCount()) {
+        static_cast<size_t>(col) >= selected_output->GetColCount()) {
       data[i] = std::numeric_limits<LDBLE>::quiet_NaN();
       continue;
     }
 
     const CVar var =
-        this->selected_output->Get(static_cast<int>(row_to_read), col);
+        selected_output->Get(static_cast<int>(row_to_read), col);
     switch (var.type) {
     case TT_DOUBLE:
       data[i] = var.dVal;

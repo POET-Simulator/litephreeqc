@@ -15,6 +15,7 @@
 
 #include "CSelectedOutput.hxx"
 #include "WrapperBase.hpp"
+#include <IPhreeqc.hpp>
 #include <cstddef>
 #include <span>
 #include <string>
@@ -22,9 +23,11 @@
 
 class SelectedOutputWrapper : public WrapperBase {
 public:
-  SelectedOutputWrapper(CSelectedOutput *selected_output,
-                        const std::vector<std::string> &headings,
-                        std::size_t target_row = 0);
+  // IPhreeqc deletes and recreates its CSelectedOutput objects on every
+  // RunString(), so the wrapper keeps the owning instance and looks up the
+  // current selected output on each access instead of caching the pointer.
+  SelectedOutputWrapper(IPhreeqc *pqc, const std::vector<std::string> &headings,
+                        std::size_t target_row = 0, int n_user = 1);
 
   void get(std::span<LDBLE> &data) const override;
 
@@ -38,9 +41,11 @@ public:
   names(const CSelectedOutput *selected_output);
 
 private:
-  void resolve_col_indices() const;
+  const CSelectedOutput *current() const;
+  void resolve_col_indices(const CSelectedOutput *selected_output) const;
 
-  CSelectedOutput *selected_output;
+  IPhreeqc *pqc;
+  int n_user;
   std::vector<std::string> headings;
   std::size_t target_row;
   mutable std::vector<int> col_indices;

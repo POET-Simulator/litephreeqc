@@ -441,7 +441,44 @@ END)";
   EXPECT_TRUE(std::find(out_only.begin(), out_only.end(), "pH") != out_only.end());
 
   PhreeqcMatrix::STLExport exported = pqc_mat.get();
-  EXPECT_NEAR(pqc_mat(1, "Ca(mol/kgw)_SO"), 0.1, 1e-4);
+  // Selected output must describe the state of the cell after RUN_CELLS
+  // (calcite dissolution raises Ca above 0.1), the same as the matrix itself;
+  // the matrix stores moles, selected output molality, hence the tolerance
+  EXPECT_NEAR(pqc_mat(1, "Ca(mol/kgw)_SO"), pqc_mat(1, "Ca"), 1e-6);
+  EXPECT_GT(pqc_mat(1, "Ca(mol/kgw)_SO"), 0.11);
   EXPECT_NEAR(pqc_mat(1, "Na(mol/kgw)_SO"), 0.1, 1e-4);
   EXPECT_NEAR(pqc_mat(1, "MyVal_SO"), 123.456, 1e-4);
+}
+
+POET_TEST(PhreeqcMatrixSelectedOutputPerCell) {
+  // Selected output rows follow the punch order (cell 1 is never punched,
+  // cells 2 and 3 are rows 1 and 2): each cell must get its own values
+  const std::string script = R"(SOLUTION 1
+units mol/kgw
+Na 0.1
+Cl 0.1
+END
+SOLUTION 2
+units mol/kgw
+Na 0.2
+Cl 0.2
+END
+SOLUTION 3
+units mol/kgw
+Na 0.3
+Cl 0.3
+END
+SELECTED_OUTPUT 1
+ -reset false
+ -totals Na
+RUN_CELLS
+ -cells 2-3
+END)";
+
+  PhreeqcMatrix pqc_mat(base_db, script);
+
+  for (int id : {1, 2, 3}) {
+    EXPECT_NEAR(pqc_mat(id, "Na(mol/kgw)_SO"), pqc_mat(id, "Na"), 1e-8);
+    EXPECT_NEAR(pqc_mat(id, "Na(mol/kgw)_SO"), 0.1 * id, 1e-8);
+  }
 }

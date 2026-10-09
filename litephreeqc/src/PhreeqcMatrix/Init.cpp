@@ -19,6 +19,7 @@
 #include "../Wrapper/SolutionWrapper.hpp"
 #include "../Wrapper/SurfaceWrapper.hpp"
 #include "../Wrapper/SelectedOutputWrapper.hpp"
+#include "PhreeqcKnobs.hpp"
 
 #include <IPhreeqc.hpp>
 #include <Phreeqc.h>
@@ -28,6 +29,7 @@
 #include <iterator>
 #include <limits>
 #include <map>
+#include <regex>
 #include <set>
 #include <string>
 #include <utility>
@@ -227,6 +229,40 @@ find_all_solutions(Phreeqc *phreeqc, bool include_h0_o0, bool with_redox,
   return union_names;
 }
 
+// Computes the initial SELECTED_OUTPUT values of one cell. The selected output
+// of the main instance cannot be used: its rows follow the order in which
+// PHREEQC punched the cells, not the cell ids. The cell is therefore run once
+// with a zero time step in a scratch instance, as PhreeqcEngine would do,
+// leaving the state of the main instance untouched.
+static std::vector<double>
+initial_selected_output(const std::string &database, const PhreeqcKnobs &knobs,
+                        const std::string &so_block, const std::string &dump,
+                        const std::vector<std::string> &so_base_names) {
+  std::vector<double> values(so_base_names.size(),
+                             std::numeric_limits<double>::quiet_NaN());
+
+  IPhreeqc pqc;
+  pqc.LoadDatabaseString(database.c_str());
+  knobs.writeKnobs(pqc.GetPhreeqcPtr());
+
+  const std::string dump_cell_1 =
+      std::regex_replace(dump, std::regex(R"((RAW\s+)(\d+))"), "RAW 1");
+
+  pqc.RunString(so_block.c_str());
+  pqc.RunString(dump_cell_1.c_str());
+  pqc.RunString("RUN_CELLS\n -cells 1\n -time_step 0\nEND\n");
+
+  if (pqc.GetErrorStringLineCount() > 0) {
+    return values;
+  }
+
+  SelectedOutputWrapper so_wrapper(&pqc, so_base_names);
+  std::span<double> values_span(values);
+  so_wrapper.get(values_span);
+
+  return values;
+}
+
 void PhreeqcMatrix::initialize() {
 
   Phreeqc *phreeqc = this->_m_pqc->GetPhreeqcPtr();
@@ -239,7 +275,9 @@ void PhreeqcMatrix::initialize() {
       find_all_solutions(phreeqc, this->_m_with_h0_o0, this->_m_with_redox,
                          this->_m_optional_essentials);
 
-  CSelectedOutput *selected_output = this->_m_pqc->GetSelectedOutput(1);
+  // Only the headings are read from the main instance, and right away: any
+  // later RunString() on it (e.g. DUMP) deletes its CSelectedOutput
+  const CSelectedOutput *selected_output = this->_m_pqc->GetSelectedOutput(1);
   std::vector<std::string> so_base_names;
   if (selected_output != nullptr && selected_output->GetColCount() > 0) {
     this->_m_selected_output_names =
@@ -254,19 +292,30 @@ void PhreeqcMatrix::initialize() {
         phreeqc, id, solutions, this->_m_surface_primaries,
         this->_m_with_redox, this->_m_optional_essentials);
 
-    if (selected_output != nullptr && !this->_m_selected_output_names.empty()) {
+    if (!this->_m_selected_output_names.empty()) {
       for (const auto &name : so_base_names) {
         base_names.push_back(
             {PhreeqcMatrix::base_names::Components::SELECTED_OUTPUT, name});
       }
-
-      SelectedOutputWrapper so_wrapper(selected_output, so_base_names, id);
-      base_add_to_element_vector<
-          PhreeqcMatrix::PhreeqcComponent::SELECTED_OUTPUT>(
-          so_wrapper, this->_m_selected_output_names, elements);
     }
     _m_map[id] = elements;
     _m_internal_names[id] = base_names;
+  }
+
+  // Done after the loop over the solution map, since dumping the cells runs
+  // the main instance again
+  if (!this->_m_selected_output_names.empty()) {
+    for (auto &[id, elements] : _m_map) {
+      const auto so_values = initial_selected_output(
+          this->_m_database, *this->_m_knobs,
+          this->_m_selected_output_block_string, this->getDumpStringsPQI(id),
+          so_base_names);
+      for (std::size_t i = 0; i < so_values.size(); ++i) {
+        elements.push_back({this->_m_selected_output_names[i],
+                            PhreeqcMatrix::PhreeqcComponent::SELECTED_OUTPUT,
+                            so_values[i]});
+      }
+    }
   }
 }
 
