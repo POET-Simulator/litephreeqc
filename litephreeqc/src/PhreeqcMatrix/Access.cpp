@@ -98,8 +98,8 @@ PhreeqcMatrix::STLExport PhreeqcMatrix::get(VectorExportType type,
   }
 
   for (std::size_t component = 1;
-       component <=
-       static_cast<std::size_t>(PhreeqcMatrix::PhreeqcComponent::SURFACE_COMPS);
+       component <= static_cast<std::size_t>(
+                        PhreeqcMatrix::PhreeqcComponent::SELECTED_OUTPUT);
        component++) {
     std::vector<std::string> values;
     for (const auto &[id, elements] : _m_map) {
@@ -254,49 +254,47 @@ double PhreeqcMatrix::operator()(int cell_id, const std::string &name) const {
   return it->value;
 }
 
-
 // MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixKinetics() const {
-    std::vector<std::string> names;
-    
-    auto n = this->getIds().size();
-    for (auto i = 0; i<n; ++i) {
-	auto pqc_kinnames = this->getKineticsNames(i);
-	for (auto nam : pqc_kinnames ) {
-	    for (auto mat_name : this->get().names){
-		if (mat_name.starts_with(nam)) {
-		    // check if we already have this mat_name
-		    if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
-			names.push_back(mat_name);
-		    }
-		}
-	    }
-	}
-    }
-    return names;
-}
+  std::vector<std::string> names;
 
+  auto n = this->getIds().size();
+  for (auto i = 0; i < n; ++i) {
+    auto pqc_kinnames = this->getKineticsNames(i);
+    for (auto nam : pqc_kinnames) {
+      for (auto mat_name : this->get().names) {
+        if (mat_name.starts_with(nam)) {
+          // check if we already have this mat_name
+          if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
+            names.push_back(mat_name);
+          }
+        }
+      }
+    }
+  }
+  return names;
+}
 
 // MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixEquilibrium() const {
 
-    std::vector<std::string> names;
-    std::vector<std::string> mat_names = this->get().names;
-    auto n = this->getIds().size();
-    for (auto i = 0; i<n; ++i) {
-	auto pqc_eqnames = this->getEquilibriumNames(i);
-	for (auto nam : pqc_eqnames ) {
-	    for (auto mat_name : mat_names){
-		if (mat_name.starts_with(nam)) {
-		    // check if we already have this mat_name
-		    if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
-			names.push_back(mat_name);
-		    }
-		}
-	    }
-	}
+  std::vector<std::string> names;
+  std::vector<std::string> mat_names = this->get().names;
+  auto n = this->getIds().size();
+  for (auto i = 0; i < n; ++i) {
+    auto pqc_eqnames = this->getEquilibriumNames(i);
+    for (auto nam : pqc_eqnames) {
+      for (auto mat_name : mat_names) {
+        if (mat_name.starts_with(nam)) {
+          // check if we already have this mat_name
+          if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
+            names.push_back(mat_name);
+          }
+        }
+      }
     }
-    return names;
+  }
+  return names;
 }
 
 // MDL

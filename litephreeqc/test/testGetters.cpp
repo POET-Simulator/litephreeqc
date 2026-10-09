@@ -100,6 +100,10 @@ int main(int argc, char *argv[]) {
     auto outonly = pqc_mat1.getMatrixOutOnly(); 
     std::cout << ":: pqc_mat1.getMatrixOutOnly(): \n";
     std::cout << outonly << "\n\n";
+
+    auto selout = pqc_mat1.getSelectedOutputNames(); 
+    std::cout << ":: pqc_mat1.getSelectedOutputNames(): \n";
+    std::cout << selout << "\n\n";
     return 0;
 }
 

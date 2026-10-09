@@ -14,6 +14,7 @@
 #include "PhreeqcEngine.hpp"
 #include <cstddef>
 #include <iomanip>
+#include <memory>
 #include <regex>
 #include <span>
 #include <sstream>
@@ -30,6 +31,7 @@
 #include "Wrapper/KineticWrapper.hpp"
 #include "Wrapper/SolutionWrapper.hpp"
 #include "Wrapper/SurfaceWrapper.hpp"
+#include "Wrapper/SelectedOutputWrapper.hpp"
 class PhreeqcEngine::Impl : public IPhreeqc {
 public:
   Impl(const PhreeqcMatrix &pqc_mat, const int cell_id);
@@ -65,11 +67,14 @@ public:
   std::unique_ptr<KineticWrapper> kineticsWrapperPtr;
   std::unique_ptr<EquilibriumWrapper> equilibriumWrapperPtr;
   std::unique_ptr<SurfaceWrapper> surfaceWrapperPtr;
+  std::unique_ptr<SelectedOutputWrapper> selectedOutputWrapperPtr;
 
   bool has_exchange = false;
   bool has_kinetics = false;
   bool has_equilibrium = false;
   bool has_surface = false;
+  bool has_selected_output = false;
+
   struct InitCell {
     std::vector<std::string> solutions;
     bool with_redox;
@@ -80,6 +85,7 @@ public:
     std::vector<std::string> surface_charges;
     std::vector<std::string> solution_primaries;
     PhreeqcMatrix::OptionalEssentials optional_essentials;
+    std::vector<std::string> selected_output;
   };
   void init_wrappers(const InitCell &cell);
 };
@@ -108,6 +114,10 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
   const std::string pqc_string =
       replaceRawKeywordID(pqc_mat.getDumpStringsPQI(cell_id));
 
+  if (!pqc_mat.getSelectedOutputBlockString().empty()) {
+    this->RunString(pqc_mat.getSelectedOutputBlockString().c_str());
+  }
+
   this->RunString(pqc_string.c_str());
 
   InitCell cell = {pqc_mat.getSolutionNames(),
@@ -118,7 +128,8 @@ PhreeqcEngine::Impl::Impl(const PhreeqcMatrix &pqc_mat, const int cell_id) {
                    pqc_mat.getSurfaceCompNames(cell_id),
                    pqc_mat.getSurfaceChargeNames(cell_id),
                    pqc_mat.getSolutionPrimaries(),
-                   pqc_mat.optionalEssentials()};
+                   pqc_mat.optionalEssentials(),
+                   pqc_mat.getSelectedOutputNames()};
 
   this->init_wrappers(cell);
 }
@@ -201,6 +212,12 @@ void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {
 
     this->has_surface = true;
   }
+
+  if (this->GetSelectedOutput(1) != nullptr && !cell.selected_output.empty()) {
+    this->selectedOutputWrapperPtr = std::make_unique<SelectedOutputWrapper>(
+        this->GetSelectedOutput(1), cell.selected_output);
+    this->has_selected_output = true;
+  }
 }
 
 void PhreeqcEngine::Impl::get_essential_values(std::span<double> &data) {
@@ -237,6 +254,16 @@ void PhreeqcEngine::Impl::get_essential_values(std::span<double> &data) {
     std::span<double> surf_span{
         data.subspan(offset, this->surfaceWrapperPtr->size())};
     this->surfaceWrapperPtr->get(surf_span);
+
+    offset += this->surfaceWrapperPtr->size();
+  }
+
+  if (this->has_selected_output) {
+    std::span<double> sel_out_span{
+        data.subspan(offset, this->selectedOutputWrapperPtr->size())};
+    this->selectedOutputWrapperPtr->get(sel_out_span);
+
+    offset += this->selectedOutputWrapperPtr->size();
   }
 }
 

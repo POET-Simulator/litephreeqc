@@ -4,6 +4,7 @@ set(LPQC_SOURCE_FILES
     src/Runner.cpp 
     src/Knobs.cpp
     #Wrappers
+    src/Wrapper/SelectedOutputWrapper.cpp
     src/Wrapper/EquilibriumWrapper.cpp
     src/Wrapper/EquilibriumCompWrapper.cpp
     src/Wrapper/ExchangeWrapper.cpp
@@ -69,4 +70,3 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
     add_executable(testGetters     test/testGetters.cpp)
     target_link_libraries(testGetters litephreeqc)
 endif()
-
