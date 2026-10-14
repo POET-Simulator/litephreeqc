@@ -98,13 +98,13 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
   const double tc = data[idx++];
   const double patm = data[idx++];
 
-  // Optional essentials (conditional) - use defaults if not present
-  double ph = 7.0;
-  double pe = 4.0;
-  double massh2o = total_o/55.5;
-  double soln_vol = massh2o;
-  double viscosity = 1.0;
-  double density = 1.0;
+  // Optional essentials (conditional) - only applied if present
+  double ph = 0.0;
+  double pe = 0.0;
+  double massh2o = 0.0;
+  double soln_vol = 0.0;
+  double viscosity = 0.0;
+  double density = 0.0;
 
   if (PhreeqcMatrix::hasFlag(_optional_essentials, OE::SolVol))
     soln_vol = data[idx++];
