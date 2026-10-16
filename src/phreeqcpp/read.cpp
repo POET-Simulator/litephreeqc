@@ -1047,6 +1047,11 @@ int Phreeqc::read_exchange_master_species(void)
      *   Save element name
      */
     master[count_master]->elt = element_store(token);
+    {
+      std::string mname(token);
+      str_tolower(mname);
+      master_map[mname] = master[count_master];
+    }
     /*
      *   Save pointer to species data for master species
      */
@@ -3132,6 +3137,11 @@ int Phreeqc::read_master_species(void)
      *   Save element name
      */
     master[count_master]->elt = element_store(token);
+    {
+      std::string mname(token);
+      str_tolower(mname);
+      master_map[mname] = master[count_master];
+    }
     std::string ename = token;
     /*
      *   Save pointer to species data for master species
@@ -6608,6 +6618,11 @@ int Phreeqc::read_surface_master_species(void)
       master[count_master] = master_alloc();
       master[count_master]->type = SURF;
       master[count_master]->elt = element_store(token);
+      {
+        std::string mname(token);
+        str_tolower(mname);
+        master_map[mname] = master[count_master];
+      }
       if (copy_token(token, &cptr, &l) != UPPER && token[0] != '[') {
         parse_error++;
         error_msg("Reading surface master species name.", CONTINUE);
@@ -6674,6 +6689,11 @@ int Phreeqc::add_psi_master_species(char *token)
       master[count_master] = master_alloc();
       master[count_master]->type = plane;
       master[count_master]->elt = element_store(token);
+      {
+        std::string mname(token);
+        str_tolower(mname);
+        master_map[mname] = master[count_master];
+      }
       s_ptr = s_search(token);
       if (s_ptr != NULL) {
         master[count_master]->s = s_ptr;

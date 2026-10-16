@@ -1657,6 +1657,7 @@ protected:
   std::map<std::string, class phase *> phases_map;
   std::map<std::string, class logk *> logk_map;
   std::map<std::string, class master_isotope *> master_isotope_map;
+  std::map<std::string, class master *> master_map;
 
 #if defined(PHREEQCI_GUI)
 #include "../../phreeqci_gui.h"

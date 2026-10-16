@@ -1470,6 +1470,7 @@ Phreeqc::InternalCopy(const Phreeqc* pSrc)
 		phase_ptr->rxn_x = CReaction_internal_copy(pSrc->phases[i]->rxn_x);
 	}
 	// Master species
+	master_map.clear();
 	for (size_t i = 0; i < pSrc->master.size(); i++)
 	{
 		master.resize(i + 1);
@@ -1484,6 +1485,10 @@ Phreeqc::InternalCopy(const Phreeqc* pSrc)
 		//rxn_primary
 		master[i]->rxn_primary = CReaction_internal_copy(pSrc->master[i]->rxn_primary);
 		master[i]->rxn_secondary = CReaction_internal_copy(pSrc->master[i]->rxn_secondary);
+
+		std::string mname(master[i]->elt->name);
+		str_tolower(mname);
+		master_map[mname] = master[i];
 	}
 	// Unknowns will be built
 	//x                       = NULL;
