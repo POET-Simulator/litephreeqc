@@ -14,11 +14,17 @@
 #include "SurfaceWrapper.hpp"
 #include "SurfaceComp.h"
 
+SurfaceWrapper::Layout::Layout(const cxxSurface *surface)
+    : comp_cb(surface->Get_type() == cxxSurface::NO_EDL),
+      dl_totals(!comp_cb && surface->Get_dl_type() != cxxSurface::NO_DL),
+      dl_water(dl_totals && !(surface->Get_debye_lengths() > 0)) {}
+
 SurfaceWrapper::SurfaceWrapper(cxxSurface *surf,
                                const std::set<std::string> &solution_primaries,
                                const std::vector<std::string> &comp_formulas,
                                const std::vector<std::string> &charge_names)
     : surface(surf) {
+  const Layout layout(surf);
 
   for (const auto &comp_name : comp_formulas) {
     auto it = std::find_if(surface->Get_surface_comps().begin(),
@@ -32,7 +38,7 @@ SurfaceWrapper::SurfaceWrapper(cxxSurface *surf,
           "Surface component not found in Phreeqc variables");
     }
 
-    surface_comps.push_back(std::make_unique<SurfaceCompWrapper>(*it));
+    surface_comps.push_back(std::make_unique<SurfaceCompWrapper>(*it, layout));
 
     num_elements += surface_comps.back()->size();
   }
@@ -49,7 +55,7 @@ SurfaceWrapper::SurfaceWrapper(cxxSurface *surf,
     }
 
     surface_charges.push_back(
-        std::make_unique<SurfaceChargeWrapper>(*it, solution_primaries));
+        std::make_unique<SurfaceChargeWrapper>(*it, solution_primaries, layout));
 
     num_elements += surface_charges.back()->size();
   }
@@ -93,17 +99,18 @@ SurfaceWrapper::names(cxxSurface *surface,
                       std::vector<std::string> &comp_formulas,
                       std::vector<std::string> &charge_names) {
   std::vector<std::string> names;
+  const Layout layout(surface);
 
   for (auto &comp : surface->Get_surface_comps()) {
     comp_formulas.push_back(comp.Get_formula());
-    const auto charge_names = SurfaceCompWrapper::names(comp);
+    const auto charge_names = SurfaceCompWrapper::names(comp, layout);
     names.insert(names.end(), charge_names.begin(), charge_names.end());
   }
 
   for (auto &charge : surface->Get_surface_charges()) {
     charge_names.push_back(charge.Get_name());
     const auto comp_names =
-        SurfaceChargeWrapper::names(&charge, solution_primaries);
+        SurfaceChargeWrapper::names(&charge, solution_primaries, layout);
     names.insert(names.end(), comp_names.begin(), comp_names.end());
   }
 

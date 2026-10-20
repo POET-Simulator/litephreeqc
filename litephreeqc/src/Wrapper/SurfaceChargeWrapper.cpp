@@ -13,69 +13,87 @@
 
 #include "SurfaceWrapper.hpp"
 
+// area, grams, cb, [mw], la_psi, [diffuse layer totals]
 SurfaceWrapper::SurfaceChargeWrapper::SurfaceChargeWrapper(
-    cxxSurfaceCharge &charge, const std::set<std::string> &solution_primaries)
-    : surface_charge(charge), primaries(solution_primaries) {
-  num_elements = NUM_NOT_TOTALS + solution_primaries.size();
+    cxxSurfaceCharge &charge, const std::set<std::string> &solution_primaries,
+    const Layout &layout)
+    : surface_charge(charge), with_water(layout.dl_water),
+      with_totals(layout.dl_totals), num_not_totals(layout.dl_water ? 5 : 4),
+      primaries(solution_primaries) {
+  num_elements =
+      num_not_totals + (with_totals ? solution_primaries.size() : 0);
 }
 
 void SurfaceWrapper::SurfaceChargeWrapper::get(
     std::span<LDBLE> &surface) const {
-  surface[0] = this->surface_charge.Get_specific_area();
-  surface[1] = this->surface_charge.Get_grams();
-  surface[2] = this->surface_charge.Get_charge_balance();
-  surface[3] = this->surface_charge.Get_mass_water();
-  surface[4] = this->surface_charge.Get_la_psi();
+  std::size_t index = 0;
+  surface[index++] = this->surface_charge.Get_specific_area();
+  surface[index++] = this->surface_charge.Get_grams();
+  surface[index++] = this->surface_charge.Get_charge_balance();
+  if (this->with_water) {
+    surface[index++] = this->surface_charge.Get_mass_water();
+  }
+  surface[index++] = this->surface_charge.Get_la_psi();
+
+  if (!this->with_totals) {
+    return;
+  }
 
   const auto dl_map = this->surface_charge.Get_diffuse_layer_totals();
 
-  for (auto it = this->primaries.begin(); it != this->primaries.end(); it++) {
-    const std::size_t index =
-        NUM_NOT_TOTALS + std::distance(this->primaries.begin(), it);
+  for (const auto &name : this->primaries) {
+    const auto dl_it = dl_map.find(name);
 
-    const auto dl_it = dl_map.find(*it);
-
-    if (dl_it == dl_map.end()) {
-      surface[index] = 0;
-      continue;
-    }
-    surface[index] = dl_it->second;
+    surface[index++] = dl_it == dl_map.end() ? 0 : dl_it->second;
   }
 }
 
 void SurfaceWrapper::SurfaceChargeWrapper::set(
     const std::span<LDBLE> &surface) {
-  this->surface_charge.Set_specific_area(surface[0]);
-  this->surface_charge.Set_grams(surface[1]);
-  this->surface_charge.Set_charge_balance(surface[2]);
-  this->surface_charge.Set_mass_water(surface[3]);
-  this->surface_charge.Set_la_psi(surface[4]);
+  std::size_t index = 0;
+  this->surface_charge.Set_specific_area(surface[index++]);
+  this->surface_charge.Set_grams(surface[index++]);
+  this->surface_charge.Set_charge_balance(surface[index++]);
+  if (this->with_water) {
+    this->surface_charge.Set_mass_water(surface[index++]);
+  }
+  this->surface_charge.Set_la_psi(surface[index++]);
+
+  if (!this->with_totals) {
+    return;
+  }
 
   auto &dl_map = this->surface_charge.Get_diffuse_layer_totals();
   dl_map.clear();
 
-  for (auto it = this->primaries.begin(); it != this->primaries.end(); it++) {
-    const std::size_t index =
-        NUM_NOT_TOTALS + std::distance(this->primaries.begin(), it);
+  for (const auto &name : this->primaries) {
+    const double value = surface[index++];
 
-    if (surface[index] == 0) {
+    if (value == 0) {
       continue;
     }
 
-    dl_map[*it] = surface[index];
+    dl_map[name] = value;
   }
 }
 
 std::vector<std::string> SurfaceWrapper::SurfaceChargeWrapper::names(
-    cxxSurfaceCharge *charge, const std::set<std::string> &primaries) {
+    cxxSurfaceCharge *charge, const std::set<std::string> &primaries,
+    const Layout &layout) {
   std::vector<std::string> names;
 
   const std::string &charge_name = charge->Get_name();
   names.push_back(charge_name + "_area");
   names.push_back(charge_name + "_grams");
   names.push_back(charge_name + "_cb");
-  names.push_back(charge_name + "_mw");
+  if (layout.dl_water) {
+    names.push_back(charge_name + "_mw");
+  }
   names.push_back(charge_name + "_la");
+
+  if (!layout.dl_totals) {
+    return names;
+  }
 
   for (const auto &name : primaries) {
     names.push_back(charge_name + "_tot_" + name);

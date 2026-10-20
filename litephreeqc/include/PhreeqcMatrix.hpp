@@ -242,6 +242,31 @@ public:
   PhreeqcMatrix erase(const std::vector<int> &indices) const;
 
   /**
+   * @brief Role of a column for a transport code or a regression model.
+   *
+   * TRANSPORTED: solution totals moved by transport (H, O, Charge, elements).
+   * IMMOBILE: amounts that stay in the cell and are inputs of the equilibrium
+   *   (exchange, surface and diffuse layer totals, their charge balance,
+   *   mineral and kinetic amounts).
+   * PARAMETER: fixed inputs (tc, patm, surface area and grams, water of a
+   *   diffuse layer of fixed thickness, kinetic parameters, target SI).
+   * HINT: starting guesses of the solver (pH, pe, MassH2O, la, la_psi); kept
+   *   in the row so that the result depends on the row only.
+   * DIAGNOSTIC: outputs that are not read back (SolVol, Viscosity, Density).
+   */
+  enum class ColumnRole {
+    ID,
+    TRANSPORTED,
+    IMMOBILE,
+    PARAMETER,
+    HINT,
+    DIAGNOSTIC,
+    SELECTED_OUTPUT
+  };
+
+  static std::string roleName(ColumnRole role);
+
+  /**
    * @brief Type of vector export
    *
    */
@@ -254,6 +279,7 @@ public:
   struct STLExport {
     std::vector<std::string> names;
     std::vector<double> values;
+    std::vector<ColumnRole> roles; // one per name; ID is ColumnRole::ID
   };
 
   /**
@@ -279,6 +305,7 @@ public:
     std::string name;
     PhreeqcComponent type;
     double value;
+    ColumnRole role = ColumnRole::IMMOBILE;
   };
 
   struct base_names {
@@ -319,6 +346,14 @@ public:
    * @return std::vector<std::string> Vector containing all solution names.
    */
   std::vector<std::string> getSolutionNames() const;
+
+  /**
+   * @brief Roles of the columns, in the order of get().names.
+   *
+   * @param include_id Whether the first column is the cell ID
+   * @return std::vector<ColumnRole> Role of each column
+   */
+  std::vector<ColumnRole> getColumnRoles(bool include_id = true) const;
 
   /**
    * @brief Get solution total names of all found solutions (excluding H, O,
@@ -517,6 +552,9 @@ private:
   void initialize();
 
   void remove_NaNs();
+
+  std::vector<ColumnRole> roles_of(const std::vector<std::string> &names,
+                                   bool include_id) const;
 
   std::shared_ptr<IPhreeqc> _m_pqc;
   std::shared_ptr<PhreeqcKnobs> _m_knobs;

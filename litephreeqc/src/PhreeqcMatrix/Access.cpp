@@ -117,6 +117,8 @@ PhreeqcMatrix::STLExport PhreeqcMatrix::get(VectorExportType type,
     result.names.insert(result.names.end(), values.begin(), values.end());
   }
 
+  result.roles = this->roles_of(result.names, include_id);
+
   result.values.reserve(total_elements + (include_id ? rows : 0));
 
   if (type == VectorExportType::COLUMN_MAJOR) {
@@ -170,6 +172,59 @@ PhreeqcMatrix::STLExport PhreeqcMatrix::get(VectorExportType type,
   }
 
   return result;
+}
+
+std::vector<PhreeqcMatrix::ColumnRole>
+PhreeqcMatrix::roles_of(const std::vector<std::string> &names,
+                        bool include_id) const {
+  std::vector<ColumnRole> roles;
+  roles.reserve(names.size());
+
+  for (std::size_t i = 0; i < names.size(); i++) {
+    if (include_id && i == 0) {
+      roles.push_back(ColumnRole::ID);
+      continue;
+    }
+    // a column has the same role in all cells that have it
+    ColumnRole role = ColumnRole::IMMOBILE;
+    for (const auto &[_, elements] : _m_map) {
+      const auto it = std::find_if(
+          elements.begin(), elements.end(),
+          [&](const element &el) { return el.name == names[i]; });
+      if (it != elements.end()) {
+        role = it->role;
+        break;
+      }
+    }
+    roles.push_back(role);
+  }
+
+  return roles;
+}
+
+std::vector<PhreeqcMatrix::ColumnRole>
+PhreeqcMatrix::getColumnRoles(bool include_id) const {
+  return this->get(VectorExportType::ROW_MAJOR, include_id).roles;
+}
+
+std::string PhreeqcMatrix::roleName(ColumnRole role) {
+  switch (role) {
+  case ColumnRole::ID:
+    return "id";
+  case ColumnRole::TRANSPORTED:
+    return "transported";
+  case ColumnRole::IMMOBILE:
+    return "immobile";
+  case ColumnRole::PARAMETER:
+    return "parameter";
+  case ColumnRole::HINT:
+    return "hint";
+  case ColumnRole::DIAGNOSTIC:
+    return "diagnostic";
+  case ColumnRole::SELECTED_OUTPUT:
+    return "selected_output";
+  }
+  return "unknown";
 }
 
 std::vector<std::string> PhreeqcMatrix::getSolutionNames() const {

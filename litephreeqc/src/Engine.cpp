@@ -58,6 +58,9 @@ public:
     return Utilities::Rxn_find(this->PhreeqcPtr->Get_Rxn_surface_map(), n);
   }
 
+  // Number of values of a cell row (without the ID)
+  std::size_t size() const;
+
   void get_essential_values(std::span<double> &data);
 
   void set_essential_values(const std::span<double> &data);
@@ -153,6 +156,13 @@ void PhreeqcEngine::runCell(std::vector<double> &cell_values,
   }
 
   // ID is already skipped by PhreeqcRunner, so no need to start ahead
+  if (cell_values.size() != this->impl->size()) {
+    throw std::invalid_argument(
+        "PhreeqcEngine::runCell: the cell has " +
+        std::to_string(cell_values.size()) + " values, the engine expects " +
+        std::to_string(this->impl->size()));
+  }
+
   std::span<double> cell_data{cell_values.begin(), cell_values.end()};
 
   this->impl->set_essential_values(cell_data);
@@ -229,6 +239,21 @@ void PhreeqcEngine::Impl::init_wrappers(const InitCell &cell) {
         std::make_unique<SelectedOutputWrapper>(this, cell.selected_output);
     this->has_selected_output = true;
   }
+}
+
+std::size_t PhreeqcEngine::Impl::size() const {
+  std::size_t n = this->solutionWrapperPtr->size();
+  if (this->has_exchange)
+    n += this->exchangeWrapperPtr->size();
+  if (this->has_kinetics)
+    n += this->kineticsWrapperPtr->size();
+  if (this->has_equilibrium)
+    n += this->equilibriumWrapperPtr->size();
+  if (this->has_surface)
+    n += this->surfaceWrapperPtr->size();
+  if (this->has_selected_output)
+    n += this->selectedOutputWrapperPtr->size();
+  return n;
 }
 
 void PhreeqcEngine::Impl::get_essential_values(std::span<double> &data) {

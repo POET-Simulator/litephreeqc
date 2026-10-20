@@ -41,6 +41,10 @@ public:
 
   std::vector<std::string> getEssentials() const;
 
+  // true for the columns that are not element totals: H, O, Charge, tc,
+  // patm, the optional essentials, H(0), O(0)
+  static bool isEssential(const std::string &name);
+
 private:
   cxxSolution *solution;
   const std::vector<std::string> solution_order;

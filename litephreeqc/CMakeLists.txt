@@ -39,6 +39,7 @@ if (BUILD_TESTING AND STANDALONE_BUILD)
         test/testPhreeqcMatrix.cpp
         test/testPhreeqcRunner.cpp
         test/testPhreeqcKnobs.cpp
+        test/testSurface.cpp
         test/utils.cpp
         test/IPhreeqcReader.cpp
     )

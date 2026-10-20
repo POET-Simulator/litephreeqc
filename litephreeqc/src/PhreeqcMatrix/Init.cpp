@@ -51,6 +51,46 @@ dump_solution_names(cxxSolution *solution, Phreeqc *phreeqc,
   return solnames;
 }
 
+using Role = PhreeqcMatrix::ColumnRole;
+
+static Role column_role(PhreeqcMatrix::PhreeqcComponent comp,
+                        const std::string &name) {
+  using PC = PhreeqcMatrix::PhreeqcComponent;
+  const auto ends = [&name](const char *suffix) {
+    return name.ends_with(suffix);
+  };
+
+  switch (comp) {
+  case PC::SOLUTION:
+    if (name == "tc" || name == "patm")
+      return Role::PARAMETER;
+    if (name == "pH" || name == "pe" || name == "MassH2O")
+      return Role::HINT;
+    if (name == "SolVol" || name == "Viscosity" || name == "Density")
+      return Role::DIAGNOSTIC;
+    return Role::TRANSPORTED;
+  case PC::EXCHANGE:
+    if (ends("_la"))
+      return Role::HINT;
+    if (ends("_phase_proportion") || ends("_formular_z"))
+      return Role::PARAMETER;
+    return Role::IMMOBILE;
+  case PC::KINETIC:
+    return ends("_kin") ? Role::IMMOBILE : Role::PARAMETER;
+  case PC::EQUILIBRIUM:
+    return ends("_si") ? Role::PARAMETER : Role::IMMOBILE;
+  case PC::SURFACE_COMPS:
+    if (ends("_la"))
+      return Role::HINT;
+    if (ends("_area") || ends("_grams") || ends("_mw"))
+      return Role::PARAMETER;
+    return Role::IMMOBILE;
+  case PC::SELECTED_OUTPUT:
+    return Role::SELECTED_OUTPUT;
+  }
+  return Role::IMMOBILE;
+}
+
 template <enum PhreeqcMatrix::PhreeqcComponent comp, class T>
 static void
 base_add_to_element_vector(const T &wrapper,
@@ -62,7 +102,8 @@ base_add_to_element_vector(const T &wrapper,
   wrapper.get(values_span);
 
   for (std::size_t i = 0; i < names.size(); ++i) {
-    elements.push_back({names[i], comp, values[i]});
+    elements.push_back(
+        {names[i], comp, values[i], column_role(comp, names[i])});
   }
 }
 
@@ -102,9 +143,14 @@ surface_add_to_element_vector(Phreeqc *phreeqc, cxxSurface *surface,
   surface_primaries.insert("H");
   surface_primaries.insert("O");
 
-  for (std::size_t i = 3; i < solution_names.size(); i++) {
+  // only element totals: the essentials (tc, pH, ...) would otherwise be
+  // read as element names (Tc, P, ...)
+  for (const auto &name : solution_names) {
+    if (SolutionWrapper::isEssential(name)) {
+      continue;
+    }
     const auto master_primary =
-        phreeqc->master_bsearch_primary(solution_names[i].c_str());
+        phreeqc->master_bsearch_primary(name.c_str());
     if (master_primary != NULL) {
       surface_primaries.insert(master_primary->elt->name);
     }
@@ -313,7 +359,7 @@ void PhreeqcMatrix::initialize() {
       for (std::size_t i = 0; i < so_values.size(); ++i) {
         elements.push_back({this->_m_selected_output_names[i],
                             PhreeqcMatrix::PhreeqcComponent::SELECTED_OUTPUT,
-                            so_values[i]});
+                            so_values[i], Role::SELECTED_OUTPUT});
       }
     }
   }

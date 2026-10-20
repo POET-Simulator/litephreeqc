@@ -151,6 +151,20 @@ void SolutionWrapper::set(const std::span<LDBLE> &data) {
     this->solution->Set_density(density);
 }
 
+bool SolutionWrapper::isEssential(const std::string &name) {
+  for (const char *essential : MANDATORY_ESSENTIALS) {
+    if (name == essential) {
+      return true;
+    }
+  }
+  for (const char *essential : OPTIONAL_ESSENTIAL_NAMES) {
+    if (name == essential) {
+      return true;
+    }
+  }
+  return name == "H(0)" || name == "O(0)";
+}
+
 std::vector<std::string>
 SolutionWrapper::names(cxxSolution *solution, bool include_h0_o0,
                        std::vector<std::string> &solution_order, bool with_redox,
