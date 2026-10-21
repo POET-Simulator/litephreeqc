@@ -351,6 +351,22 @@ public:
   std::vector<ColumnRole> getColumnRoles(bool include_id = true) const;
 
   /**
+   * @brief Columns of a cell: indices into get().names of the columns the
+   * cell has, in order (the ID column is never included).
+   *
+   * These are the values PhreeqcEngine of this cell takes and returns, in the
+   * same order. A runner selects them by index: a value of the cell may be NaN
+   * (e.g. a text column of SELECTED_OUTPUT), so NaN cannot tell the columns of
+   * other cells apart.
+   *
+   * @param id Cell ID
+   * @param include_id Whether get().names starts with the ID column
+   * @return std::vector<std::size_t> Column indices of the cell
+   */
+  std::vector<std::size_t> getCellColumns(int id,
+                                          bool include_id = true) const;
+
+  /**
    * @brief Get solution total names of all found solutions (excluding H, O,
    * Charge, H(0), O(0))
    *

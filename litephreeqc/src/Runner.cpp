@@ -10,59 +10,52 @@
 #include "PhreeqcMatrix.hpp"
 #include "PhreeqcRunner.hpp"
 #include <algorithm>
-#include <cmath>
+#include <stdexcept>
+#include <string>
 #include <cstddef>
 #include <memory>
 #include <set>
 #include <vector>
 
 PhreeqcRunner::PhreeqcRunner(const PhreeqcMatrix &matrix) {
+  this->_ncols = matrix.get().names.size();
   // first make sure to have enough space in our buffer
-  this->_buffer.reserve(matrix.get().names.size());
+  this->_buffer.reserve(this->_ncols);
 
   // Create a PhreeqcEngine for each id
   for (const auto &id : matrix.getIds()) {
     this->_engineStorage[id] = std::make_unique<PhreeqcEngine>(matrix, id);
+    this->_cellColumns[id] = matrix.getCellColumns(id);
   }
 }
 
-static void copy_to_buffer(std::vector<double> &buffer,
-                           const std::vector<double> &current_inout) {
-  for (std::size_t j = 1; j < current_inout.size(); j++) {
-    if (std::isnan(current_inout[j])) {
-      continue;
-    }
-    buffer.push_back(current_inout[j]);
+// The values of the cell are taken by column index, not by skipping NaNs: a
+// value of the cell may itself be NaN (e.g. a text SELECTED_OUTPUT column)
+void PhreeqcRunner::run_row(std::vector<double> &row, const double time_step) {
+  if (row.size() != this->_ncols) {
+    throw std::invalid_argument(
+        "PhreeqcRunner::run: a row has " + std::to_string(row.size()) +
+        " columns, the matrix has " + std::to_string(this->_ncols));
   }
-}
+  const auto pqc_id = static_cast<int>(row[0]);
+  const auto &columns = this->_cellColumns.at(pqc_id);
 
-static void copy_from_buffer(const std::vector<double> &buffer,
-                             std::vector<double> &current_inout) {
-  std::size_t buffer_index = 0;
-  for (std::size_t j = 1; j < current_inout.size(); j++) {
-    if (std::isnan(current_inout[j])) {
-      continue;
-    }
-    current_inout[j] = buffer[buffer_index++];
+  this->_buffer.clear();
+  for (const auto j : columns) {
+    this->_buffer.push_back(row[j]);
+  }
+
+  this->_engineStorage.at(pqc_id)->runCell(this->_buffer, time_step);
+
+  for (std::size_t k = 0; k < columns.size(); k++) {
+    row[columns[k]] = this->_buffer[k];
   }
 }
 
 void PhreeqcRunner::run(std::vector<std::vector<double>> &simulationInOut,
                         const double time_step) {
-  for (std::size_t i = 0; i < simulationInOut.size(); i++) {
-    const auto &current_inout = simulationInOut[i];
-    const auto pqc_id = static_cast<int>(current_inout[0]);
-
-    this->_buffer.clear();
-
-    // Copy the input to the buffer while ignoring the first element and NaNs
-    copy_to_buffer(this->_buffer, current_inout);
-
-    this->_engineStorage.at(pqc_id)->runCell(this->_buffer, time_step);
-
-    // Copy the buffer back to the output while ignoring the first element and
-    // NaNs
-    copy_from_buffer(this->_buffer, simulationInOut[i]);
+  for (auto &row : simulationInOut) {
+    this->run_row(row, time_step);
   }
 }
 
@@ -75,19 +68,6 @@ void PhreeqcRunner::run(std::vector<std::vector<double>> &simulationInOut,
     if (to_ignore_set.find(i) != to_ignore_set.end()) {
       continue;
     }
-
-    const auto &current_inout = simulationInOut[i];
-    const auto pqc_id = static_cast<int>(current_inout[0]);
-
-    this->_buffer.clear();
-
-    // Copy the input to the buffer while ignoring the first element and NaNs
-    copy_to_buffer(this->_buffer, current_inout);
-
-    this->_engineStorage.at(pqc_id)->runCell(this->_buffer, time_step);
-
-    // Copy the buffer back to the output while ignoring the first element and
-    // NaNs
-    copy_from_buffer(this->_buffer, simulationInOut[i]);
+    this->run_row(simulationInOut[i], time_step);
   }
 }

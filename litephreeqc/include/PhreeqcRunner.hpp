@@ -81,6 +81,12 @@ public:
   std::size_t numEngines() const { return _engineStorage.size(); }
 
 private:
+  void run_row(std::vector<double> &row, const double time_step);
+
   std::unordered_map<int, std::unique_ptr<PhreeqcEngine>> _engineStorage;
+  // per cell ID: the columns of the row its engine takes
+  // (PhreeqcMatrix::getCellColumns)
+  std::unordered_map<int, std::vector<std::size_t>> _cellColumns;
+  std::size_t _ncols = 0; // columns of a row, ID included
   std::vector<double> _buffer;
 };

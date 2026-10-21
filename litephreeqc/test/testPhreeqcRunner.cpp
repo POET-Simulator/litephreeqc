@@ -9,8 +9,12 @@
 #include "PhreeqcRunner.hpp"
 #include "utils.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <iterator>
+#include <stdexcept>
+#include <string>
 #include <gtest/gtest.h>
 #include <testInput.hpp>
 #include <vector>
@@ -102,4 +106,70 @@ POET_TEST(PhreeqcRunnerSimulationWithIgnoredCells) {
   for (std::size_t i = 0; i < num_columns; ++i) {
     EXPECT_DOUBLE_EQ(simulationInOut[0][i], second_line[i]);
   }
+}
+
+// The text column state_SO is NaN in every cell, and cell 1 lacks the PURE
+// columns of cell 2: the runner must take the values of a cell by column, not
+// by skipping NaNs (which shifted the SELECTED_OUTPUT values after state_SO)
+POET_TEST(PhreeqcRunnerSelectedOutputTextColumn) {
+  const std::string script = R"(SELECTED_OUTPUT
+-high_precision true
+-reset true
+SOLUTION 1
+pH 7.0
+SOLUTION 2
+units mol/kgw
+pH 7
+Na 0.1
+Cl 0.1 charge
+PURE 2
+Calcite 0.0 1
+RUN_CELLS
+-cells 1 2
+END)";
+  PhreeqcMatrix pqc_mat(readFile(base_test::phreeqc_database), script);
+  const auto exported = pqc_mat.get();
+  const auto &names = exported.names;
+  const std::size_t num_columns = names.size();
+  auto col = [&names](const std::string &name) {
+    return static_cast<std::size_t>(std::distance(
+        names.begin(), std::find(names.begin(), names.end(), name)));
+  };
+  const std::size_t state = col("state_SO");
+  const std::size_t ph = col("pH");
+  const std::size_t ph_so = col("pH_SO");
+  const std::size_t calcite = col("Calcite_eq");
+  ASSERT_LT(state, num_columns);
+  ASSERT_LT(ph, num_columns);
+  ASSERT_LT(ph_so, num_columns);
+  ASSERT_LT(calcite, num_columns);
+
+  const auto cols_1 = pqc_mat.getCellColumns(1);
+  const auto cols_2 = pqc_mat.getCellColumns(2);
+  auto has = [](const std::vector<std::size_t> &cols, std::size_t j) {
+    return std::find(cols.begin(), cols.end(), j) != cols.end();
+  };
+  EXPECT_TRUE(has(cols_1, state));
+  EXPECT_TRUE(has(cols_2, state));
+  EXPECT_FALSE(has(cols_1, calcite));
+  EXPECT_TRUE(has(cols_2, calcite));
+
+  std::vector<std::vector<double>> simulationInOut = {
+      {exported.values.begin(), exported.values.begin() + num_columns},
+      {exported.values.begin() + num_columns, exported.values.end()}};
+  ASSERT_TRUE(std::isnan(simulationInOut[1][state]));
+
+  PhreeqcRunner runner(pqc_mat);
+  ASSERT_NO_THROW(runner.run(simulationInOut, 0));
+
+  EXPECT_TRUE(std::isnan(simulationInOut[0][calcite]));
+  EXPECT_FALSE(std::isnan(simulationInOut[1][calcite]));
+  for (const auto &row : simulationInOut) {
+    EXPECT_TRUE(std::isnan(row[state]));
+    EXPECT_NEAR(row[ph_so], row[ph], 1e-8);
+  }
+
+  // a row of the wrong length is an error, not a misaligned cell
+  simulationInOut[0].pop_back();
+  EXPECT_THROW(runner.run(simulationInOut, 0), std::invalid_argument);
 }

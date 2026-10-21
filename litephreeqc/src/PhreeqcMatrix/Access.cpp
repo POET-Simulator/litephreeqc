@@ -202,6 +202,21 @@ PhreeqcMatrix::getColumnRoles(bool include_id) const {
   return this->get(VectorExportType::ROW_MAJOR, include_id).roles;
 }
 
+std::vector<std::size_t> PhreeqcMatrix::getCellColumns(int id,
+                                                       bool include_id) const {
+  const auto names = this->get(VectorExportType::ROW_MAJOR, include_id).names;
+  const auto &elements = _m_map.at(id);
+
+  std::vector<std::size_t> columns;
+  for (std::size_t j = include_id ? 1 : 0; j < names.size(); j++) {
+    if (std::any_of(elements.begin(), elements.end(),
+                    [&](const element &el) { return el.name == names[j]; })) {
+      columns.push_back(j);
+    }
+  }
+  return columns;
+}
+
 std::string PhreeqcMatrix::roleName(ColumnRole role) {
   switch (role) {
   case ColumnRole::ID:
