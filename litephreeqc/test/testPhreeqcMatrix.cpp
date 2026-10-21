@@ -548,14 +548,27 @@ POET_TEST(PhreeqcMatrixImmobileExtensive) {
 
   for (const std::string name :
        {"X", "X_cb", "X_tot_Ca", "X_tot_Na", "Calcite_kin", "Dolomite_eq",
-        "Hfo_wOH_moles", "Hfo_wOH_cb", "Hfo_wOH_Ca", "Hfo_grams", "Hfo_cb",
-        "Hfo_mw", "Hfo_tot_Ca"}) {
+        "Hfo_wOH_Ca", "Hfo_grams", "Hfo_cb"}) {
     EXPECT_TRUE(has(name)) << name;
   }
+  // DDL: <site>_moles, <site>_cb, _mw and _tot_* are not columns (not read)
   for (const std::string name :
        {"ID", "H", "O", "Charge", "Ca", "SolVol", "MassH2O", "X_la",
         "X_phase_proportion", "X_formular_z", "Calcite_p1", "Calcite_p2",
-        "Dolomite_si", "Hfo_wOH_la", "Hfo_area", "Hfo_la"}) {
+        "Dolomite_si", "Hfo_wOH_la", "Hfo_area", "Hfo_la", "Hfo_wOH_moles",
+        "Hfo_wOH_cb", "Hfo_mw", "Hfo_tot_Ca"}) {
     EXPECT_FALSE(has(name)) << name;
+  }
+
+  // Donnan layer of fixed thickness: its water and totals are extensive
+  std::string donnan = immobile_test::script;
+  const std::string surf = "Hfo_wOH 1e-3 600 1\n";
+  donnan.replace(donnan.find(surf), surf.size(), surf + "-donnan 1e-8\n");
+  PhreeqcMatrix pqc_don(base_db, donnan);
+  const auto immobile_don = pqc_don.getMatrixImmobileExtensive();
+  for (const std::string name : {"Hfo_cb", "Hfo_mw", "Hfo_tot_Ca"}) {
+    EXPECT_NE(std::find(immobile_don.begin(), immobile_don.end(), name),
+              immobile_don.end())
+        << name;
   }
 }

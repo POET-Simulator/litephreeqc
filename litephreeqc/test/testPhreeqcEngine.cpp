@@ -102,7 +102,8 @@ END)";
 
   EXPECT_NO_THROW(engine.runCell(cell_values, 100));
 
-  EXPECT_NEAR(cell_values[ca_idx], 0.12131, 1e-3);
+  // phreeqc.dat of PHREEQC 3.9.0 (calcite, CaHCO3+ revised); 0.12131 before
+  EXPECT_NEAR(cell_values[ca_idx], 0.12823, 1e-3);
   EXPECT_NEAR(cell_values[punch_idx], 789.0, 1e-4);
 }
 
