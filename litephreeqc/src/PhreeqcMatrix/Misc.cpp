@@ -1,16 +1,11 @@
 /*
- * This project is subject to the original PHREEQC license. `litephreeqc` is a
- * version of the PHREEQC code that has been modified to be used as a library.
+ * Copyright (c) 2024-2026 Max Luebke (University of Potsdam)
+ *                       Marco De Lucia (GFZ German Research Centre for Geosciences)
  *
- * It adds a C++ interface on top of the original PHREEQC code, with small
- * changes to the original code base.
+ * SPDX-License-Identifier: EUPL-1.2
  *
- * Authors of Modifications:
- * - Max Luebke (mluebke@uni-potsdam.de) - University of Potsdam
- * - Marco De Lucia (delucia@gfz.de) - GFZ Helmholz Centre for Geosciences
- *
+ * This file is part of litephreeqc, a C++ interface library on top of PHREEQC.
  */
-
 #include "PhreeqcMatrix.hpp"
 
 #include <IPhreeqc.hpp>

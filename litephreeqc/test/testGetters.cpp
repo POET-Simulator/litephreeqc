@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2024-2026 Max Luebke (University of Potsdam)
+ *                       Marco De Lucia (GFZ German Research Centre for Geosciences)
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * This file is part of litephreeqc, a C++ interface library on top of PHREEQC.
+ */
+
 //  Time-stamp: "Last modified 2026-01-23 13:56:47 delucia"
 #include <iostream>
 #include <iomanip>

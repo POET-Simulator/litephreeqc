@@ -4697,258 +4697,348 @@ int Phreeqc::read_solution(void)
     use.Set_n_solution_user(n_user);
   }
 
-  /*
-   *   Read concentration data
-   */
-  std::string token;
-  return_value = UNKNOWN;
-  for (;;) {
-    opt = get_option(opt_list, count_opt_list, &next_char);
-    if (opt == OPTION_DEFAULT) {
-      cptr = next_char;
-      if (copy_token(token, &cptr) == CParser::TT_DIGIT) {
-        opt = 9;
-      }
-    }
-    switch (opt) {
-    case OPTION_EOF: /* end of file */
-      return_value = EOF;
-      break;
-    case OPTION_KEYWORD: /* keyword */
-      return_value = KEYWORD;
-      break;
-    case OPTION_ERROR:
-      input_error++;
-      error_msg("Unknown input in SOLUTION keyword.", PHRQ_io::OT_CONTINUE);
-      error_msg(line_save, CONTINUE);
-      break;
-    case 0: /* temperature */
-    case 1:
-      if (sscanf(next_char, SCANFORMAT, &dummy) == 1) {
-        temp_solution.Set_tc(dummy);
-      }
-      break;
-    case 2: /* density */
-    case 3: {
-      copy_token(token, &next_char);
-      if (sscanf(token.c_str(), SCANFORMAT, &dummy) != 1) {
-        error_msg("Expecting numeric value for density.", PHRQ_io::OT_CONTINUE);
-        error_msg(line_save, PHRQ_io::OT_CONTINUE);
-        input_error++;
-      } else {
-        temp_solution.Set_density(dummy);
-      }
-      int j = copy_token(token, &next_char);
-      if (j != EMPTY) {
-        if (token[0] != 'c' && token[0] != 'C') {
-          error_msg("Only option following density is c[alculate].",
-                    PHRQ_io::OT_CONTINUE);
-          error_msg(line_save, PHRQ_io::OT_CONTINUE);
-          input_error++;
-        } else {
-          isoln_ptr->Set_calc_density(true);
-        }
-      }
-    } break;
-    case 4: /* units */
-    case 8: /* unit */
-      if (copy_token(token, &next_char) == CParser::TT_EMPTY)
-        break;
-      {
-        if (check_units(token, false, false, "mMol/kgw", false) ==
-            CParser::PARSER_OK) {
-          isoln_ptr->Set_units(token);
-        } else {
-          input_error++;
-        }
-      }
-      break;
-    case 5: /* redox */
-      if (copy_token(token, &next_char) == CParser::TT_EMPTY)
-        break;
-      if (parser.parse_couple(token) == CParser::PARSER_OK) {
-        const char *str = string_hsave(token.c_str());
-        // isoln_ptr->Set_default_pe(token);
-        isoln_ptr->Set_default_pe(str);
-        CReaction temp_chem_reaction;
-        isoln_ptr->Get_pe_reactions()[token] = temp_chem_reaction;
-      } else {
-        input_error++;
-      }
-      break;
-    case 6: /* ph */
-    {
-      cxxISolutionComp temp_comp(this->phrq_io);
-      if (temp_comp.read(line, &temp_solution) == CParser::PARSER_ERROR) {
-        input_error++;
-        break;
-      }
+/*
+ *   Read concentration data
+ */
+	std::string token;
+	return_value = UNKNOWN;
+	for (;;)
+	{
+		opt = get_option(opt_list, count_opt_list, &next_char);
+		if (opt == OPTION_DEFAULT)
+		{
+			cptr = next_char;
+			if (copy_token(token, &cptr) == CParser::TT_DIGIT)
+			{
+				opt = 9;
+			}
+		}
+		switch (opt)
+		{
+		case OPTION_EOF:		/* end of file */
+			return_value = EOF;
+			break;
+		case OPTION_KEYWORD:	/* keyword */
+			return_value = KEYWORD;
+			break;
+		case OPTION_ERROR:
+			input_error++;
+			error_msg("Unknown input in SOLUTION keyword.", PHRQ_io::OT_CONTINUE);
+			error_msg(line_save, CONTINUE);
+			break;
+		case 0:				/* temperature */
+		case 1:
+			if (sscanf(next_char, SCANFORMAT, &dummy) == 1)
+			{
+				temp_solution.Set_tc(dummy);
+			}
+			else
+			{
+				std::ostringstream oss;
+				oss << "No value given for temperature. Line ignored.";
+				warning_msg(oss.str().c_str());
+			}
+			break;
+		case 2:				/* density */
+		case 3:
+			{
+				copy_token(token, &next_char);
+				//if (sscanf(token.c_str(), SCANFORMAT, &dummy) != 1)
+				//{
+				//		error_msg("Expecting numeric value for density.", PHRQ_io::OT_CONTINUE);
+				//		error_msg(line_save, PHRQ_io::OT_CONTINUE);
+				//		input_error++;
+				//}
+				//else
+				if (sscanf(token.c_str(), SCANFORMAT, &dummy) == 1)
+				{
+					temp_solution.Set_density(dummy);
+				}
+				else
+				{
+					std::ostringstream oss;
+					oss << "No value given for density. Line ignored.";
+					warning_msg(oss.str().c_str());
+				}
+				int j = copy_token(token, &next_char);
+				if (j != EMPTY)
+				{
+					if (token[0] != 'c' && token[0] != 'C')
+					{
+						error_msg("Only option following density is c[alculate].", PHRQ_io::OT_CONTINUE);
+						error_msg(line_save, PHRQ_io::OT_CONTINUE);
+						input_error++;
+					}
+					else
+					{
+						isoln_ptr->Set_calc_density(true);
+					}
+				}
+			}
+			break;
+		case 4:				/* units */
+		case 8:				/* unit */
+			if (copy_token(token, &next_char) == CParser::TT_EMPTY)
+				break;
+			{
+				if (check_units(token, false, false, "mMol/kgw", false) == CParser::PARSER_OK)
+				{
+					isoln_ptr->Set_units(token);
+				}
+				else
+				{
+					std::ostringstream oss;
+					oss << "No value given for units. Line ignored.";
+					warning_msg(oss.str().c_str());
+				}
+			}
+			break;
+		case 5:				/* redox */
+			if (copy_token(token, &next_char) == CParser::TT_EMPTY)
+				break;
+			if (parser.parse_couple(token) == CParser::PARSER_OK)
+			{
+				const char * str = string_hsave(token.c_str());
+				//isoln_ptr->Set_default_pe(token);
+				isoln_ptr->Set_default_pe(str);
+				CReaction temp_chem_reaction;
+				isoln_ptr->Get_pe_reactions()[token] = temp_chem_reaction;
+			}
+			else
+			{
+				std::ostringstream oss;
+				oss << "No value given for redox. Line ignored.";
+				warning_msg(oss.str().c_str());
+			}
+			break;
+		case 6:				/* ph */
+			{
+				cxxISolutionComp temp_comp(this->phrq_io);
+				CParser::STATUS_TYPE status = temp_comp.read(line, &temp_solution);
+				if (status == CParser::PARSER_ERROR)
+				{
+					input_error++;
+					break;
+				}
+				else if(status == CParser::PARSER_IGNORE)
+				{
+					break;
+				}
+				temp_solution.Set_ph(temp_comp.Get_input_conc());
+				
+				if (temp_comp.Get_equation_name().size() == 0)
+				{
+					break;
+					
+				}
+				temp_comp.Set_description("H(1)");
+				isoln_ptr->Get_comps()[temp_comp.Get_description()] = temp_comp;
+			}
+			break;
+		case 7:				/* pe */
+			{
+				cxxISolutionComp temp_comp(this->phrq_io);
+				CParser::STATUS_TYPE status = temp_comp.read(line, &temp_solution);
+				if (status == CParser::PARSER_ERROR)
+				{
+					input_error++;
+					break;
+				}
+				else if (status == CParser::PARSER_IGNORE)
+				{
+					break;
+				}
+				temp_solution.Set_pe(temp_comp.Get_input_conc());
+				if (temp_comp.Get_equation_name().size() == 0)
+				{
+					break;
+				}
+				temp_comp.Set_description("E");
+				isoln_ptr->Get_comps()[temp_comp.Get_description()] = temp_comp;
+			}
+			break;
+		case 9:				/* isotope */
+			{
+				cxxSolutionIsotope temp_isotope;
+				if (copy_token(token, &next_char) !=  CParser::TT_DIGIT)
+				{
+					input_error++;
+					error_string = sformatf( "Expected isotope name to"
+						" begin with an isotopic number.");
+					error_msg(error_string, PHRQ_io::OT_CONTINUE);
+					error_string = sformatf( "In read_solution\n");
+					error_msg(error_string, PHRQ_io::OT_CONTINUE);
+					error_string = sformatf( "\t%s\t%s\n", "token:     ", token.c_str());
+					error_msg(error_string, PHRQ_io::OT_CONTINUE);
+					error_string = sformatf( "\t%s\t%s\n", "next_char: ", next_char);
+					error_msg(error_string, PHRQ_io::OT_CONTINUE);
+					error_string = sformatf( "\t%s\t%s\n", "line_save: ", line_save);
+					error_msg(error_string, PHRQ_io::OT_CONTINUE);
+					continue;
+				}
+				temp_isotope.Set_isotope_name(token.c_str());
+				/* read and save element name */
+				{
+					std::string temp_iso_name = token.c_str();
+					const char* cptr1 = temp_iso_name.c_str();
+					get_num(&cptr1, &dummy);
+					temp_isotope.Set_isotope_number(dummy);
+					if (cptr1[0] == '\0' || isupper((int) cptr1[0]) == FALSE)
+					{
+						error_msg("Expecting element name.", PHRQ_io::OT_CONTINUE);
+						error_msg(line_save, PHRQ_io::OT_CONTINUE);
+						input_error++;
+						return (CParser::PARSER_ERROR);
+					}
+					temp_isotope.Set_elt_name(cptr1);
+				}
+				/* read and store isotope ratio */
+				if (copy_token(token, &next_char) != CParser::TT_DIGIT)
+				{
+					input_error++;
+					error_string = sformatf(
+						"Expected numeric value for isotope ratio.");
+					error_msg(error_string, CONTINUE);
+					continue;
+				}
+				(void)sscanf(token.c_str(), SCANFORMAT, &dummy);
+				temp_isotope.Set_ratio(dummy);
+				temp_isotope.Set_ratio_uncertainty(NAN);
 
-      temp_solution.Set_ph(temp_comp.Get_input_conc());
-
-      if (temp_comp.Get_equation_name().size() == 0) {
-        break;
-      }
-      temp_comp.Set_description("H(1)");
-      isoln_ptr->Get_comps()[temp_comp.Get_description()] = temp_comp;
-    } break;
-    case 7: /* pe */
-    {
-      cxxISolutionComp temp_comp(this->phrq_io);
-      if (temp_comp.read(line, &temp_solution) == CParser::PARSER_ERROR) {
-        input_error++;
-        break;
-      }
-      temp_solution.Set_pe(temp_comp.Get_input_conc());
-      if (temp_comp.Get_equation_name().size() == 0) {
-        break;
-      }
-      temp_comp.Set_description("E");
-      isoln_ptr->Get_comps()[temp_comp.Get_description()] = temp_comp;
-    } break;
-    case 9: /* isotope */
-    {
-      cxxSolutionIsotope temp_isotope;
-      if (copy_token(token, &next_char) != CParser::TT_DIGIT) {
-        input_error++;
-        error_string = sformatf("Expected isotope name to"
-                                " begin with an isotopic number.");
-        error_msg(error_string, PHRQ_io::OT_CONTINUE);
-        error_string = sformatf("In read_solution\n");
-        error_msg(error_string, PHRQ_io::OT_CONTINUE);
-        error_string = sformatf("\t%s\t%s\n", "token:     ", token.c_str());
-        error_msg(error_string, PHRQ_io::OT_CONTINUE);
-        error_string = sformatf("\t%s\t%s\n", "next_char: ", next_char);
-        error_msg(error_string, PHRQ_io::OT_CONTINUE);
-        error_string = sformatf("\t%s\t%s\n", "line_save: ", line_save);
-        error_msg(error_string, PHRQ_io::OT_CONTINUE);
-        continue;
-      }
-      temp_isotope.Set_isotope_name(token.c_str());
-      /* read and save element name */
-      {
-        std::string temp_iso_name = token.c_str();
-        const char *cptr1 = temp_iso_name.c_str();
-        get_num(&cptr1, &dummy);
-        temp_isotope.Set_isotope_number(dummy);
-        if (cptr1[0] == '\0' || isupper((int)cptr1[0]) == FALSE) {
-          error_msg("Expecting element name.", PHRQ_io::OT_CONTINUE);
-          error_msg(line_save, PHRQ_io::OT_CONTINUE);
-          input_error++;
-          return (CParser::PARSER_ERROR);
-        }
-        temp_isotope.Set_elt_name(cptr1);
-      }
-      /* read and store isotope ratio */
-      if (copy_token(token, &next_char) != CParser::TT_DIGIT) {
-        input_error++;
-        error_string = sformatf("Expected numeric value for isotope ratio.");
-        error_msg(error_string, CONTINUE);
-        continue;
-      }
-      (void)sscanf(token.c_str(), SCANFORMAT, &dummy);
-      temp_isotope.Set_ratio(dummy);
-      temp_isotope.Set_ratio_uncertainty(NAN);
-
-      /* read and store isotope ratio uncertainty */
-      int j;
-      if ((j = copy_token(token, &next_char)) != CParser::TT_EMPTY) {
-        if (j != DIGIT) {
-          input_error++;
-          error_string = sformatf(
-              "Expected numeric value for uncertainty in isotope ratio.");
-          error_msg(error_string, PHRQ_io::OT_CONTINUE);
-          continue;
-        }
-        (void)sscanf(token.c_str(), SCANFORMAT, &dummy);
-        temp_isotope.Set_ratio_uncertainty(dummy);
-        temp_isotope.Set_ratio_uncertainty_defined(true);
-      }
-      temp_solution.Get_isotopes()[temp_isotope.Get_isotope_name()] =
-          temp_isotope;
-    } break;
-    case 10: /* water */
-    {
-      int j = copy_token(token, &next_char);
-      if (j == EMPTY) {
-        temp_solution.Set_mass_water(1.0);
-      } else if (j != DIGIT) {
-        input_error++;
-        error_string =
-            sformatf("Expected numeric value for mass of water in solution.");
-        error_msg(error_string, CONTINUE);
-      } else {
-        (void)sscanf(token.c_str(), SCANFORMAT, &dummy);
-        temp_solution.Set_mass_water(dummy);
-      }
-    } break;
-    case 11: /* pressure */
-    case 12: {
-      if (sscanf(next_char, SCANFORMAT, &dummy) != 1) {
-        temp_solution.Set_patm(1);
-      } else {
-        temp_solution.Set_patm(dummy);
-      }
-    } break;
-    case 13: /* potential, Volt */
-    {
-      if (sscanf(next_char, SCANFORMAT, &dummy) != 1) {
-        temp_solution.Set_potV(0);
-      } else {
-        temp_solution.Set_potV(dummy);
-      }
-    } break;
-    case OPTION_DEFAULT:
-      /*
-       *   Read concentration
-       */
-      {
-        cxxISolutionComp temp_comp(this->phrq_io);
-        if (temp_comp.read(line, &temp_solution) == CParser::PARSER_ERROR) {
-          input_error++;
-          break;
-        }
-        isoln_ptr->Get_comps()[temp_comp.Get_description()] = temp_comp;
-        if (temp_comp.Get_pe_reaction().size() > 0) {
-          CReaction temp_chem_reaction;
-          isoln_ptr->Get_pe_reactions()[temp_comp.Get_pe_reaction()] =
-              temp_chem_reaction;
-        }
-      }
-      break;
-    }
-    if (return_value == EOF || return_value == KEYWORD)
-      break;
-  }
-  /*
-   *   fix up default units and default pe
-   */
-  std::map<std::string, cxxISolutionComp>::iterator it;
-  for (it = isoln_ptr->Get_comps().begin(); it != isoln_ptr->Get_comps().end();
-       it++) {
-    token = it->first;
-    Utilities::str_tolower(token);
-    if (it->second.Get_units().size() == 0) {
-      it->second.Set_units(isoln_ptr->Get_units().c_str());
-    } else {
-      bool alk = false;
-      if (strstr(token.c_str(), "alk") == token.c_str())
-        alk = true;
-      std::string token1 = it->second.Get_units();
-      if (check_units(token1, alk, true, isoln_ptr->Get_units().c_str(),
-                      true) == CParser::PARSER_ERROR) {
-        input_error++;
-      } else {
-        it->second.Set_units(token1.c_str());
-      }
-    }
-    if (it->second.Get_pe_reaction().size() == 0) {
-      it->second.Set_pe_reaction(isoln_ptr->Get_default_pe());
-    }
-  }
-  Rxn_solution_map[n_user] = temp_solution;
-  Rxn_new_solution.insert(n_user);
-  return (return_value);
+				/* read and store isotope ratio uncertainty */
+				int j;
+				if ((j = copy_token(token, &next_char)) != CParser::TT_EMPTY)
+				{
+					if (j != DIGIT)
+					{
+						input_error++;
+						error_string = sformatf(
+							"Expected numeric value for uncertainty in isotope ratio.");
+						error_msg(error_string, PHRQ_io::OT_CONTINUE);
+						continue;
+					}
+					(void)sscanf(token.c_str(), SCANFORMAT, &dummy);
+					temp_isotope.Set_ratio_uncertainty(dummy);
+					temp_isotope.Set_ratio_uncertainty_defined(true);
+				}
+				temp_solution.Get_isotopes()[temp_isotope.Get_isotope_name()] = temp_isotope;
+			}
+			break;
+		case 10:				/* water */
+			{
+				int j = copy_token(token, &next_char);
+				if (j == EMPTY)
+				{
+					std::ostringstream oss;
+					oss << "No value given for water. Line ignored.";
+					warning_msg(oss.str().c_str());
+				}
+				else if (j != DIGIT)
+				{
+					input_error++;
+					error_string = sformatf(
+						"Expected numeric value for mass of water in solution.");
+					error_msg(error_string, CONTINUE);
+				}
+				else
+				{
+					(void)sscanf(token.c_str(), SCANFORMAT, &dummy);
+					temp_solution.Set_mass_water(dummy);
+				}
+			}
+			break;
+		case 11: /* pressure */
+		case 12:
+			{
+				if (sscanf(next_char, SCANFORMAT, &dummy) == 1)
+				{
+					temp_solution.Set_patm(dummy);
+				}
+				else
+				{
+					std::ostringstream oss;
+					oss << "No value given for pressure. Line ignored.";
+					warning_msg(oss.str().c_str());
+				}
+			}
+			break;
+		case 13: /* potential, Volt */
+			{
+				if (sscanf(next_char, SCANFORMAT, &dummy) == 1)
+				{
+					temp_solution.Set_potV(dummy);
+				}
+				else
+				{
+					std::ostringstream oss;
+					oss << "No value given for potential. Line ignored.";
+					warning_msg(oss.str().c_str());
+				}
+			}
+			break;
+		case OPTION_DEFAULT:
+/*
+ *   Read concentration
+ */
+			{
+				cxxISolutionComp temp_comp(this->phrq_io);
+				CParser::STATUS_TYPE status = temp_comp.read(line, &temp_solution);
+				if (status == CParser::PARSER_ERROR)
+				{
+					input_error++;
+					break;
+				}
+				else if (status == CParser::PARSER_IGNORE)
+				{
+					break;
+				}
+				isoln_ptr->Get_comps()[temp_comp.Get_description()] = temp_comp;
+				if (temp_comp.Get_pe_reaction().size() > 0)
+				{
+					CReaction temp_chem_reaction;
+					isoln_ptr->Get_pe_reactions()[temp_comp.Get_pe_reaction()] = temp_chem_reaction;
+				}
+			}
+			break;
+		}
+		if (return_value == EOF || return_value == KEYWORD)
+			break;
+	}
+/*
+ *   fix up default units and default pe
+ */
+	std::map < std::string, cxxISolutionComp >::iterator it;
+	for (it = isoln_ptr->Get_comps().begin(); it != isoln_ptr->Get_comps().end(); it++)
+	{
+		token = it->first;
+		Utilities::str_tolower(token);
+		if (it->second.Get_units().size() == 0)
+		{
+			it->second.Set_units(isoln_ptr->Get_units().c_str());
+		}
+		else
+		{
+			bool alk = false;
+			if (strstr(token.c_str(), "alk") == token.c_str())
+				alk = true;
+			std::string token1 = it->second.Get_units();
+			if (check_units(token1, alk, true, isoln_ptr->Get_units().c_str(), true) ==	CParser::PARSER_ERROR)
+			{
+				input_error++;
+			}
+			else
+			{
+				it->second.Set_units(token1.c_str());
+			}
+		}
+		if (it->second.Get_pe_reaction().size() == 0)
+		{
+			it->second.Set_pe_reaction(isoln_ptr->Get_default_pe());
+		}
+	}
+	Rxn_solution_map[n_user] = temp_solution;
+	Rxn_new_solution.insert(n_user);
+	return (return_value);
 }
 /* ---------------------------------------------------------------------- */
 int Phreeqc::read_species(void)
@@ -8369,141 +8459,168 @@ int Phreeqc::read_solid_solutions(void)
 int Phreeqc::read_llnl_aqueous_model_parameters(void)
 /* ---------------------------------------------------------------------- */
 {
-  /*
-   *      Reads aqueous model parameters
-   *
-   *      Arguments:
-   *	 none
-   *
-   *      Returns:
-   *	 KEYWORD if keyword encountered, input_error may be incremented if
-   *		    a keyword is encountered in an unexpected position
-   *	 EOF     if eof encountered while reading mass balance concentrations
-   *	 ERROR   if error occurred reading data
-   *
-   */
-  int return_value, opt;
-  const char *next_char;
-  const char *opt_list[] = {
-      "temperatures",   /* 0 */
-      "temperature",    /* 1 */
-      "temp",           /* 2 */
-      "adh",            /* 3 */
-      "debye_huckel_a", /* 4 */
-      "dh_a",           /* 5 */
-      "bdh",            /* 6 */
-      "debye_huckel_b", /* 7 */
-      "dh_b",           /* 8 */
-      "bdot",           /* 9 */
-      "b_dot",          /* 10 */
-      "c_co2",          /* 11 */
-      "co2_coefs"       /* 12 */
-  };
-  int count_opt_list = 13;
-  /*
-   *   Initialize
-   */
-  /*
-   *   Read aqueous model parameters
-   */
-  return_value = UNKNOWN;
-  int opt_save = OPTION_DEFAULT;
-  opt_save = OPTION_DEFAULT;
-  for (;;) {
-    opt = get_option(opt_list, count_opt_list, &next_char);
-    if (opt == OPTION_DEFAULT) {
-      opt = opt_save;
-    }
-    opt_save = OPTION_DEFAULT;
-    switch (opt) {
-    case OPTION_EOF: /* end of file */
-      return_value = EOF;
-      break;
-    case OPTION_KEYWORD: /* keyword */
-      return_value = KEYWORD;
-      break;
-    case OPTION_DEFAULT:
-    case OPTION_ERROR:
-      input_error++;
-      error_msg("Unknown input in LLNL_AQUEOUS_MODEL_PARAMETERS keyword.",
-                CONTINUE);
-      error_msg(line_save, CONTINUE);
-      break;
-    case 0: /* temperatures */
-    case 1: /* temperature */
-    case 2: /* temp */
-    {
-      std::istringstream iss(next_char);
-      while (iss >> dummy) {
-        llnl_temp.push_back(dummy);
-      }
-      opt_save = 2;
-    } break;
-    case 3: /* adh */
-    case 4: /* debye_huckel_a */
-    case 5: /* dh_a */
-    {
-      std::istringstream iss(next_char);
-      while (iss >> dummy) {
-        llnl_adh.push_back(dummy);
-      }
-      opt_save = 5;
-    } break;
-    case 6: /* bdh */
-    case 7: /* debye_huckel_b */
-    case 8: /* dh_b */
-    {
-      std::istringstream iss(next_char);
-      while (iss >> dummy) {
-        llnl_bdh.push_back(dummy);
-      }
-      opt_save = 8;
-    } break;
-    case 9:  /* bdot */
-    case 10: /* b_dot */
-    {
-      std::istringstream iss(next_char);
-      while (iss >> dummy) {
-        llnl_bdot.push_back(dummy);
-      }
-      opt_save = 10;
-    } break;
-    case 11: /* c_co2 */
-    case 12: /* co2_coefs */
-    {
-      std::istringstream iss(next_char);
-      while (iss >> dummy) {
-        llnl_co2_coefs.push_back(dummy);
-      }
-      opt_save = 12;
-    } break;
-    }
-    return_value = check_line_return;
-    if (return_value == EOF || return_value == KEYWORD)
-      break;
-  }
-  /* check consistency */
-  if ((llnl_temp.size() == 0) || (llnl_temp.size() != llnl_adh.size()) ||
-      (llnl_temp.size() != llnl_bdh.size()) ||
-      (llnl_temp.size() != llnl_bdot.size())) {
-    error_msg("Must define equal number (>0) of temperatures, dh_a, dh_b, and "
-              "bdot parameters\nin LLNL_AQUEOUS_MODEL",
-              CONTINUE);
-    input_error++;
-  }
-  if (llnl_co2_coefs.size() != 5) {
-    error_msg("Must define 5 CO2 activity coefficient parameters in "
-              "LLNL_AQUEOUS_MODEL",
-              CONTINUE);
-    input_error++;
-  }
-  for (size_t i = 1; i < llnl_temp.size(); i++) {
-    if (llnl_temp[i - 1] > llnl_temp[i]) {
-      error_msg("Temperatures must be in ascending order in LLNL_AQUEOUS_MODEL",
-                CONTINUE);
-      input_error++;
-    }
-  }
+	/*
+	 *      Reads aqueous model parameters
+	 *
+	 *      Arguments:
+	 *	 none
+	 *
+	 *      Returns:
+	 *	 KEYWORD if keyword encountered, input_error may be incremented if
+	 *		    a keyword is encountered in an unexpected position
+	 *	 EOF     if eof encountered while reading mass balance concentrations
+	 *	 ERROR   if error occurred reading data
+	 *
+	 */
+	int return_value, opt;
+	const char* next_char;
+	const char* opt_list[] = {
+		"temperatures",			/* 0 */
+		"temperature",			/* 1 */
+		"temp",					/* 2 */
+		"adh",					/* 3 */
+		"debye_huckel_a",		/* 4 */
+		"dh_a",					/* 5 */
+		"bdh",					/* 6 */
+		"debye_huckel_b",		/* 7 */
+		"dh_b",					/* 8 */
+		"bdot",					/* 9 */
+		"b_dot",				/* 10 */
+		"c_co2",				/* 11 */
+		"co2_coefs",			/* 12 */
+		"use_phreeqc_dha_dhb"	/* 13 */
+	};
+	int count_opt_list = 14;
+	/*
+	 *   Initialize
+	 */
+	 /*
+	  *   Read aqueous model parameters
+	  */
+	return_value = UNKNOWN;
+	int opt_save = OPTION_DEFAULT;
+	opt_save = OPTION_DEFAULT;
+	for (;;)
+	{
+		opt = get_option(opt_list, count_opt_list, &next_char);
+		if (opt == OPTION_DEFAULT)
+		{
+			opt = opt_save;
+		}
+		opt_save = OPTION_DEFAULT;
+		switch (opt)
+		{
+		case OPTION_EOF:		/* end of file */
+			return_value = EOF;
+			break;
+		case OPTION_KEYWORD:	/* keyword */
+			return_value = KEYWORD;
+			break;
+		case OPTION_DEFAULT:
+		case OPTION_ERROR:
+			input_error++;
+			error_msg
+			("Unknown input in LLNL_AQUEOUS_MODEL_PARAMETERS keyword.",
+				CONTINUE);
+			error_msg(line_save, CONTINUE);
+			break;
+		case 0:				/* temperatures */
+		case 1:				/* temperature */
+		case 2:				/* temp */
+		{
+			std::istringstream iss(next_char);
+			while (iss >> dummy)
+			{
+				llnl_temp.push_back(dummy);
+			}
+			opt_save = 2;
+		}
+		break;
+		case 3:				/* adh */
+		case 4:				/* debye_huckel_a */
+		case 5:				/* dh_a */
+		{
+			std::istringstream iss(next_char);
+			while (iss >> dummy)
+			{
+				llnl_adh.push_back(dummy);
+			}
+			opt_save = 5;
+		}
+		break;
+		case 6:				/* bdh */
+		case 7:				/* debye_huckel_b */
+		case 8:				/* dh_b */
+		{
+			std::istringstream iss(next_char);
+			while (iss >> dummy)
+			{
+				llnl_bdh.push_back(dummy);
+			}
+			opt_save = 8;
+		}
+		break;
+		case 9:				/* bdot */
+		case 10:			/* b_dot */
+		{
+			std::istringstream iss(next_char);
+			while (iss >> dummy)
+			{
+				llnl_bdot.push_back(dummy);
+			}
+			opt_save = 10;
+		}
+		break;
+		case 11:				/* c_co2 */
+		case 12:				/* co2_coefs */
+		{
+			std::istringstream iss(next_char);
+			while (iss >> dummy)
+			{
+				llnl_co2_coefs.push_back(dummy);
+			}
+			opt_save = 12;
+		}
+		break;		
+		case 13:				/* use_phreeqc_dha_dhb */
+		{
+			std::istringstream iss(next_char);
+			use_phreeqc_dha_dhb =(get_true_false(next_char, TRUE) == TRUE);
+			opt_save = OPTION_DEFAULT;
+		}
+		}
+		return_value = check_line_return;
+		if (return_value == EOF || return_value == KEYWORD)
+			break;
+	}
+	/* check consistency */
+	if ((llnl_temp.size() == 0) ||
+		(llnl_temp.size() != llnl_adh.size()) ||
+		(llnl_temp.size() != llnl_bdh.size()) ||
+		(llnl_temp.size() != llnl_bdot.size()))
+	{
+		error_msg
+		("Must define equal number (>0) of temperatures, dh_a, dh_b, and bdot parameters\nin LLNL_AQUEOUS_MODEL",
+			CONTINUE);
+		input_error++;
+	}
+	if (llnl_co2_coefs.size() != 5)
+	{
+		error_msg
+		("Must define 5 CO2 activity coefficient parameters in LLNL_AQUEOUS_MODEL",
+			CONTINUE);
+		input_error++;
+	}
+	for (size_t i = 1; i < llnl_temp.size(); i++)
+	{
+		if (llnl_temp[i - 1] > llnl_temp[i])
+		{
+			error_msg
+			("Temperatures must be in ascending order in LLNL_AQUEOUS_MODEL",
+				CONTINUE);
+			input_error++;
+		}
+	}
 
   return (return_value);
 }

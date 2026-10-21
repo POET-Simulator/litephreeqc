@@ -1,3 +1,10 @@
+/*
+ * Modified for litephreeqc by Max Luebke (University of Potsdam)
+ * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
+ * Modifications: Added declarations for find_all_valence_states() and find_valence_states().
+ * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
+ */
+
 #ifndef _INC_PHREEQC_H
 #define _INC_PHREEQC_H
 #if defined(WIN32)
@@ -1310,8 +1317,8 @@ protected:
   std::vector<class list2> sum_jacob2; /* array of coefficients and pointers to
                                           sources and targets, coef != 1.0 */
   std::vector<class list2> sum_delta;  /* array of pointers to sources, targets
-                                          and coefficients for  summing deltas for
-                                          mass balance equations */
+                                          and coefficients for  summing deltas
+                                          for  mass balance equations */
   /*----------------------------------------------------------------------
    *   Solution
    *---------------------------------------------------------------------- */
@@ -1402,8 +1409,8 @@ protected:
   LDBLE multi_Dn; /* exponent to calculate pore water diffusion coefficient,
                                   Dp = Dw * (multi_Dpor)^multi_Dn */
   LDBLE
-      interlayer_tortf; /* tortuosity_factor in interlayer porosity,
-                                                Dpil = Dw / interlayer_tortf */
+  interlayer_tortf; /* tortuosity_factor in interlayer porosity,
+                                            Dpil = Dw / interlayer_tortf */
 
   int cell_no, mixrun;
   /*----------------------------------------------------------------------
@@ -1622,6 +1629,7 @@ protected:
   inline bool Get_output_newline() { return this->output_newline; }
   double a_llnl, b_llnl, bdot_llnl;
   std::vector<double> llnl_temp, llnl_adh, llnl_bdh, llnl_bdot, llnl_co2_coefs;
+  bool use_phreeqc_dha_dhb;
 
   // char *selected_output_file_name;
   std::map<int, SelectedOutput> SelectedOutput_map;
