@@ -46,36 +46,26 @@ std::vector<std::string> Phreeqc::find_all_valence_states(
 
     master_species_found.insert(master_species);
 
+    std::size_t start_idx = 0;
+    if (master_primary->number >= 0 &&
+        master_primary->number < static_cast<int>(master.size()) &&
+        master[master_primary->number] == master_primary) {
+      start_idx = static_cast<std::size_t>(master_primary->number);
+    } else {
+      while (start_idx < master.size() && master[start_idx] != master_primary) {
+        start_idx++;
+      }
+    }
+
     bool has_valences = false;
-    std::size_t inner_loop_j = 0;
-    std::size_t last_valence = inner_loop_j;
+    std::size_t last_valence = start_idx;
 
-    // we HAVE to assume master species are already sorted!
-    // loop over all known master species
-    for (inner_loop_j = 0; inner_loop_j < master.size(); inner_loop_j++) {
-      std::string curr_master_species(master[inner_loop_j]->elt->name);
-
-      if (curr_master_species == master_species) {
-        last_valence = inner_loop_j;
-
-        while (last_valence < master.size() - 1) {
-          std::string next_master_species(master[last_valence + 1]->elt->name);
-
-          // check if the next name starts with the current master species
-          if (next_master_species.compare(0, master_species.size(),
-                                          master_species) != 0) {
-            break;
-          }
-
-          // check if the next character is an opening parenthesis
-          if (next_master_species[master_species.size()] != '(') {
-            break;
-          }
-
-          // if this is all true we have a valence state
-          has_valences = true;
-          last_valence++;
-        }
+    while (last_valence + 1 < master.size()) {
+      const auto next_master = master[last_valence + 1];
+      if (next_master->elt && next_master->elt->primary == master_primary) {
+        has_valences = true;
+        last_valence++;
+      } else {
         break;
       }
     }
@@ -83,7 +73,7 @@ std::vector<std::string> Phreeqc::find_all_valence_states(
     // in case we found valences we add them to the solution
     if (has_valences) {
       // skip the master species and only add the valences
-      for (std::size_t k = inner_loop_j + 1; k <= last_valence; k++) {
+      for (std::size_t k = start_idx + 1; k <= last_valence; k++) {
         solution_with_valences.push_back(master[k]->elt->name);
       }
       continue;

@@ -1,5 +1,6 @@
 #include "Utils.h"
 #include "Phreeqc.h"
+#include <algorithm>
 #include "phqalloc.h"
 #include "Exchange.h"
 #include "GasPhase.h"
@@ -168,7 +169,12 @@ tidy_model(void)
 			}
 		}
 		/* master species */
-		if (master.size() > 1) qsort(&master[0], master.size(), sizeof(class master*), master_compare);
+		if (master.size() > 1)
+		{
+			std::sort(master.begin(), master.end(), [](const class master* a, const class master* b) {
+				return strcmp_nocase(a->elt->name, b->elt->name) < 0;
+			});
+		}
 		/* elements */
 		if (elements.size() > 1) //qsort(&elements[0], elements.size(), sizeof(class element*), element_compare);
 		{

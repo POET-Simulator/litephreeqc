@@ -206,7 +206,10 @@ target_include_directories(IPhreeqc
   )
 
 target_compile_definitions(IPhreeqc PRIVATE SWIG_SHARED_OBJ)
-target_compile_definitions(IPhreeqc PRIVATE USE_PHRQ_ALLOC)
+option(IPHREEQC_USE_PHRQ_ALLOC "Enable PHREEQC internal memory tracking" OFF)
+if (IPHREEQC_USE_PHRQ_ALLOC)
+  target_compile_definitions(IPhreeqc PRIVATE USE_PHRQ_ALLOC)
+endif()
 
 if (NOT IPHREEQC_ENABLE_MODULE)
   target_compile_definitions(IPhreeqc
