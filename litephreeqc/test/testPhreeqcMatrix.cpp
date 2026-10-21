@@ -482,3 +482,84 @@ END)";
     EXPECT_NEAR(pqc_mat(id, "Na(mol/kgw)_SO"), 0.1 * id, 1e-8);
   }
 }
+
+namespace immobile_test {
+// exchange and surface in cell 1, equilibrium phase and kinetics only in cell 2
+const std::string script = R"(SOLUTION 1
+units mol/kgw
+Ca 1e-3
+Na 1e-3
+Cl 3e-3 charge
+SOLUTION 2
+units mol/kgw
+Na 1e-2
+Cl 1e-2 charge
+EXCHANGE 1
+X 0.01
+-equilibrate 1
+SURFACE 1
+Hfo_wOH 1e-3 600 1
+-equilibrate 1
+EQUILIBRIUM_PHASES 2
+Dolomite 0 0.1
+KINETICS 2
+Calcite
+-m0 0.1
+-parms 1 0.6
+RUN_CELLS
+ -cells 1-2
+END)";
+} // namespace immobile_test
+
+POET_TEST(PhreeqcMatrixComponentsOfAllCells) {
+  PhreeqcMatrix pqc_mat(base_db, immobile_test::script);
+
+  // phases defined only in the last cell must be found
+  const std::vector<std::string> expected_eq = {"Dolomite_eq", "Dolomite_si"};
+  EXPECT_EQ(pqc_mat.getMatrixEquilibrium(), expected_eq);
+  const std::vector<std::string> expected_kin = {"Calcite_kin", "Calcite_p1",
+                                                 "Calcite_p2"};
+  EXPECT_EQ(pqc_mat.getMatrixKinetics(), expected_kin);
+  const std::vector<std::string> expected_min = {"Dolomite_eq",
+                                                 "Calcite_kin"};
+  EXPECT_EQ(pqc_mat.getMatrixMinerals(), expected_min);
+}
+
+POET_TEST(PhreeqcMatrixExchangeNames) {
+  PhreeqcMatrix pqc_mat(base_db, immobile_test::script);
+  const auto names = pqc_mat.get().names;
+
+  // exchanger amount and totals use the formula, no species names
+  for (const std::string name :
+       {"X", "X_cb", "X_la", "X_phase_proportion", "X_formular_z", "X_tot_Ca",
+        "X_tot_Na"}) {
+    EXPECT_NE(std::find(names.begin(), names.end(), name), names.end())
+        << name;
+  }
+  for (const std::string name : {"CaX2", "NaX"}) {
+    EXPECT_EQ(std::find(names.begin(), names.end(), name), names.end())
+        << name;
+  }
+  EXPECT_NEAR(pqc_mat(1, "X_tot_Ca") * 2 + pqc_mat(1, "X_tot_Na"), 0.01, 1e-8);
+}
+
+POET_TEST(PhreeqcMatrixImmobileExtensive) {
+  PhreeqcMatrix pqc_mat(base_db, immobile_test::script);
+  const auto immobile = pqc_mat.getMatrixImmobileExtensive();
+  auto has = [&immobile](const std::string &name) {
+    return std::find(immobile.begin(), immobile.end(), name) != immobile.end();
+  };
+
+  for (const std::string name :
+       {"X", "X_cb", "X_tot_Ca", "X_tot_Na", "Calcite_kin", "Dolomite_eq",
+        "Hfo_wOH_moles", "Hfo_wOH_cb", "Hfo_wOH_Ca", "Hfo_grams", "Hfo_cb",
+        "Hfo_mw", "Hfo_tot_Ca"}) {
+    EXPECT_TRUE(has(name)) << name;
+  }
+  for (const std::string name :
+       {"ID", "H", "O", "Charge", "Ca", "SolVol", "MassH2O", "X_la",
+        "X_phase_proportion", "X_formular_z", "Calcite_p1", "Calcite_p2",
+        "Dolomite_si", "Hfo_wOH_la", "Hfo_area", "Hfo_la"}) {
+    EXPECT_FALSE(has(name)) << name;
+  }
+}

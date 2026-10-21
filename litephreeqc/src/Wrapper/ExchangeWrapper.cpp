@@ -106,7 +106,7 @@ ExchangeWrapper::names(cxxExchange *exchange,
       if (total.first == formular) {
         continue;
       }
-      e_names.push_back(total.first + formular);
+      e_names.push_back(formular + "_tot_" + total.first);
     }
   }
 

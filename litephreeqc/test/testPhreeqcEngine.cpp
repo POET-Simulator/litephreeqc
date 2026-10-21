@@ -156,3 +156,34 @@ END)";
     EXPECT_NEAR(cell_values[punch_idx], 789.0, 1e-4);
   }
 }
+
+POET_TEST(PhreeqcEngineInitialDensity) {
+  // the density exported by PhreeqcMatrix must be the one of the reacted
+  // solution, i.e. identical to the one after a zero time step
+  const std::string script = R"(SOLUTION 1
+units mol/kgw
+-water 0.25
+Ca 0.2
+S(6) 0.2
+Na 1.0
+Cl 1.0 charge
+EQUILIBRIUM_PHASES 1
+Gypsum 0.0 0.0
+RUN_CELLS
+ -cells 1
+END)";
+  PhreeqcMatrix pqc_mat(test_database, script);
+  PhreeqcEngine engine(pqc_mat, 1);
+
+  std::vector<double> cell_values = pqc_mat.get().values;
+  std::vector<std::string> cell_names = pqc_mat.get().names;
+  cell_values.erase(cell_values.begin(), cell_values.begin() + 1);
+  cell_names.erase(cell_names.begin(), cell_names.begin() + 1);
+  const std::size_t density_pos =
+      std::find(cell_names.begin(), cell_names.end(), "Density") -
+      cell_names.begin();
+  const double density_init = cell_values[density_pos];
+
+  engine.runCell(cell_values, 0);
+  EXPECT_NEAR(cell_values[density_pos], density_init, 1e-8);
+}

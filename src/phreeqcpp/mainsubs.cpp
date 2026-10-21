@@ -1196,8 +1196,7 @@ int Phreeqc::xsolution_save(int n_user)
   temp_solution.Set_mu(mu_x);
   temp_solution.Set_ah2o(ah2o_x);
   // the subroutine is called at the start of a new simulation, and the
-  // following 2 go wrong since s_x is not updated
-  temp_solution.Set_density(density_x);
+  // following goes wrong since s_x is not updated
   temp_solution.Set_viscosity(viscos);
   temp_solution.Set_viscos_0(viscos_0);
   temp_solution.Set_total_h(total_h_x);
@@ -1208,6 +1207,9 @@ int Phreeqc::xsolution_save(int n_user)
   temp_solution.Set_mass_water(mass_water_aq_x);
   temp_solution.Set_total_alkalinity(total_alkalinity);
   temp_solution.Set_soln_vol(this->calc_solution_volume());
+  // litephreeqc: calc_solution_volume() updates density_x via calc_dens(), so
+  // the density is saved afterwards, consistent with the saved volume
+  temp_solution.Set_density(density_x);
   /*
    *   Copy pe data
    */

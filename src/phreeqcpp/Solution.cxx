@@ -1083,6 +1083,10 @@ void cxxSolution::Update(LDBLE h_tot, LDBLE o_tot, LDBLE charge, LDBLE tc,
   this->total_h = h_tot;
   this->total_o = o_tot;
   this->cb = charge;
+  // Initial guess only: the mass of water is solved from the oxygen balance
+  // (mass_oxygen_unknown). o_tot / 55.55 overestimates it slightly, since it
+  // also counts the oxygen bound in solutes. Overwritten by
+  // SolutionWrapper::set() if MassH2O is among the optional essentials.
   this->mass_water = o_tot / 55.55; // massh2o; // MDL reverted as of 20260219
   // Reverted 20260219 //  MDL 20260126: adding viscosity and density
   // this->density = density;

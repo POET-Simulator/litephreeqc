@@ -533,6 +533,20 @@ public:
   std::vector<std::string> getMatrixOutOnly() const;
 
   /**
+   * @brief Returns all column names of the Matrix holding extensive amounts of
+   * immobile phases, which scale with the size of the chemical system:
+   * equilibrium phase and kinetic moles (_eq, _kin), exchanger amounts,
+   * charges and totals, surface site moles, charges and totals, surface grams
+   * and diffuse-layer water. Intensive entries (_si, _la, _area,
+   * _phase_proportion, _formular_z) and the kinetic parameters (_pN) are
+   * excluded.
+   *
+   * @return std::vector<std::string> vector of names, in matrix order per
+   * component
+   */
+  std::vector<std::string> getMatrixImmobileExtensive() const;
+
+  /**
    * @brief Returns all column names of the Matrix pertaining to
    * quantities that are user defined in the SELECTED_OUTPUT or USER_PUNCH
    * blocks of the Phreeqc input script.
@@ -546,6 +560,8 @@ public:
 private:
   std::map<int, std::vector<element>> _m_map;
   std::map<int, std::vector<base_names>> _m_internal_names;
+
+  std::vector<std::string> getMatrixNamesOfType(PhreeqcComponent type) const;
 
   std::set<std::string> _m_surface_primaries;
 

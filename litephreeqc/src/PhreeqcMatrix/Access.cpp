@@ -310,43 +310,72 @@ double PhreeqcMatrix::operator()(int cell_id, const std::string &name) const {
 }
 
 // MDL
-std::vector<std::string> PhreeqcMatrix::getMatrixKinetics() const {
-  std::vector<std::string> names;
-
-  auto n = this->getIds().size();
-  for (auto i = 0; i < n; ++i) {
-    auto pqc_kinnames = this->getKineticsNames(i);
-    for (auto nam : pqc_kinnames) {
-      for (auto mat_name : this->get().names) {
-        if (mat_name.starts_with(nam)) {
-          // check if we already have this mat_name
-          if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
-            names.push_back(mat_name);
-          }
-        }
+// Column names (in matrix order) whose component type is `type` in any cell
+std::vector<std::string>
+PhreeqcMatrix::getMatrixNamesOfType(PhreeqcComponent type) const {
+  std::set<std::string> of_type;
+  for (const auto &[id, elements] : _m_map) {
+    for (const auto &element : elements) {
+      if (element.type == type) {
+        of_type.insert(element.name);
       }
+    }
+  }
+
+  std::vector<std::string> names;
+  for (const auto &name : this->get().names) {
+    if (of_type.contains(name)) {
+      names.push_back(name);
     }
   }
   return names;
 }
 
+std::vector<std::string> PhreeqcMatrix::getMatrixKinetics() const {
+  return getMatrixNamesOfType(PhreeqcComponent::KINETIC);
+}
+
 // MDL
 std::vector<std::string> PhreeqcMatrix::getMatrixEquilibrium() const {
+  return getMatrixNamesOfType(PhreeqcComponent::EQUILIBRIUM);
+}
+
+std::vector<std::string> PhreeqcMatrix::getMatrixImmobileExtensive() const {
+  // Intensive entries of the immobile components, by column suffix (see the
+  // names() functions of the wrappers). Equilibrium phases and kinetics are
+  // extensive only for the moles (_eq, _kin); _si and the kinetic
+  // parameters _pN are not.
+  static const std::vector<std::string> exchange_intensive = {
+      "_la", "_phase_proportion", "_formular_z"};
+  static const std::vector<std::string> surface_intensive = {"_la", "_area"};
+
+  auto ends_with_any = [](const std::string &name,
+                          const std::vector<std::string> &suffixes) {
+    return std::any_of(
+        suffixes.begin(), suffixes.end(),
+        [&name](const std::string &suffix) { return name.ends_with(suffix); });
+  };
 
   std::vector<std::string> names;
-  std::vector<std::string> mat_names = this->get().names;
-  auto n = this->getIds().size();
-  for (auto i = 0; i < n; ++i) {
-    auto pqc_eqnames = this->getEquilibriumNames(i);
-    for (auto nam : pqc_eqnames) {
-      for (auto mat_name : mat_names) {
-        if (mat_name.starts_with(nam)) {
-          // check if we already have this mat_name
-          if (std::find(names.begin(), names.end(), mat_name) == names.end()) {
-            names.push_back(mat_name);
-          }
-        }
-      }
+  for (const auto &name : getMatrixNamesOfType(PhreeqcComponent::EXCHANGE)) {
+    if (!ends_with_any(name, exchange_intensive)) {
+      names.push_back(name);
+    }
+  }
+  for (const auto &name : getMatrixKinetics()) {
+    if (name.ends_with("_kin")) {
+      names.push_back(name);
+    }
+  }
+  for (const auto &name : getMatrixEquilibrium()) {
+    if (name.ends_with("_eq")) {
+      names.push_back(name);
+    }
+  }
+  for (const auto &name :
+       getMatrixNamesOfType(PhreeqcComponent::SURFACE_COMPS)) {
+    if (!ends_with_any(name, surface_intensive)) {
+      names.push_back(name);
     }
   }
   return names;

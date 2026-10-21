@@ -200,16 +200,11 @@ create_vector_from_phreeqc(Phreeqc *phreeqc, int id,
   base_add_to_element_vector<PhreeqcMatrix::PhreeqcComponent::SOLUTION>(
       sol_wrapper, solution_names, elements);
 
-  // keep track if exchange is present
-  const size_t vec_size_before_exchange = elements.size();
-
   // Exchange
   ex_ki_eq_add_to_element_vector<PhreeqcMatrix::PhreeqcComponent::EXCHANGE,
                                  ExchangeWrapper>(
       Utilities::Rxn_find(phreeqc->Get_Rxn_exchange_map(), id), elements,
       b_names);
-
-  const bool has_exchange = elements.size() > vec_size_before_exchange;
 
   // Kinetic
   ex_ki_eq_add_to_element_vector<PhreeqcMatrix::PhreeqcComponent::KINETIC,
@@ -226,23 +221,6 @@ create_vector_from_phreeqc(Phreeqc *phreeqc, int id,
   surface_add_to_element_vector(
       phreeqc, Utilities::Rxn_find(phreeqc->Get_Rxn_surface_map(), id),
       solution_names, elements, b_names, surface_primaries);
-
-  // substitute exchange names
-  if (has_exchange) {
-    for (auto &currentElement : elements) {
-      if (currentElement.type == PhreeqcMatrix::PhreeqcComponent::EXCHANGE) {
-        for (const auto &species : phreeqc->Get_species_list()) {
-          const std::string &species_name = species.s->name;
-          // check if `name` is a prefix of `species_name`
-          if (species_name.compare(0, currentElement.name.size(),
-                                   currentElement.name) == 0) {
-            currentElement.name = species_name;
-            break;
-          }
-        }
-      }
-    }
-  }
 
   return {elements, b_names};
 }
