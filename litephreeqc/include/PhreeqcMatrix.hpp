@@ -336,9 +336,16 @@ public:
   }
 
   /**
-   * @brief Get all found solution names.
+   * @brief Get the names of all solution columns, in the order of get().names.
    *
-   * @return std::vector<std::string> Vector containing all solution names.
+   * These are all columns of type SOLUTION: the transported ones (H, O,
+   * Charge, H(0) and O(0) if present, element totals), and also tc, patm and
+   * the enabled optional essentials. Like get(), they are taken from the first
+   * cell. For the transported columns only, use the column roles
+   * (ColumnRole::TRANSPORTED); for the element totals only,
+   * getSolutionPrimaries().
+   *
+   * @return std::vector<std::string> Names of all solution columns
    */
   std::vector<std::string> getSolutionNames() const;
 
