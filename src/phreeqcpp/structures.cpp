@@ -1,3 +1,11 @@
+/*
+ * Modified for litephreeqc by Max Luebke (University of Potsdam)
+ * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
+ * Modifications: Optimized master and phase search lookups using std::map caching,
+ * and eliminated redundant lookups in Rxn_find/Rxn_copy.
+ * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
+ */
+
 #include "Utils.h"
 #include "Phreeqc.h"
 #include <iostream>
