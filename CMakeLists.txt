@@ -55,6 +55,7 @@ target_sources(IPhreeqc
     src/IPhreeqc_interface_F.cpp
     src/IPhreeqcCallbacks.h
     src/IPhreeqcLib.cpp
+    src/IPhreeqc_litephreeqc.cpp
     src/phreeqcpp/advection.cpp
     src/phreeqcpp/basicsubs.cpp
     src/phreeqcpp/cl1.cpp

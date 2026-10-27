@@ -706,6 +706,15 @@ public:
 	int                      RunString(const char* input);
 
 	/**
+	 *  Runs a specific cell directly with a given time step in seconds,
+	 *  bypassing text script formatting, tokenization, and input parsing.
+	 *  @param cell_no          The user number of the cell to run.
+	 *  @param time_step        Time step in seconds.
+	 *  @return                 The number of errors encountered during the run.
+	 */
+	int                      RunCell(int cell_no, double time_step);
+
+	/**
 	 *  Sets a C callback function for Basic programs. The syntax for the Basic command is
 	 *  10 result = CALLBACK(x1, x2, string$)
 	 *  The syntax for the C function is

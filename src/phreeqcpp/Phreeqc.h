@@ -1923,6 +1923,7 @@ protected:
 public:
   std::vector<std::string>
   find_all_valence_states(const std::vector<std::string> &solution_names);
+  int run_cells(int cell_no, double time_step);
 
   static const class const_iso iso_defaults[];
   static const int count_iso_defaults;

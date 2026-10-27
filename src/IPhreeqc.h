@@ -1638,6 +1638,7 @@ Headings
  *
  */
 	IPQ_DLL_EXPORT int         RunString(int id, const char* input);
+	IPQ_DLL_EXPORT int         RunCell(int id, int cell_no, double time_step);
 
 /**
  *  Sets a C callback function for Basic programs. The syntax for the Basic command is

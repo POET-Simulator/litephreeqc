@@ -7,6 +7,7 @@
  * This file is part of litephreeqc, a C++ interface library on top of PHREEQC.
  */
 #include "Phreeqc.h"
+#include "NA.h"
 #include <set>
 
 const std::set<std::string> to_ignore = {
@@ -85,3 +86,13 @@ std::vector<std::string> Phreeqc::find_all_valence_states(
 
   return solution_with_valences;
 }
+
+int Phreeqc::run_cells(int cell_no, double time_step) {
+  this->run_info.Get_cells().Clear();
+  this->run_info.Get_cells().Augment(cell_no);
+  this->run_info.Get_cells().Set_defined(true);
+  this->run_info.Set_time_step(time_step);
+  this->run_info.Set_start_time(NA);
+  return this->run_as_cells();
+}
+

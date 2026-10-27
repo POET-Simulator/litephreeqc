@@ -788,6 +788,17 @@ RunString(int id, const char* input)
 	return IPQ_BADINSTANCE;
 }
 
+int
+RunCell(int id, int cell_no, double time_step)
+{
+	IPhreeqc* IPhreeqcPtr = IPhreeqcLib::GetInstance(id);
+	if (IPhreeqcPtr)
+	{
+		return IPhreeqcPtr->RunCell(cell_no, time_step);
+	}
+	return IPQ_BADINSTANCE;
+}
+
 IPQ_RESULT
 SetBasicCallback(int id, double (*fcn)(double x1, double x2, const char *str, void *cookie), void *cookie1)
 {

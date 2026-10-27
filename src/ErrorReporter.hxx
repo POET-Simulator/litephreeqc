@@ -15,7 +15,7 @@ public:
 
 // Note: this is req'd in order for subclass dtors to be called
 //
-IErrorReporter::~IErrorReporter(void)
+inline IErrorReporter::~IErrorReporter(void)
 {
 }
 
