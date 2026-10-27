@@ -48,6 +48,7 @@ In compliance with the USGS User Rights Notice, the following modifications were
 
 * **`src/IPhreeqc.hpp` & `src/IPhreeqc.cpp`**:
   - Added `GetPhreeqcPtr()` method to expose a direct pointer to the internal `Phreeqc` instance.
+  - Added `GetSelectedOutput()` accessors to retrieve internal `CSelectedOutput` pointers.
   - Added `struct SolutionMapping` and `getSolutionMapping()` to track module and solution index associations during simulation execution.
 * **`src/IPhreeqc.h`**, **`src/IPhreeqc.hpp`**, **`src/IPhreeqcLib.cpp`**, and **`src/ErrorReporter.hxx`**:
   - Added `RunCell(int cell_no, double time_step)` C++ and C API methods to execute single simulation cells directly without text parsing.
@@ -70,4 +71,4 @@ The files in `litephreeqc/` are newly authored components and not modifications 
 * **`PhreeqcMatrix`**: In-memory matrix representation of multi-cell chemical states.
 * **`PhreeqcRunner`**: Multi-cell scheduler and batch execution runner.
 * **`PhreeqcKnobs`**: Convergence and numerical parameter controller.
-* **`Wrapper/`**: Typed C++ wrappers for solutions, equilibrium phases, ion exchangers, surfaces, and kinetics.
+* **`Wrapper/`**: Typed C++ wrappers for solutions, equilibrium phases, ion exchangers, surfaces, kinetics, and selected output.

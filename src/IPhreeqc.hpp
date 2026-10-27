@@ -1,8 +1,9 @@
 /*
  * Modified for litephreeqc by Max Luebke (University of Potsdam)
  * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
- * Modifications: Added GetPhreeqcPtr() accessor, SolutionMapping struct/tracking, and RunCell() method.
- * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
+ * Modifications: Added GetPhreeqcPtr() accessor, GetSelectedOutput() accessors,
+ * SolutionMapping struct/tracking, and RunCell() method. Original code is
+ * subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
  */
 
 /*! @file IPhreeqc.hpp
@@ -905,6 +906,22 @@ public:
 	virtual bool punch_open(const char *file_name, std::ios_base::openmode mode = std::ios_base::out, int n_user = 1);
 
 	Phreeqc *GetPhreeqcPtr(void) { return this->PhreeqcPtr; };
+
+	CSelectedOutput* GetSelectedOutput(int n_user = 1) {
+		std::map< int, CSelectedOutput* >::iterator it = this->SelectedOutputMap.find(n_user);
+		if (it != this->SelectedOutputMap.end()) {
+			return it->second;
+		}
+		return 0;
+	}
+
+	const CSelectedOutput* GetSelectedOutput(int n_user = 1) const {
+		std::map< int, CSelectedOutput* >::const_iterator it = this->SelectedOutputMap.find(n_user);
+		if (it != this->SelectedOutputMap.end()) {
+			return it->second;
+		}
+		return 0;
+	}
 
 protected:
 	int EndRow(void);
