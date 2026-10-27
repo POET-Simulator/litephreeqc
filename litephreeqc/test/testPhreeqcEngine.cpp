@@ -7,6 +7,7 @@
  *
  * This file is part of litephreeqc, a C++ interface library on top of PHREEQC.
  */
+#include <algorithm>
 #include <stdexcept>
 
 #include <testInput.hpp>

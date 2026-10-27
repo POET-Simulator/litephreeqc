@@ -7,6 +7,7 @@
  *
  * This file is part of litephreeqc, a C++ interface library on top of PHREEQC.
  */
+#include <algorithm>
 #include <cmath>
 #include <gtest/gtest.h>
 #include <string>
