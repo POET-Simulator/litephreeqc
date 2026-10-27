@@ -1,7 +1,8 @@
 /*
  * Modified for litephreeqc by Max Luebke (University of Potsdam)
  * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
- * Modifications: Added declarations for find_all_valence_states() and find_valence_states().
+ * Modifications: Added declarations for find_all_valence_states(), find_valence_states(),
+ * and std::map index caches (master_map, phases_map).
  * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
  */
 
@@ -1657,6 +1658,7 @@ protected:
   std::map<std::string, class phase *> phases_map;
   std::map<std::string, class logk *> logk_map;
   std::map<std::string, class master_isotope *> master_isotope_map;
+  std::map<std::string, class master *> master_map;
 
 #if defined(PHREEQCI_GUI)
 #include "../../phreeqci_gui.h"
@@ -1922,6 +1924,7 @@ protected:
 public:
   std::vector<std::string>
   find_all_valence_states(const std::vector<std::string> &solution_names);
+  int run_cells(int cell_no, double time_step);
 
   static const class const_iso iso_defaults[];
   static const int count_iso_defaults;
@@ -1996,10 +1999,20 @@ void Rxn_dump_raw_range(const T &b, std::ostream &s_oss, int start, int end,
 }
 
 template <typename T> T *Rxn_find(std::map<int, T> &b, int i) {
-  if (b.find(i) != b.end()) {
-    return (&(b.find(i)->second));
+  typename std::map<int, T>::iterator it = b.find(i);
+  if (it != b.end()) {
+    return &(it->second);
   } else {
-    return (NULL);
+    return NULL;
+  }
+}
+
+template <typename T> const T *Rxn_find(const std::map<int, T> &b, int i) {
+  typename std::map<int, T>::const_iterator it = b.find(i);
+  if (it != b.end()) {
+    return &(it->second);
+  } else {
+    return NULL;
   }
 }
 
@@ -2012,16 +2025,15 @@ template <typename T> int Rxn_next_user_number(std::map<int, T> &b) {
 }
 
 template <typename T> T *Rxn_copy(std::map<int, T> &b, int i, int j) {
-  typename std::map<int, T>::iterator it;
-  it = b.find(i);
+  typename std::map<int, T>::iterator it = b.find(i);
   if (it != b.end()) {
-    b[j] = it->second;
-    it = b.find(j);
-    it->second.Set_n_user(j);
-    it->second.Set_n_user_end(j);
-    return &(it->second);
+    T &dest = b[j];
+    dest = it->second;
+    dest.Set_n_user(j);
+    dest.Set_n_user_end(j);
+    return &dest;
   } else {
-    return (NULL);
+    return NULL;
   }
 }
 
@@ -2029,14 +2041,14 @@ template <typename T>
 void Rxn_copies(std::map<int, T> &b, int n_user, int n_user_end) {
   if (n_user_end <= n_user)
     return;
-  typename std::map<int, T>::iterator it;
-  it = b.find(n_user);
+  typename std::map<int, T>::iterator it = b.find(n_user);
   if (it != b.end()) {
+    const T source = it->second;
     for (int j = n_user + 1; j <= n_user_end; j++) {
-      b[j] = it->second;
-      it = b.find(j);
-      it->second.Set_n_user(j);
-      it->second.Set_n_user_end(j);
+      T &dest = b[j];
+      dest = source;
+      dest.Set_n_user(j);
+      dest.Set_n_user_end(j);
     }
   }
 }

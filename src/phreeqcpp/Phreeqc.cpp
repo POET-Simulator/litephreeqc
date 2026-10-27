@@ -1,3 +1,10 @@
+/*
+ * Modified for litephreeqc by Max Luebke (University of Potsdam)
+ * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
+ * Modifications: Initialized and managed std::map index caches for master species and phases.
+ * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
+ */
+
 #include "Phreeqc.h"
 #include <algorithm>			// std::replace
 
@@ -1470,6 +1477,7 @@ Phreeqc::InternalCopy(const Phreeqc* pSrc)
 		phase_ptr->rxn_x = CReaction_internal_copy(pSrc->phases[i]->rxn_x);
 	}
 	// Master species
+	master_map.clear();
 	for (size_t i = 0; i < pSrc->master.size(); i++)
 	{
 		master.resize(i + 1);
@@ -1484,6 +1492,10 @@ Phreeqc::InternalCopy(const Phreeqc* pSrc)
 		//rxn_primary
 		master[i]->rxn_primary = CReaction_internal_copy(pSrc->master[i]->rxn_primary);
 		master[i]->rxn_secondary = CReaction_internal_copy(pSrc->master[i]->rxn_secondary);
+
+		std::string mname(master[i]->elt->name);
+		str_tolower(mname);
+		master_map[mname] = master[i];
 	}
 	// Unknowns will be built
 	//x                       = NULL;

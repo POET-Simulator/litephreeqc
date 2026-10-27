@@ -1,7 +1,7 @@
 /*
  * Modified for litephreeqc by Max Luebke (University of Potsdam)
  * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
- * Modifications: Added GetPhreeqcPtr() accessor and SolutionMapping struct/tracking.
+ * Modifications: Added GetPhreeqcPtr() accessor, SolutionMapping struct/tracking, and RunCell() method.
  * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
  */
 
@@ -704,6 +704,15 @@ public:
 	 *      @ref LoadDatabase/@ref LoadDatabaseString must have been called and returned 0 (zero) errors.
 	 */
 	int                      RunString(const char* input);
+
+	/**
+	 *  Runs a specific cell directly with a given time step in seconds,
+	 *  bypassing text script formatting, tokenization, and input parsing.
+	 *  @param cell_no          The user number of the cell to run.
+	 *  @param time_step        Time step in seconds.
+	 *  @return                 The number of errors encountered during the run.
+	 */
+	int                      RunCell(int cell_no, double time_step);
 
 	/**
 	 *  Sets a C callback function for Basic programs. The syntax for the Basic command is
