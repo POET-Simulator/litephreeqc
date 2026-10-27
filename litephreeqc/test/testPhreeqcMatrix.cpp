@@ -1,11 +1,13 @@
 /*
  * Copyright (c) 2024-2026 Max Luebke (University of Potsdam)
- *                       Marco De Lucia (GFZ German Research Centre for Geosciences)
+ *                       Marco De Lucia (GFZ German Research Centre for
+ * Geosciences)
  *
  * SPDX-License-Identifier: EUPL-1.2
  *
  * This file is part of litephreeqc, a C++ interface library on top of PHREEQC.
  */
+#include <algorithm>
 #include <cmath>
 #include <gtest/gtest.h>
 #include <string>
@@ -255,4 +257,44 @@ POET_TEST(PhreeqcMatrixWithoutRedoxAndH0O0) {
   };
 
   EXPECT_EQ(expected_names_without_redox, pqc_mat.getSolutionNames());
+}
+
+POET_TEST(PhreeqcMatrixSelectedOutput) {
+  const std::string script_with_so = R"(SOLUTION 1
+units mol/kgw
+temp 25
+Ca 0.1
+Mg 0.1
+Cl 0.5 charge
+Na 0.1
+PURE 1
+Calcite  0.0 1
+Dolomite 0.0 0
+SELECTED_OUTPUT 1
+ -reset false
+ -totals Ca Na
+USER_PUNCH 1
+ -headings MyVal
+ 10 PUNCH 123.456
+RUN_CELLS
+ -cells 1
+END)";
+
+  PhreeqcMatrix pqc_mat(base_db, script_with_so);
+
+  EXPECT_TRUE(pqc_mat.hasSelectedOutput());
+
+  const auto so_names = pqc_mat.getSelectedOutputNames();
+  const std::vector<std::string> expected_so_names = {
+      "Ca(mol/kgw)_SO", "Na(mol/kgw)_SO", "MyVal_SO"};
+  EXPECT_EQ(so_names, expected_so_names);
+
+  const auto out_only = pqc_mat.getMatrixOutOnly();
+  EXPECT_TRUE(std::find(out_only.begin(), out_only.end(), "pH") !=
+              out_only.end());
+
+  PhreeqcMatrix::STLExport exported = pqc_mat.get();
+  EXPECT_NEAR(pqc_mat(1, "Ca(mol/kgw)_SO"), 0.1, 1e-4);
+  EXPECT_NEAR(pqc_mat(1, "Na(mol/kgw)_SO"), 0.1, 1e-4);
+  EXPECT_NEAR(pqc_mat(1, "MyVal_SO"), 123.456, 1e-4);
 }
