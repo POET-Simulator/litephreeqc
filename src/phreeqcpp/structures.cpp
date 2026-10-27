@@ -1,6 +1,15 @@
+/*
+ * Modified for litephreeqc by Max Luebke (University of Potsdam)
+ * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
+ * Modifications: Optimized master and phase search lookups using std::map caching,
+ * and eliminated redundant lookups in Rxn_find/Rxn_copy.
+ * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
+ */
+
 #include "Utils.h"
 #include "Phreeqc.h"
 #include <iostream>
+#include <algorithm>
 
 #include "phqalloc.h"
 #include "Temperature.h"
@@ -72,6 +81,7 @@ clean_up(void)
 		master_free(master[j]);
 	}
 	master.clear();
+	master_map.clear();
 
 	/* elements */
 
@@ -205,6 +215,7 @@ clean_up(void)
 	species_map.clear();
 	phases_map.clear();
 	logk_map.clear();
+	master_map.clear();
 	/* strings */
 	strings_map_clear();
 	/* delete basic interpreter */
@@ -839,12 +850,21 @@ master_delete(const char* cptr)
  *	TRUE if master species was deleted.
  *	FALSE if master species was not found.
  */
-	int n;
-
-	if (master_search(cptr, &n) == NULL)
+	if (cptr == NULL) return (FALSE);
+	std::string name(cptr);
+	str_tolower(name);
+	std::map<std::string, class master*>::iterator it = master_map.find(name);
+	if (it == master_map.end())
 		return (FALSE);
-	master_free(master[n]);
-	master.erase(master.begin() + n);
+	class master* master_ptr = it->second;
+	master_map.erase(it);
+
+	std::vector<class master*>::iterator vec_it = std::find(master.begin(), master.end(), master_ptr);
+	if (vec_it != master.end())
+	{
+		master.erase(vec_it);
+	}
+	master_free(master_ptr);
 	return (TRUE);
 }
 
@@ -869,37 +889,41 @@ master_bsearch(const char* cptr)
 /* ---------------------------------------------------------------------- */
 {
 /*
- *   Uses binary search. Assumes master is in sort order.
  *   Find master species for string (*cptr) containing name of element or valence state.
  *
  *   Input: cptr    pointer to string containing element name
  *
  *   Return: pointer to master structure containing name cptr or NULL.
  */
-	void *void_ptr;
-	if (master.size() == 0)
+	if (cptr == NULL)
 	{
 		return (NULL);
 	}
-	void_ptr = bsearch((const char *) cptr,
-					   (char *) &master[0],
-					   master.size(),
-					   sizeof(class master *), master_compare_string);
-	if (void_ptr == NULL)
+	std::string name(cptr);
+	str_tolower(name);
+	std::map<std::string, class master*>::const_iterator it = master_map.find(name);
+	if (it != master_map.end())
 	{
-		void_ptr = bsearch(cptr,
-			(char*)&master[0],
-			master.size(),
-			sizeof(class master*), master_compare_string);
+		return (it->second);
 	}
-	if (void_ptr == NULL)
+	if (master_map.empty() && !master.empty())
 	{
-		return (NULL);
+		for (size_t i = 0; i < master.size(); i++)
+		{
+			if (master[i] && master[i]->elt && master[i]->elt->name)
+			{
+				std::string mname(master[i]->elt->name);
+				str_tolower(mname);
+				master_map[mname] = master[i];
+			}
+		}
+		it = master_map.find(name);
+		if (it != master_map.end())
+		{
+			return (it->second);
+		}
 	}
-	else
-	{
-		return (*(class master **) void_ptr);
-	}
+	return (NULL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1034,24 +1058,31 @@ master_search(const char* cptr, int *n)
 /* ---------------------------------------------------------------------- */
 {
 /*
- *   Linear search of master to find master species in string, cptr.
+ *   Search of master to find master species in string, cptr.
  *   Returns pointer if found. n contains position in array master.
  *   Returns NULL if not found.
  */
-	int i;
-	class master *master_ptr;
-/*
- *   Search master species list
- */
 	*n = -999;
-	for (i = 0; i < (int)master.size(); i++)
+	if (cptr == NULL)
 	{
-		if (strcmp(cptr, master[i]->elt->name) == 0)
+		return (NULL);
+	}
+	class master* master_ptr = master_bsearch(cptr);
+	if (master_ptr != NULL)
+	{
+		if (master_ptr->number >= 0 && master_ptr->number < (int)master.size() && master[master_ptr->number] == master_ptr)
 		{
-			*n = i;
-			master_ptr = master[i];
-			return (master_ptr);
+			*n = master_ptr->number;
 		}
+		else
+		{
+			auto it = std::find(master.begin(), master.end(), master_ptr);
+			if (it != master.end())
+			{
+				*n = (int)std::distance(master.begin(), it);
+			}
+		}
+		return (master_ptr);
 	}
 	return (NULL);
 }
@@ -1147,8 +1178,8 @@ class phase * Phreeqc::
 phase_bsearch(const char* cptr, int *j, int print)
 /* ---------------------------------------------------------------------- */
 {
-/*   Binary search the structure array "phases" for a name that is equal to
- *   cptr. Assumes array phases is in sort order.
+/*   Search the structure array "phases" using phases_map for a name that is equal to
+ *   cptr.
  *
  *   Arguments:
  *      name  input, a character string to be located in phases.
@@ -1159,31 +1190,38 @@ phase_bsearch(const char* cptr, int *j, int print)
  *      if not found, NULL
  *
  */
-	void *void_ptr;
-
-	void_ptr = NULL;
-	if ((int)phases.size() > 0)
+	if (j != NULL)
 	{
-		void_ptr = (void *)
-			bsearch((char *) cptr,
-					(char *) &phases[0],
-					phases.size(),
-					sizeof(class phase *), phase_compare_string);
+		*j = -1;
 	}
-	if (void_ptr == NULL && print == TRUE)
+	if (cptr == NULL)
+	{
+		return (NULL);
+	}
+	std::string name(cptr);
+	str_tolower(name);
+	std::map<std::string, class phase*>::const_iterator it = phases_map.find(name);
+	if (it != phases_map.end())
+	{
+		class phase* phase_ptr = it->second;
+		if (j != NULL)
+		{
+			auto vec_it = std::find(phases.begin(), phases.end(), phase_ptr);
+			if (vec_it != phases.end())
+			{
+				*j = (int)std::distance(phases.begin(), vec_it);
+			}
+		}
+		return (phase_ptr);
+	}
+
+	if (print == TRUE)
 	{
 		error_string = sformatf( "Could not find phase in list, %s.", cptr);
 		error_msg(error_string, CONTINUE);
 	}
 
-	if (void_ptr == NULL)
-	{
-		*j = -1;
-		return (NULL);
-	}
-
-	*j = (int) ((class phase **) void_ptr - &phases[0]);
-	return (*(class phase **) void_ptr);
+	return (NULL);
 }
 
 /* ---------------------------------------------------------------------- */

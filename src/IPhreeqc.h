@@ -1,3 +1,10 @@
+/*
+ * Modified for litephreeqc by Max Luebke (University of Potsdam)
+ * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
+ * Modifications: Added RunCell() C API export.
+ * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
+ */
+
 /*! @file IPhreeqc.h
 	@brief C/Fortran Documentation
 */
@@ -1638,6 +1645,7 @@ Headings
  *
  */
 	IPQ_DLL_EXPORT int         RunString(int id, const char* input);
+	IPQ_DLL_EXPORT int         RunCell(int id, int cell_no, double time_step);
 
 /**
  *  Sets a C callback function for Basic programs. The syntax for the Basic command is

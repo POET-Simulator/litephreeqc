@@ -1,3 +1,10 @@
+/*
+ * Modified for litephreeqc by Max Luebke (University of Potsdam)
+ * and Marco De Lucia (GFZ German Research Centre for Geosciences), 2024-2026.
+ * Modifications: Marked IErrorReporter destructor inline for multi-unit inclusion.
+ * Original code is subject to the USGS User Rights Notice (see phreeqc3-doc/NOTICE.TXT).
+ */
+
 #if !defined(__ERROR_REPORTER_HXX_INC)
 #define __ERROR_REPORTER_HXX_INC
 
@@ -15,7 +22,7 @@ public:
 
 // Note: this is req'd in order for subclass dtors to be called
 //
-IErrorReporter::~IErrorReporter(void)
+inline IErrorReporter::~IErrorReporter(void)
 {
 }
 

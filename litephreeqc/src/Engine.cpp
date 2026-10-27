@@ -8,10 +8,8 @@
  */
 #include "PhreeqcEngine.hpp"
 #include <cstddef>
-#include <iomanip>
 #include <regex>
 #include <span>
-#include <sstream>
 
 #include <IPhreeqc.hpp>
 #include <Phreeqc.h>
@@ -132,12 +130,7 @@ void PhreeqcEngine::runCell(std::vector<double> &cell_values,
 }
 
 void PhreeqcEngine::Impl::run(double time_step) {
-  std::stringstream time_ss;
-  time_ss << std::fixed << std::setprecision(20) << time_step;
-
-  const std::string runs_string =
-      "RUN_CELLS\n -cells 1\n -time_step " + time_ss.str() + "\nEND\n";
-  this->RunString(runs_string.c_str());
+  this->RunCell(1, time_step);
 
   if (this->GetErrorStringLineCount() > 0) {
     std::cerr << ":: Error in Phreeqc script: " << this->GetErrorString()

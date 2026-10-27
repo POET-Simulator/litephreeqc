@@ -49,8 +49,14 @@ In compliance with the USGS User Rights Notice, the following modifications were
 * **`src/IPhreeqc.hpp` & `src/IPhreeqc.cpp`**:
   - Added `GetPhreeqcPtr()` method to expose a direct pointer to the internal `Phreeqc` instance.
   - Added `struct SolutionMapping` and `getSolutionMapping()` to track module and solution index associations during simulation execution.
+* **`src/IPhreeqc.h`**, **`src/IPhreeqc.hpp`**, **`src/IPhreeqcLib.cpp`**, and **`src/ErrorReporter.hxx`**:
+  - Added `RunCell(int cell_no, double time_step)` C++ and C API methods to execute single simulation cells directly without text parsing.
+  - Marked `IErrorReporter::~IErrorReporter()` inline for multi-unit inclusion.
 * **`src/phreeqcpp/Phreeqc.h` & `src/phreeqcpp/litephreeqc_funcs.cpp`**:
   - Added valence state identification helper methods (`find_all_valence_states`, `find_valence_states`) for geochemical species.
+* **`src/phreeqcpp/Phreeqc.h`**, **`src/phreeqcpp/Phreeqc.cpp`**, **`src/phreeqcpp/structures.cpp`**, **`src/phreeqcpp/read.cpp`**, and **`src/phreeqcpp/tidy.cpp`**:
+  - Replaced linear search lookups for master species and phases with `std::map` index caching (`master_map`, `phases_map`).
+  - Optimized reaction lookups (`Utilities::Rxn_find`, `Rxn_copy`) to avoid redundant double lookups.
 * **`src/phreeqcpp/Solution.h` & `src/phreeqcpp/Solution.cxx`**:
   - Added `Update()` overload accepting temperature (`tc`) and pressure (`patm`).
 * **Authors of Modifications**:
